@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JAVICASH - Secure Access</title>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --primary-color: #6c5ce7;
+      --primary-hover: #5b4bc4;
+      --bg-gradient: linear-gradient(135deg, #0f0c20 0%, #15102a 50%, #06040a 100%);
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-color: #ffffff;
+      --text-muted: #a0a0b0;
+      --error-color: #ff4757;
+      --success-color: #2ed573;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--text-color);
+      padding: 20px;
+    }
+
+    /* Screen Locking Overlay for VPN */
+    #vpn-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #000000;
+      z-index: 999999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+    }
+    #vpn-overlay i {
+      font-size: 80px;
+      color: var(--error-color);
+      margin-bottom: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 32px 24px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+
+    .logo-container {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 12px auto;
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .logo-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .brand-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .welcome-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .view {
+      display: none;
+    }
+    .view.active {
+      display: block;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .btn-primary {
+      background: var(--primary-color);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: #fff;
+    }
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .btn-google {
+      background: #ffffff;
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .btn-google:hover {
+      background: #f1f1f1;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+      text-align: left;
+      position: relative;
+    }
+    .input-group label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+    .input-wrapper {
+      position: relative;
+    }
+    .input-field {
+      width: 100%;
+      padding: 14px 40px 14px 14px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .input-field:focus {
+      border-color: var(--primary-color);
+    }
+    .toggle-password {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .error-msg {
+      color: var(--error-color);
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+      text-align: left;
+    }
+    .input-field.error {
+      border-color: var(--error-color);
+    }
+
+    .forgot-link {
+      display: block;
+      text-align: right;
+      font-size: 12px;
+      color: var(--primary-color);
+      text-decoration: none;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+
+    .timer-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 12px 0;
+    }
+    .resend-btn {
+      background: none;
+      border: none;
+      color: var(--primary-color);
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .resend-btn:disabled {
+      color: var(--text-muted);
+      cursor: not-allowed;
+      text-decoration: none;
+    }
+
+    .dashboard-card {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 15px;
+      border: 1px solid var(--card-border);
+    }
+    .uid-badge {
+      background: rgba(108, 92, 231, 0.2);
+      border: 1px dashed var(--primary-color);
+      padding: 10px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 18px;
+      letter-spacing: 2px;
+      color: #fff;
+      margin: 10px 0;
+      word-break: break-all;
+    }
+  </style>
+
+  <!-- EmailJS SDK v3 -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+<body>
+
+  <!-- VPN Block Overlay -->
+  <div id="vpn-overlay">
+    <i class="fa-solid fa-shield-cat"></i>
+    <h2>VPN Detected!</h2>
+    <p style="margin-top: 10px; color: var(--text-muted);">Please disable your VPN to access JAVICASH application securely.</p>
+  </div>
+
+  <div class="container">
+    <div class="logo-container">
+      <img src="https://lh3.googleusercontent.com/d/1-HtKoZn4P0ztzUW0V-QP3mBU0SyGYnSn" alt="JAVICASH Logo">
+    </div>
+    <h1 class="brand-title">JAVICASH</h1>
+    <p class="welcome-text">Hello user, welcome to JAVICASH. If you haven't registered yet, please register. If registered, login to access your dashboard.</p>
+
+    <!-- Initial Landing View -->
+    <div id="view-landing" class="view active">
+      <button class="btn btn-google" id="btn-google-auth">
+        <i class="fa-brands fa-google"></i> Continue with Google
+      </button>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="switchView('view-register')">Register</button>
+        <button class="btn btn-outline" onclick="switchView('view-login')">Login</button>
+      </div>
+    </div>
+
+    <!-- Registration Form View -->
+    <div id="view-register" class="view">
+      <div class="input-group">
+        <label>Full Name</label>
+        <input type="text" id="reg-name" class="input-field" placeholder="John Doe">
+        <div class="error-msg" id="err-reg-name">Name is required</div>
+      </div>
+      <div class="input-group">
+        <label>Email Address</label>
+        <input type="email" id="reg-email" class="input-field" placeholder="user@example.com">
+        <div class="error-msg" id="err-reg-email"></div>
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <div class="input-wrapper">
+          <input type="password" id="reg-pass" class="input-field" placeholder="••••••••">
+          <i class="fa-regular fa-eye toggle-password" onclick="togglePassVisibility('reg-pass', this)"></i>
+        </div>
+        <div class="error-msg" id="err-reg-pass">Password must be at least 6 characters</div>
+      </div>
+      <div class="input-group">
+        <label>Confirm Password</label>
+        <div class="input-wrapper">
+          <input type="password" id="reg-cpass" class="input-field" placeholder="••••••••">
+          <i class="fa-regular fa-eye toggle-password" onclick="togglePassVisibility('reg-cpass', this)"></i>
+        </div>
+        <div class="error-msg" id="err-reg-cpass">Passwords do not match</div>
+      </div>
+      <button class="btn btn-primary" id="btn-reg-next" onclick="handleRegistrationSubmit()">Next</button>
+      <button class="btn btn-outline" style="margin-top: 10px;" onclick="switchView('view-landing')">Back</button>
+    </div>
+
+    <!-- Registration OTP Verification View -->
+    <div id="view-reg-otp" class="view">
+      <h3>Verify Email OTP</h3>
+      <p class="welcome-text">We sent a 6-digit code to your email.</p>
+      <div class="input-group">
+        <input type="text" id="reg-otp-input" class="input-field" placeholder="Enter 6-digit OTP" maxlength="6" style="text-align: center; font-size: 18px; letter-spacing: 5px;">
+        <div class="error-msg" id="err-reg-otp">Invalid or expired OTP</div>
+      </div>
+      <div class="timer-text">Time Remaining: <span id="reg-timer-display" style="color: var(--primary-color); font-weight: bold;">60</span>s</div>
+      <button class="resend-btn" id="btn-reg-resend" disabled onclick="resendRegistrationOTP()">Resend OTP</button>
+      <button class="btn btn-primary" style="margin-top: 15px;" onclick="verifyRegistrationOTP()">Verify & Register</button>
+    </div>
+
+    <!-- Login View -->
+    <div id="view-login" class="view">
+      <div class="input-group">
+        <label>Unique Member ID</label>
+        <input type="text" id="login-uid" class="input-field" placeholder="6-digit Unique ID">
+        <div class="error-msg" id="err-login-uid">Unique ID missing or incorrect</div>
+      </div>
+      <div class="input-group">
+        <label>Email Address</label>
+        <input type="email" id="login-email" class="input-field" placeholder="user@example.com">
+        <div class="error-msg" id="err-login-email">Email missing or incorrect</div>
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <div class="input-wrapper">
+          <input type="password" id="login-pass" class="input-field" placeholder="••••••••">
+          <i class="fa-regular fa-eye toggle-password" onclick="togglePassVisibility('login-pass', this)"></i>
+        </div>
+        <div class="error-msg" id="err-login-pass">Password missing or incorrect</div>
+        <a class="forgot-link" onclick="switchView('view-forgot')">Forgot Password?</a>
+      </div>
+      <button class="btn btn-primary" onclick="handleLoginSubmit()">Login</button>
+      <button class="btn btn-outline" style="margin-top: 10px;" onclick="switchView('view-landing')">Back</button>
+    </div>
+
+    <!-- Forgot Password Request View -->
+    <div id="view-forgot" class="view">
+      <h3>Reset Password</h3>
+      <p class="welcome-text">Enter your registered Email (Unique ID optional).</p>
+      <div class="input-group">
+        <label>Unique ID (Optional)</label>
+        <input type="text" id="forgot-uid" class="input-field" placeholder="6-digit Unique ID">
+      </div>
+      <div class="input-group">
+        <label>Registered Email</label>
+        <input type="email" id="forgot-email" class="input-field" placeholder="user@example.com">
+        <div class="error-msg" id="err-forgot-email">Account not found or limit exceeded</div>
+      </div>
+      <button class="btn btn-primary" onclick="handleForgotSubmit()">Send Reset Code</button>
+      <button class="btn btn-outline" style="margin-top: 10px;" onclick="switchView('view-login')">Back</button>
+    </div>
+
+    <!-- Forgot Password OTP Verification View -->
+    <div id="view-forgot-otp" class="view">
+      <h3>Verify Security Code</h3>
+      <p class="welcome-text">Enter OTP sent to your email.</p>
+      <div class="input-group">
+        <input type="text" id="forgot-otp-input" class="input-field" placeholder="Enter 6-digit OTP" maxlength="6" style="text-align: center; font-size: 18px; letter-spacing: 5px;">
+        <div class="error-msg" id="err-forgot-otp">Invalid or expired OTP</div>
+      </div>
+      <div class="timer-text">Time Remaining: <span id="forgot-timer-display" style="color: var(--primary-color); font-weight: bold;">60</span>s</div>
+      <button class="resend-btn" id="btn-forgot-resend" disabled onclick="resendForgotOTP()">Resend OTP</button>
+      <button class="btn btn-primary" style="margin-top: 15px;" onclick="verifyForgotOTP()">Verify Code</button>
+    </div>
+
+    <!-- Reset Password Input View -->
+    <div id="view-reset-pass" class="view">
+      <h3>New Password</h3>
+      <div class="input-group">
+        <label>New Password</label>
+        <div class="input-wrapper">
+          <input type="password" id="reset-new-pass" class="input-field" placeholder="••••••••">
+          <i class="fa-regular fa-eye toggle-password" onclick="togglePassVisibility('reset-new-pass', this)"></i>
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Confirm New Password</label>
+        <div class="input-wrapper">
+          <input type="password" id="reset-cpass" class="input-field" placeholder="••••••••">
+          <i class="fa-regular fa-eye toggle-password" onclick="togglePassVisibility('reset-cpass', this)"></i>
+        </div>
+        <div class="error-msg" id="err-reset-pass">Passwords do not match</div>
+      </div>
+      <button class="btn btn-primary" onclick="handlePasswordResetSave()">Update & Access Dashboard</button>
+    </div>
+
+    <!-- Dashboard View -->
+    <div id="view-dashboard" class="view">
+      <h2>Welcome Back!</h2>
+      <p style="color: var(--text-muted); font-size: 14px; margin-top: 5px;">You are now signed in to JAVICASH</p>
+      
+      <div class="dashboard-card">
+        <p style="font-size: 12px; color: var(--text-muted);">YOUR UNIQUE ID (SAVE THIS):</p>
+        <div class="uid-badge" id="dash-uid">------</div>
+        <p style="font-size: 13px; margin-top: 10px;">Name: <b id="dash-name">---</b></p>
+        <p style="font-size: 13px;">Email: <b id="dash-email">---</b></p>
+      </div>
+
+      <button class="btn btn-outline" style="margin-top: 20px; border-color: var(--error-color); color: var(--error-color);" onclick="handleLogout()">Logout Session</button>
+    </div>
+  </div>
+
+  <!-- Firebase Modular JS SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+    import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    // 1. Firebase Setup
+    const firebaseConfig = {
+      apiKey: "AIzaSyCwCrQBaYWr6Nr8jdZeeGGyQbjsFW-7LLQ",
+      authDomain: "javicash-13a23.firebaseapp.com",
+      projectId: "javicash-13a23",
+      storageBucket: "javicash-13a23.firebasestorage.app",
+      messagingSenderId: "940101890411",
+      appId: "1:940101890411:web:e4554cbf62319dd8f01c2e",
+      measurementId: "G-G6957LRB21",
+      databaseURL: "https://javicash-13a23-default-rtdb.firebaseio.com"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    // 2. EmailJS Initialization Corrected (Using Public Key / User ID)
+    const EMAILJS_SERVICE_ID = "service_uhc1czk";
+    const EMAILJS_TEMPLATE_ID = "template_cwtzegc";
+    const EMAILJS_PUBLIC_KEY = "3Hbg-0gXLuoRnX2pC";
+    
+    // Initialize EmailJS with the Key
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+
+    // Dynamic State Variables
+    let currentOTP = null;
+    let otpTimerInterval = null;
+    let tempUserData = {};
+    let forgotUserKey = null;
+
+    window.switchView = function(viewId) {
+      document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+      clearErrorMessages();
+    };
+
+    function clearErrorMessages() {
+      document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.input-field').forEach(el => el.classList.remove('error'));
+    }
+
+    window.togglePassVisibility = function(fieldId, iconEl) {
+      const field = document.getElementById(fieldId);
+      if (field.type === "password") {
+        field.type = "text";
+        iconEl.classList.replace("fa-eye", "fa-eye-slash");
+      } else {
+        field.type = "password";
+        iconEl.classList.replace("fa-eye-slash", "fa-eye");
+      }
+    };
+
+    // 3. Security Check: VPN Detection Algorithm
+    async function checkVPNSecurity() {
+      try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        if (data.security && (data.security.vpn || data.security.proxy || data.security.tor)) {
+          document.getElementById('vpn-overlay').style.display = 'flex';
+          return true;
+        }
+      } catch (err) {
+        const rtc = new RTCPeerConnection({iceServers: []});
+        rtc.createDataChannel('');
+        rtc.createOffer().then(offer => rtc.setLocalDescription(offer));
+        rtc.onicecandidate = (evt) => {
+          if (evt && evt.candidate && evt.candidate.candidate) {
+            const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
+            const ipMatch = ipRegex.exec(evt.candidate.candidate);
+            if (ipMatch && ipMatch[1].startsWith("10.8")) {
+              document.getElementById('vpn-overlay').style.display = 'flex';
+            }
+          }
+        };
+      }
+      return false;
+    }
+
+    // 4. Unique ID Generator
+    async function generateUniqueMemberID() {
+      let isUnique = false;
+      let newUid = "";
+      while (!isUnique) {
+        newUid = Math.floor(100000 + Math.random() * 900000).toString();
+        const snapshot = await get(child(ref(db), `users/${newUid}`));
+        if (!snapshot.exists()) {
+          isUnique = true;
+        }
+      }
+      return newUid;
+    }
+
+    function sanitizeEmail(email) {
+      return email.toLowerCase().trim().replace(/\./g, '_dot_').replace(/@/g, '_at_');
+    }
+
+    // Fixed Email OTP Sending Handler with fallback parameters
+    async function sendEmailOTP(recipientEmail, otpCode) {
+      const templateParams = {
+        to_email: recipientEmail,
+        user_email: recipientEmail,
+        email: recipientEmail,
+        otp: otpCode,
+        otp_code: otpCode,
+        message: `Your JAVICASH security code is: ${otpCode}. Valid for 60 seconds.`
+      };
+
+      try {
+        const res = await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+        console.log("EmailJS Sent Successfully:", res);
+        return res;
+      } catch (err) {
+        console.error("EmailJS Error:", err);
+        alert("Failed to send OTP email: " + (err.text || err.message || "Unknown error"));
+        throw err;
+      }
+    }
+
+    // 5. Registration Logic
+    window.handleRegistrationSubmit = async function() {
+      clearErrorMessages();
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const pass = document.getElementById('reg-pass').value;
+      const cpass = document.getElementById('reg-cpass').value;
+
+      let valid = true;
+      if (!name) { showError('reg-name', 'err-reg-name', 'Full Name is required'); valid = false; }
+      if (!email || !email.includes('@')) { showError('reg-email', 'err-reg-email', 'Valid Email is required'); valid = false; }
+      if (pass.length < 6) { showError('reg-pass', 'err-reg-pass', 'Min 6 characters required'); valid = false; }
+      if (pass !== cpass) { showError('reg-cpass', 'err-reg-cpass', 'Passwords do not match'); valid = false; }
+
+      if (!valid) return;
+
+      const emailKey = sanitizeEmail(email);
+      const emailSnapshot = await get(child(ref(db), `email_registry/${emailKey}`));
+      if (emailSnapshot.exists()) {
+        showError('reg-email', 'err-reg-email', 'Account already exists with this email! Please login.');
+        return;
+      }
+
+      tempUserData = { name, email, pass };
+      await startRegOTPTimer();
+      switchView('view-reg-otp');
+    };
+
+    async function startRegOTPTimer() {
+      currentOTP = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      try {
+        await sendEmailOTP(tempUserData.email, currentOTP);
+      } catch (e) {
+        return;
+      }
+
+      let duration = 60;
+      const display = document.getElementById('reg-timer-display');
+      const resendBtn = document.getElementById('btn-reg-resend');
+      resendBtn.disabled = true;
+
+      clearInterval(otpTimerInterval);
+      otpTimerInterval = setInterval(() => {
+        duration--;
+        display.textContent = duration;
+        if (duration <= 0) {
+          clearInterval(otpTimerInterval);
+          resendBtn.disabled = false;
+        }
+      }, 1000);
+    }
+
+    window.resendRegistrationOTP = function() {
+      startRegOTPTimer();
+    };
+
+    window.verifyRegistrationOTP = async function() {
+      const enteredOTP = document.getElementById('reg-otp-input').value.trim();
+      if (enteredOTP !== currentOTP) {
+        showError('reg-otp-input', 'err-reg-otp', 'Invalid or Expired OTP!');
+        return;
+      }
+
+      clearInterval(otpTimerInterval);
+      const uniqueID = await generateUniqueMemberID();
+      const emailKey = sanitizeEmail(tempUserData.email);
+
+      const userData = {
+        uid: uniqueID,
+        name: tempUserData.name,
+        email: tempUserData.email,
+        password: tempUserData.pass,
+        created_at: new Date().toISOString()
+      };
+
+      await set(ref(db, `users/${uniqueID}`), userData);
+      await set(ref(db, `email_registry/${emailKey}`), uniqueID);
+      localStorage.setItem('javicash_session', JSON.stringify(userData));
+
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      loadDashboard(userData);
+    };
+
+    // 6. Login Logic
+    window.handleLoginSubmit = async function() {
+      clearErrorMessages();
+      const uid = document.getElementById('login-uid').value.trim();
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-pass').value;
+
+      let valid = true;
+      if (!uid) { showError('login-uid', 'err-login-uid', 'Unique ID required'); valid = false; }
+      if (!email) { showError('login-email', 'err-login-email', 'Email required'); valid = false; }
+      if (!pass) { showError('login-pass', 'err-login-pass', 'Password required'); valid = false; }
+      if (!valid) return;
+
+      const userSnapshot = await get(child(ref(db), `users/${uid}`));
+      if (!userSnapshot.exists()) {
+        showError('login-uid', 'err-login-uid', 'Incorrect Unique ID');
+        return;
+      }
+
+      const userData = userSnapshot.val();
+      if (userData.email.toLowerCase() !== email.toLowerCase()) {
+        showError('login-email', 'err-login-email', 'Email does not match User ID');
+        return;
+      }
+      if (userData.password !== pass) {
+        showError('login-pass', 'err-login-pass', 'Incorrect Password');
+        return;
+      }
+
+      localStorage.setItem('javicash_session', JSON.stringify(userData));
+      loadDashboard(userData);
+    };
+
+    // 7. Forgot Password Logic
+    window.handleForgotSubmit = async function() {
+      clearErrorMessages();
+      const email = document.getElementById('forgot-email').value.trim();
+      const uid = document.getElementById('forgot-uid').value.trim();
+
+      if (!email) {
+        showError('forgot-email', 'err-forgot-email', 'Email is required');
+        return;
+      }
+
+      const emailKey = sanitizeEmail(email);
+      let targetUID = uid;
+
+      if (!targetUID) {
+        const emailMapSnap = await get(child(ref(db), `email_registry/${emailKey}`));
+        if (!emailMapSnap.exists()) {
+          showError('forgot-email', 'err-forgot-email', 'No account found with this email');
+          return;
+        }
+        targetUID = emailMapSnap.val();
+      }
+
+      const attemptsSnap = await get(child(ref(db), `forgot_blocks/${targetUID}`));
+      const now = Date.now();
+      if (attemptsSnap.exists()) {
+        const blockData = attemptsSnap.val();
+        if (blockData.blockedUntil && now < blockData.blockedUntil) {
+          const remainingHours = Math.ceil((blockData.blockedUntil - now) / (1000 * 60 * 60));
+          showError('forgot-email', 'err-forgot-email', `Forgot password blocked! Try again in ${remainingHours} hours.`);
+          return;
+        }
+      }
+
+      forgotUserKey = targetUID;
+      tempUserData.email = email;
+      await startForgotOTPTimer();
+      switchView('view-forgot-otp');
+    };
+
+    async function recordForgotAttempt() {
+      const refPath = ref(db, `forgot_blocks/${forgotUserKey}`);
+      const snap = await get(refPath);
+      let count = 0;
+      if (snap.exists()) count = snap.val().count || 0;
+      
+      count++;
+      if (count >= 3) {
+        const blockedUntil = Date.now() + (7 * 60 * 60 * 1000);
+        await set(refPath, { count: 0, blockedUntil });
+      } else {
+        await set(refPath, { count, blockedUntil: 0 });
+      }
+    }
+
+    async function startForgotOTPTimer() {
+      await recordForgotAttempt();
+      currentOTP = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      try {
+        await sendEmailOTP(tempUserData.email, currentOTP);
+      } catch (e) {
+        return;
+      }
+
+      let duration = 60;
+      const display = document.getElementById('forgot-timer-display');
+      const resendBtn = document.getElementById('btn-forgot-resend');
+      resendBtn.disabled = true;
+
+      clearInterval(otpTimerInterval);
+      otpTimerInterval = setInterval(() => {
+        duration--;
+        display.textContent = duration;
+        if (duration <= 0) {
+          clearInterval(otpTimerInterval);
+          resendBtn.disabled = false;
+        }
+      }, 1000);
+    }
+
+    window.resendForgotOTP = function() {
+      startForgotOTPTimer();
+    };
+
+    window.verifyForgotOTP = function() {
+      const enteredOTP = document.getElementById('forgot-otp-input').value.trim();
+      if (enteredOTP !== currentOTP) {
+        showError('forgot-otp-input', 'err-forgot-otp', 'Invalid/Expired Code!');
+        return;
+      }
+      clearInterval(otpTimerInterval);
+      switchView('view-reset-pass');
+    };
+
+    window.handlePasswordResetSave = async function() {
+      clearErrorMessages();
+      const newPass = document.getElementById('reset-new-pass').value;
+      const cpass = document.getElementById('reset-cpass').value;
+
+      if (newPass.length < 6 || newPass !== cpass) {
+        showError('reset-cpass', 'err-reset-pass', 'Passwords must match and be min 6 characters');
+        return;
+      }
+
+      await set(child(ref(db), `users/${forgotUserKey}/password`), newPass);
+      const userSnap = await get(child(ref(db), `users/${forgotUserKey}`));
+      const userData = userSnap.val();
+
+      localStorage.setItem('javicash_session', JSON.stringify(userData));
+      loadDashboard(userData);
+    };
+
+    // 8. Google OAuth Integration
+    document.getElementById('btn-google-auth').addEventListener('click', async () => {
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+
+        const emailKey = sanitizeEmail(user.email);
+        const emailMapSnap = await get(child(ref(db), `email_registry/${emailKey}`));
+
+        let userData;
+        if (emailMapSnap.exists()) {
+          const existingUID = emailMapSnap.val();
+          const userSnap = await get(child(ref(db), `users/${existingUID}`));
+          userData = userSnap.val();
+        } else {
+          const uniqueID = await generateUniqueMemberID();
+          userData = {
+            uid: uniqueID,
+            name: user.displayName || "Google User",
+            email: user.email,
+            password: "GOOGLE_AUTH_PROTECTED",
+            created_at: new Date().toISOString()
+          };
+          await set(ref(db, `users/${uniqueID}`), userData);
+          await set(ref(db, `email_registry/${emailKey}`), uniqueID);
+        }
+
+        localStorage.setItem('javicash_session', JSON.stringify(userData));
+        loadDashboard(userData);
+      } catch (error) {
+        alert("Google Authentication Failed: " + error.message);
+      }
+    });
+
+    // 9. Auto-Login & Initialization
+    function loadDashboard(userData) {
+      document.getElementById('dash-uid').textContent = userData.uid;
+      document.getElementById('dash-name').textContent = userData.name;
+      document.getElementById('dash-email').textContent = userData.email;
+      switchView('view-dashboard');
+    }
+
+    window.handleLogout = function() {
+      localStorage.removeItem('javicash_session');
+      switchView('view-landing');
+    };
+
+    function showError(fieldId, errId, msg) {
+      const field = document.getElementById(fieldId);
+      const err = document.getElementById(errId);
+      if (field) field.classList.add('error');
+      if (err) {
+        err.textContent = msg;
+        err.style.display = 'block';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      await checkVPNSecurity();
+      const savedSession = localStorage.getItem('javicash_session');
+      if (savedSession) {
+        try {
+          const userData = JSON.parse(savedSession);
+          loadDashboard(userData);
+        } catch(e) {
+          switchView('view-landing');
+        }
+      }
+    });
+  </script>
+</body>
+</html>
