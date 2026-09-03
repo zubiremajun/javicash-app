@@ -409,7 +409,7 @@
       <button class="btn btn-primary" onclick="handlePasswordResetSave()">Update & Access Dashboard</button>
     </div>
 
-    <!-- Dashboard View -->
+    <!-- Dashboard View (Keep as fallback if needed) -->
     <div id="view-dashboard" class="view">
       <h2>Welcome Back!</h2>
       <p style="color: var(--text-muted); font-size: 14px; margin-top: 5px;">You are now signed in to JAVICASH</p>
@@ -450,12 +450,11 @@
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();
 
-    // 2. EmailJS Initialization Corrected (Using Public Key / User ID)
+    // 2. EmailJS Initialization
     const EMAILJS_SERVICE_ID = "service_uhc1czk";
     const EMAILJS_TEMPLATE_ID = "template_cwtzegc";
     const EMAILJS_PUBLIC_KEY = "3Hbg-0gXLuoRnX2pC";
     
-    // Initialize EmailJS with the Key
     emailjs.init(EMAILJS_PUBLIC_KEY);
 
     // Dynamic State Variables
@@ -530,7 +529,7 @@
       return email.toLowerCase().trim().replace(/\./g, '_dot_').replace(/@/g, '_at_');
     }
 
-    // Fixed Email OTP Sending Handler with fallback parameters
+    // Email OTP Sending Handler
     async function sendEmailOTP(recipientEmail, otpCode) {
       const templateParams = {
         to_email: recipientEmail,
@@ -630,7 +629,6 @@
 
       await set(ref(db, `users/${uniqueID}`), userData);
       await set(ref(db, `email_registry/${emailKey}`), uniqueID);
-      localStorage.setItem('javicash_session', JSON.stringify(userData));
 
       confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
       loadDashboard(userData);
@@ -665,7 +663,6 @@
         return;
       }
 
-      localStorage.setItem('javicash_session', JSON.stringify(userData));
       loadDashboard(userData);
     };
 
@@ -778,7 +775,6 @@
       const userSnap = await get(child(ref(db), `users/${forgotUserKey}`));
       const userData = userSnap.val();
 
-      localStorage.setItem('javicash_session', JSON.stringify(userData));
       loadDashboard(userData);
     };
 
@@ -809,19 +805,19 @@
           await set(ref(db, `email_registry/${emailKey}`), uniqueID);
         }
 
-        localStorage.setItem('javicash_session', JSON.stringify(userData));
         loadDashboard(userData);
       } catch (error) {
         alert("Google Authentication Failed: " + error.message);
       }
     });
 
-    // 9. Auto-Login & Initialization
+    // 9. Auto-Login & Redirect to Dashboard Location
     function loadDashboard(userData) {
-      document.getElementById('dash-uid').textContent = userData.uid;
-      document.getElementById('dash-name').textContent = userData.name;
-      document.getElementById('dash-email').textContent = userData.email;
-      switchView('view-dashboard');
+      // সেশন সেভ করা হচ্ছে
+      localStorage.setItem('javicash_session', JSON.stringify(userData));
+      
+      // সফলতার পর সরাসরি dashboard.html পেজে নিয়ে যাওয়া
+      window.location.href = "dashboard.html";
     }
 
     window.handleLogout = function() {
