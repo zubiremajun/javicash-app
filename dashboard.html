@@ -86,6 +86,7 @@ body{
     transform:translateY(0);
     opacity:.45;
   }
+
   35%{
     transform:translateY(-10px);
     opacity:1;
@@ -103,7 +104,7 @@ body{
   margin-top:5px;
 }
 
-/* ================= CONNECTION MESSAGE ================= */
+/* ================= CONNECTION ================= */
 
 #connectionStatus{
   display:none;
@@ -112,11 +113,15 @@ body{
   left:50%;
   transform:translateX(-50%);
   z-index:9999;
+
   background:#2b1d24;
   color:#ff9aa4;
+
   border:1px solid rgba(255,71,87,.3);
+
   padding:9px 15px;
   border-radius:30px;
+
   font-size:12px;
 }
 
@@ -127,7 +132,9 @@ body{
   top:0;
   left:0;
   right:0;
+
   height:64px;
+
   z-index:1000;
 
   display:flex;
@@ -137,7 +144,9 @@ body{
   padding:0 22px;
 
   background:rgba(10,8,22,.82);
+
   border-bottom:1px solid var(--border);
+
   backdrop-filter:blur(16px);
 }
 
@@ -145,7 +154,9 @@ body{
   display:flex;
   align-items:center;
   gap:10px;
+
   color:#8b7cf6;
+
   font-size:20px;
   font-weight:800;
 }
@@ -153,29 +164,40 @@ body{
 .logo img{
   width:35px;
   height:35px;
+
   border-radius:50%;
+
   object-fit:cover;
 }
 
 .menu-toggle{
   display:none;
+
   background:none;
   color:#fff;
+
   font-size:23px;
+
   cursor:pointer;
+
+  border:0;
 }
 
 /* ================= SIDEBAR ================= */
 
 .sidebar{
   position:fixed;
+
   left:0;
   top:64px;
   bottom:0;
+
   width:250px;
+
   z-index:900;
 
   background:rgba(13,10,27,.97);
+
   border-right:1px solid var(--border);
 
   padding:18px 12px;
@@ -185,24 +207,32 @@ body{
 
 .menu-title{
   color:#68647d;
+
   font-size:11px;
+
   text-transform:uppercase;
+
   letter-spacing:1px;
+
   padding:8px 12px 12px;
 }
 
 .menu-item{
   list-style:none;
+
   display:flex;
   align-items:center;
+
   gap:13px;
 
   padding:13px 15px;
+
   margin-bottom:5px;
 
   border-radius:12px;
 
   color:var(--muted);
+
   cursor:pointer;
 
   transition:.18s;
@@ -216,25 +246,40 @@ body{
 .menu-item:hover,
 .menu-item.active{
   background:var(--primary);
+
   color:#fff;
-  box-shadow:0 8px 25px rgba(108,92,231,.22);
+
+  box-shadow:
+    0 8px 25px rgba(108,92,231,.22);
 }
 
 .logout-item{
   margin-top:28px;
+
   color:#ff7180!important;
+}
+
+.logout-item:hover{
+  background:rgba(255,71,87,.15)!important;
+
+  color:#ff7180!important;
+
+  box-shadow:none!important;
 }
 
 /* ================= MAIN ================= */
 
 .main{
   margin-left:250px;
+
   padding:88px 24px 30px;
+
   max-width:1500px;
 }
 
 .tab{
   display:none;
+
   animation:fadeIn .2s ease;
 }
 
@@ -243,14 +288,17 @@ body{
 }
 
 @keyframes fadeIn{
+
   from{
     opacity:.3;
     transform:translateY(5px);
   }
+
   to{
     opacity:1;
     transform:none;
   }
+
 }
 
 .page-title{
@@ -263,7 +311,9 @@ body{
 
 .page-title p{
   color:var(--muted);
+
   font-size:13px;
+
   margin-top:5px;
 }
 
@@ -271,47 +321,67 @@ body{
 
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(270px,1fr));
+
+  grid-template-columns:
+    repeat(auto-fit,minmax(270px,1fr));
+
   gap:16px;
 }
 
 .card{
   background:var(--card);
+
   border:1px solid var(--border);
+
   border-radius:18px;
+
   padding:20px;
+
   margin-bottom:18px;
+
   backdrop-filter:blur(12px);
-  box-shadow:0 18px 50px rgba(0,0,0,.22);
+
+  box-shadow:
+    0 18px 50px rgba(0,0,0,.22);
 }
 
 .label{
   color:var(--muted);
+
   font-size:13px;
 }
 
 .balance{
   color:var(--success);
+
   font-size:38px;
+
   font-weight:800;
+
   margin:8px 0 15px;
 }
 
 .uid{
   font-size:25px;
+
   font-weight:750;
+
   margin-top:8px;
 }
 
 .small{
   color:var(--muted);
+
   font-size:12px;
+
   margin-top:5px;
 }
 
 .active-status{
   color:var(--success);
+
   font-weight:700;
+
   margin-top:12px;
 }
 
@@ -319,33 +389,45 @@ body{
 
 .btn{
   width:100%;
+
   display:inline-flex;
+
   align-items:center;
+
   justify-content:center;
+
   gap:8px;
 
   padding:12px 16px;
 
   border-radius:11px;
+
   border:none;
 
   background:var(--primary);
+
   color:#fff;
 
   font-weight:700;
+
   cursor:pointer;
 
   transition:.18s;
+
+  text-decoration:none;
 }
 
 .btn:hover{
   background:var(--primary-hover);
+
   transform:translateY(-1px);
 }
 
 .btn:disabled{
   opacity:.6;
+
   cursor:not-allowed;
+
   transform:none;
 }
 
@@ -353,13 +435,17 @@ body{
 
 .profile{
   display:flex;
+
   align-items:center;
+
   gap:16px;
+
   flex-wrap:wrap;
 }
 
 .avatar-box{
   position:relative;
+
   width:82px;
   height:82px;
 }
@@ -367,13 +453,17 @@ body{
 .avatar{
   width:82px;
   height:82px;
+
   border-radius:50%;
+
   object-fit:cover;
+
   border:3px solid var(--primary);
 }
 
 .camera{
   position:absolute;
+
   right:-2px;
   bottom:-2px;
 
@@ -381,9 +471,11 @@ body{
   height:29px;
 
   display:grid;
+
   place-items:center;
 
   background:var(--primary);
+
   border-radius:50%;
 
   cursor:pointer;
@@ -397,21 +489,27 @@ body{
 
 .form-group label{
   display:block;
+
   color:var(--muted);
+
   font-size:12px;
+
   margin-bottom:6px;
 }
 
 .control{
   width:100%;
+
   padding:12px;
 
   border-radius:10px;
 
   background:rgba(0,0,0,.28);
+
   border:1px solid var(--border);
 
   color:#fff;
+
   outline:none;
 }
 
@@ -427,16 +525,22 @@ body{
 
 .method-grid{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
+
+  grid-template-columns:
+    repeat(3,1fr);
+
   gap:9px;
+
   margin-bottom:15px;
 }
 
 .method{
   padding:13px 5px;
+
   text-align:center;
 
   border:1px solid var(--border);
+
   border-radius:11px;
 
   background:rgba(0,0,0,.2);
@@ -448,7 +552,9 @@ body{
 
 .method.selected{
   border-color:var(--primary);
-  background:rgba(108,92,231,.23);
+
+  background:
+    rgba(108,92,231,.23);
 }
 
 /* ================= FEED ================= */
@@ -459,17 +565,24 @@ body{
 
 .feed-text{
   color:var(--muted);
+
   font-size:13px;
+
   line-height:1.55;
+
   margin-top:6px;
 }
 
 .feed img,
 .feed video{
   width:100%;
+
   max-height:360px;
+
   object-fit:cover;
+
   border-radius:11px;
+
   margin-top:10px;
 }
 
@@ -477,7 +590,9 @@ body{
 
 .history-row{
   display:flex;
+
   justify-content:space-between;
+
   gap:12px;
 
   padding:13px 0;
@@ -503,7 +618,9 @@ body{
 
 .empty{
   text-align:center;
+
   padding:20px;
+
   color:var(--muted);
 }
 
@@ -511,21 +628,30 @@ body{
 
 .games{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(205px,1fr));
+
+  grid-template-columns:
+    repeat(auto-fill,minmax(205px,1fr));
+
   gap:15px;
 }
 
 .game{
   background:rgba(0,0,0,.18);
+
   border:1px solid var(--border);
+
   border-radius:15px;
+
   padding:11px;
 }
 
 .game img{
   width:100%;
+
   height:125px;
+
   object-fit:cover;
+
   border-radius:10px;
 }
 
@@ -537,12 +663,17 @@ body{
 
 .notice{
   padding:13px;
+
   border-radius:12px;
 
-  background:rgba(108,92,231,.10);
-  border:1px solid rgba(108,92,231,.2);
+  background:
+    rgba(108,92,231,.10);
+
+  border:
+    1px solid rgba(108,92,231,.2);
 
   color:#d8d4ff;
+
   font-size:13px;
 }
 
@@ -566,8 +697,11 @@ body{
 
   .sidebar{
     transform:translateX(-105%);
+
     width:235px;
-    box-shadow:15px 0 40px rgba(0,0,0,.35);
+
+    box-shadow:
+      15px 0 40px rgba(0,0,0,.35);
   }
 
   .sidebar.open{
@@ -576,6 +710,7 @@ body{
 
   .main{
     margin-left:0;
+
     padding:84px 14px 90px;
   }
 
@@ -592,13 +727,15 @@ body{
   }
 
   .method-grid{
-    grid-template-columns:repeat(3,1fr);
+    grid-template-columns:
+      repeat(3,1fr);
   }
 
   .mobile-nav{
     display:flex;
 
     position:fixed;
+
     left:0;
     right:0;
     bottom:0;
@@ -607,32 +744,41 @@ body{
 
     z-index:1100;
 
-    background:rgba(10,8,22,.95);
-    border-top:1px solid var(--border);
+    background:
+      rgba(10,8,22,.95);
+
+    border-top:
+      1px solid var(--border);
 
     backdrop-filter:blur(16px);
   }
 
   .mobile-nav button{
     flex:1;
+
     border:0;
+
     background:none;
 
     color:var(--muted);
 
     font-size:10px;
+
     cursor:pointer;
   }
 
   .mobile-nav i{
     display:block;
+
     font-size:18px;
+
     margin-bottom:4px;
   }
 
   .mobile-nav button.active{
     color:#fff;
   }
+
 }
 </style>
 </head>
@@ -642,12 +788,17 @@ body{
 <!-- ================= LOADING ================= -->
 
 <div id="loadingScreen">
+
   <div class="loading-box">
 
     <div class="loading-dots">
+
       <span class="loading-dot"></span>
+
       <span class="loading-dot"></span>
+
       <span class="loading-dot"></span>
+
     </div>
 
     <div id="loadingTitle">
@@ -659,11 +810,15 @@ body{
     </div>
 
   </div>
+
 </div>
 
 <div id="connectionStatus">
+
   <i class="fa-solid fa-wifi"></i>
+
   Connection problem — Firebase is retrying...
+
 </div>
 
 <!-- ================= TOP BAR ================= -->
@@ -671,22 +826,33 @@ body{
 <header class="topbar">
 
   <div class="logo">
+
     <img
       src="https://lh3.googleusercontent.com/d/1-HtKoZn4P0ztzUW0V-QP3mBU0SyGYnSn"
       alt="JAVICASH"
     >
+
     JAVICASH
+
   </div>
 
-  <button class="menu-toggle" onclick="toggleSidebar()">
+  <button
+    class="menu-toggle"
+    onclick="toggleSidebar()"
+  >
+
     <i class="fa-solid fa-bars"></i>
+
   </button>
 
 </header>
 
 <!-- ================= SIDEBAR ================= -->
 
-<aside class="sidebar" id="sidebar">
+<aside
+  class="sidebar"
+  id="sidebar"
+>
 
   <div class="menu-title">
     Member Menu
@@ -699,8 +865,11 @@ body{
       data-tab="home"
       onclick="switchTab('home',this)"
     >
+
       <i class="fa-solid fa-house"></i>
+
       Home
+
     </li>
 
     <li
@@ -708,8 +877,11 @@ body{
       data-tab="profile"
       onclick="switchTab('profile',this)"
     >
+
       <i class="fa-solid fa-user"></i>
+
       Profile
+
     </li>
 
     <li
@@ -717,8 +889,11 @@ body{
       data-tab="withdraw"
       onclick="switchTab('withdraw',this)"
     >
+
       <i class="fa-solid fa-hand-holding-dollar"></i>
+
       Withdraw
+
     </li>
 
     <li
@@ -726,8 +901,11 @@ body{
       data-tab="announcements"
       onclick="switchTab('announcements',this)"
     >
+
       <i class="fa-solid fa-bell"></i>
+
       Announcements
+
     </li>
 
     <li
@@ -735,16 +913,24 @@ body{
       data-tab="games"
       onclick="switchTab('games',this)"
     >
+
       <i class="fa-solid fa-gamepad"></i>
+
       Games 🎮
+
     </li>
+
+    <!-- ================= DIRECT LOGOUT ================= -->
 
     <li
       class="menu-item logout-item"
       onclick="logout()"
     >
+
       <i class="fa-solid fa-right-from-bracket"></i>
+
       Logout
+
     </li>
 
   </ul>
@@ -757,14 +943,23 @@ body{
 
 <!-- ================= HOME ================= -->
 
-<section id="tab-home" class="tab active">
+<section
+  id="tab-home"
+  class="tab active"
+>
 
   <div class="page-title">
 
     <h1>
+
       Welcome,
-      <span id="homeName">Member</span>
+
+      <span id="homeName">
+        Member
+      </span>
+
       👋
+
     </h1>
 
     <p>
@@ -792,8 +987,11 @@ body{
         class="btn"
         onclick="goWithdraw()"
       >
+
         <i class="fa-solid fa-wallet"></i>
+
         Withdraw Now
+
       </button>
 
     </div>
@@ -830,9 +1028,11 @@ body{
   <div id="content-feed">
 
     <div class="card">
+
       <div class="empty">
         Loading updates...
       </div>
+
     </div>
 
   </div>
@@ -841,11 +1041,16 @@ body{
 
 <!-- ================= PROFILE ================= -->
 
-<section id="tab-profile" class="tab">
+<section
+  id="tab-profile"
+  class="tab"
+>
 
   <div class="page-title">
 
-    <h1>My Profile</h1>
+    <h1>
+      My Profile
+    </h1>
 
     <p>
       Your member information
@@ -873,7 +1078,9 @@ body{
           class="camera"
           for="avatar-input"
         >
+
           <i class="fa-solid fa-camera"></i>
+
         </label>
 
         <input
@@ -941,11 +1148,16 @@ body{
 
 <!-- ================= WITHDRAW ================= -->
 
-<section id="tab-withdraw" class="tab">
+<section
+  id="tab-withdraw"
+  class="tab"
+>
 
   <div class="page-title">
 
-    <h1>Withdraw</h1>
+    <h1>
+      Withdraw
+    </h1>
 
     <p>
       Submit and track your withdrawal request
@@ -990,27 +1202,39 @@ body{
         class="method selected"
         onclick="selectMethod('bKash',this)"
       >
+
         <i class="fa-solid fa-mobile-screen"></i>
+
         <br>
+
         bKash
+
       </div>
 
       <div
         class="method"
         onclick="selectMethod('Nagad',this)"
       >
+
         <i class="fa-solid fa-mobile-screen"></i>
+
         <br>
+
         Nagad
+
       </div>
 
       <div
         class="method"
         onclick="selectMethod('Rocket',this)"
       >
+
         <i class="fa-solid fa-mobile-screen"></i>
+
         <br>
+
         Rocket
+
       </div>
 
     </div>
@@ -1186,40 +1410,55 @@ body{
     class="active"
     onclick="switchTab('home',this)"
   >
+
     <i class="fa-solid fa-house"></i>
+
     Home
+
   </button>
 
   <button
     data-tab="profile"
     onclick="switchTab('profile',this)"
   >
+
     <i class="fa-solid fa-user"></i>
+
     Profile
+
   </button>
 
   <button
     data-tab="withdraw"
     onclick="switchTab('withdraw',this)"
   >
+
     <i class="fa-solid fa-wallet"></i>
+
     Withdraw
+
   </button>
 
   <button
     data-tab="announcements"
     onclick="switchTab('announcements',this)"
   >
+
     <i class="fa-solid fa-bell"></i>
+
     Notice
+
   </button>
 
   <button
     data-tab="games"
     onclick="switchTab('games',this)"
   >
+
     <i class="fa-solid fa-gamepad"></i>
+
     Games
+
   </button>
 
 </nav>
@@ -1248,7 +1487,7 @@ from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 
 /* ============================================
-   YOUR EXISTING FIREBASE CONFIGURATION
+   FIREBASE CONFIG
 ============================================ */
 
 const firebaseConfig = {
@@ -1277,51 +1516,48 @@ const firebaseConfig = {
 };
 
 
-const app = initializeApp(firebaseConfig);
+const app =
+  initializeApp(firebaseConfig);
 
-const db = getDatabase(app);
+const db =
+  getDatabase(app);
 
 
 /* ============================================
-   SESSION
+   SESSION CHECK
 ============================================ */
 
 const sessionData =
-  localStorage.getItem("javicash_session");
+  localStorage.getItem(
+    "javicash_session"
+  );
 
-let session = null;
+let session=null;
 
 try{
 
-  session =
+  session=
     sessionData
     ? JSON.parse(sessionData)
     : null;
 
 }catch(error){
 
-  session = null;
+  session=null;
 
 }
 
 
 /*
-  IMPORTANT:
-  Your existing login system should save:
-
-  localStorage.setItem(
-    "javicash_session",
-    JSON.stringify({
-      uid:user.uid,
-      name:user.name,
-      email:user.email
-    })
-  );
+  If member is not logged in,
+  send directly to index.html
 */
 
 if(!session || !session.uid){
 
-  window.location.href="login.html";
+  window.location.replace(
+    "index.html"
+  );
 
   throw new Error(
     "No active JAVICASH member session."
@@ -1340,16 +1576,18 @@ let firstMemberLoad=true;
 
 
 /* ============================================
-   HELPERS
+   HELPER
 ============================================ */
 
-const $ = id =>
-  document.getElementById(id);
+const $ =
+  id =>
+    document.getElementById(id);
 
 
 function money(value){
 
-  const number=Number(value);
+  const number=
+    Number(value);
 
   if(!Number.isFinite(number))
     return "0.00";
@@ -1361,8 +1599,11 @@ function money(value){
 
 function escapeHTML(value){
 
-  return String(value ?? "")
-    .replace(/[&<>"']/g,function(char){
+  return String(
+    value ?? ""
+  ).replace(
+    /[&<>"']/g,
+    function(char){
 
       return {
 
@@ -1374,20 +1615,26 @@ function escapeHTML(value){
 
       }[char];
 
-    });
+    }
+  );
 
 }
 
 
 /* ============================================
-   LOADING SYSTEM
+   LOADING
 ============================================ */
 
-function loadingMessage(title,message){
+function loadingMessage(
+  title,
+  message
+){
 
-  $("loadingTitle").textContent=title;
+  $("loadingTitle")
+    .textContent=title;
 
-  $("loadingMessage").textContent=message;
+  $("loadingMessage")
+    .textContent=message;
 
 }
 
@@ -1399,59 +1646,61 @@ function finishLoading(){
 
   firstMemberLoad=false;
 
-  const screen=$("loadingScreen");
+  const screen=
+    $("loadingScreen");
 
   screen.style.opacity="0";
 
-  setTimeout(function(){
+  setTimeout(
+    function(){
 
-    screen.remove();
+      if(screen)
+        screen.remove();
 
-  },350);
+    },
+    350
+  );
 
 }
 
 
 function showConnection(){
 
-  $("connectionStatus").style.display="block";
+  $("connectionStatus")
+    .style.display="block";
 
 }
 
 
 function hideConnection(){
 
-  $("connectionStatus").style.display="none";
+  $("connectionStatus")
+    .style.display="none";
 
 }
 
 
 /* ============================================
-   REAL-TIME MEMBER DATA
-
-   Existing database:
-
-   users
-      └── USER_UID
-            ├── uid
-            ├── name
-            ├── email
-            ├── balance
-            └── profile_picture
+   MEMBER DATA
 ============================================ */
 
 const userRef=
-  ref(db,`users/${session.uid}`);
+  ref(
+    db,
+    `users/${session.uid}`
+  );
 
 
 onValue(
+
   userRef,
 
   function(snapshot){
 
     if(snapshot.exists()){
 
-      const data=snapshot.val() || {};
+      const data=
+        snapshot.val() || {};
 
       const name=
         data.name ||
@@ -1468,32 +1717,43 @@ onValue(
         session.uid;
 
       const balance=
-        Number(data.balance || 0);
+        Number(
+          data.balance || 0
+        );
 
 
-      $("homeName").textContent=name;
+      $("homeName")
+        .textContent=name;
 
-      $("user-balance").textContent=
-        money(balance)+" Coins";
+      $("user-balance")
+        .textContent=
+          money(balance)+" Coins";
 
-      $("withdraw-balance").textContent=
-        money(balance)+" Coins";
+      $("withdraw-balance")
+        .textContent=
+          money(balance)+" Coins";
 
-      $("dash-uid").textContent=uid;
+      $("dash-uid")
+        .textContent=uid;
 
-      $("prof-uid").value=uid;
+      $("prof-uid")
+        .value=uid;
 
-      $("prof-name").textContent=name;
+      $("prof-name")
+        .textContent=name;
 
-      $("prof-fullname").value=name;
+      $("prof-fullname")
+        .value=name;
 
-      $("prof-email").textContent=email;
+      $("prof-email")
+        .textContent=email;
 
 
       if(data.profile_picture){
 
-        $("profile-img").src=
-          data.profile_picture;
+        $("profile-img")
+          .src=
+            data.profile_picture;
 
       }
 
@@ -1541,11 +1801,6 @@ onValue(
 
 /* ============================================
    ADMIN CONTENT
-
-   Existing database:
-
-   contents
-      └── contentId
 ============================================ */
 
 onValue(
@@ -1703,14 +1958,6 @@ onValue(
 
 /* ============================================
    GAMES
-
-   Existing database:
-
-   games
-      └── gameId
-            ├── title
-            ├── image
-            └── link
 ============================================ */
 
 onValue(
@@ -1815,16 +2062,7 @@ onValue(
 
 
 /* ============================================
-   OPTIMIZED WITHDRAWAL HISTORY
-
-   IMPORTANT:
-
-   Old code:
-   withdrawals -> downloaded EVERYTHING
-
-   New code:
-   only withdrawals belonging
-   to current user's UID
+   WITHDRAWAL HISTORY
 ============================================ */
 
 const myWithdrawalsQuery=
@@ -1944,7 +2182,9 @@ onValue(
                     margin-top:4px
                   "
                 >
+
                   ${escapeHTML(status)}
+
                 </div>
 
               </div>
@@ -1964,10 +2204,11 @@ onValue(
       error
     );
 
-    $("withdraw-history").innerHTML=
-      `<div class="empty">
-        Could not load history right now.
-      </div>`;
+    $("withdraw-history")
+      .innerHTML=
+        `<div class="empty">
+          Could not load history right now.
+        </div>`;
 
   }
 
@@ -1976,11 +2217,6 @@ onValue(
 
 /* ============================================
    PROFILE PICTURE
-
-   Keeps your existing:
-   users/{uid}/profile_picture
-
-   Base64 structure
 ============================================ */
 
 window.uploadProfilePicture=
@@ -1990,11 +2226,17 @@ window.uploadProfilePicture=
       event.target.files?.[0];
 
 
-    if(!file || !session?.uid)
+    if(
+      !file ||
+      !session?.uid
+    )
       return;
 
 
-    if(file.size > 1.5 * 1024 * 1024){
+    if(
+      file.size >
+      1.5 * 1024 * 1024
+    ){
 
       alert(
         "Please select an image smaller than 1.5 MB."
@@ -2018,19 +2260,23 @@ window.uploadProfilePicture=
           event.target.result;
 
 
-        $("profile-img").src=image;
+        $("profile-img")
+          .src=image;
 
 
         try{
 
           await update(
+
             ref(
               db,
               `users/${session.uid}`
             ),
+
             {
               profile_picture:image
             }
+
           );
 
 
@@ -2059,7 +2305,7 @@ window.uploadProfilePicture=
 
 
 /* ============================================
-   WITHDRAWAL REQUEST
+   WITHDRAW
 ============================================ */
 
 window.submitWithdrawal=
@@ -2105,14 +2351,6 @@ window.submitWithdrawal=
 
     }
 
-
-    /*
-      Read current displayed balance.
-      IMPORTANT:
-      Final balance enforcement must also
-      be done securely by trusted backend/
-      Firebase rules or server logic.
-    */
 
     const currentBalance=
       Number(
@@ -2166,7 +2404,9 @@ window.submitWithdrawal=
 
 
       await set(
+
         newRef,
+
         {
 
           requestId:newRef.key,
@@ -2192,12 +2432,15 @@ window.submitWithdrawal=
           timestamp:Date.now()
 
         }
+
       );
 
 
-      $("withdraw-number").value="";
+      $("withdraw-number")
+        .value="";
 
-      $("withdraw-amount").value="";
+      $("withdraw-amount")
+        .value="";
 
 
       alert(
@@ -2234,9 +2477,13 @@ window.submitWithdrawal=
 ============================================ */
 
 window.selectMethod=
-  function(method,element){
+  function(
+    method,
+    element
+  ){
 
-    selectedPaymentMethod=method;
+    selectedPaymentMethod=
+      method;
 
 
     document
@@ -2264,7 +2511,10 @@ window.selectMethod=
 ============================================ */
 
 window.switchTab=
-  function(tab,clicked){
+  function(
+    tab,
+    clicked
+  ){
 
     document
       .querySelectorAll(".tab")
@@ -2293,7 +2543,9 @@ window.switchTab=
 
 
     document
-      .querySelectorAll(".mobile-nav button")
+      .querySelectorAll(
+        ".mobile-nav button"
+      )
       .forEach(
         function(item){
 
@@ -2324,10 +2576,13 @@ window.switchTab=
       );
 
 
-    if(clicked)
+    if(clicked){
+
       clicked.classList.add(
         "active"
       );
+
+    }
 
 
     $("sidebar")
@@ -2337,8 +2592,11 @@ window.switchTab=
 
 
     window.scrollTo({
+
       top:0,
+
       behavior:"smooth"
+
     });
 
   };
@@ -2382,17 +2640,52 @@ window.toggleSidebar=
 
 /* ============================================
    LOGOUT
+   DIRECT -> index.html
 ============================================ */
 
 window.logout=
   function(){
 
-    localStorage.removeItem(
-      "javicash_session"
-    );
+    /*
+      1. Remove current member session
+      2. Clear cached member data
+      3. Immediately go to index.html
+    */
 
-    window.location.href=
-      "login.html";
+    try{
+
+      localStorage.removeItem(
+        "javicash_session"
+      );
+
+      if(session?.uid){
+
+        localStorage.removeItem(
+          `javicash_user_cache_${session.uid}`
+        );
+
+      }
+
+    }
+
+    catch(error){
+
+      console.error(
+        "Logout cleanup error:",
+        error
+      );
+
+    }
+
+
+    /*
+      replace() prevents the dashboard
+      from remaining in normal browser history.
+    */
+
+    window.location.replace(
+      "index.html"
+    );
 
   };
 
@@ -2423,11 +2716,10 @@ window.addEventListener(
 
 /* ============================================
    SLOW NETWORK SAFETY
-
-   Loading screen won't stay forever.
 ============================================ */
 
 setTimeout(
+
   function(){
 
     if(firstMemberLoad){
@@ -2437,15 +2729,25 @@ setTimeout(
         "Your network is slow. Firebase will continue syncing."
       );
 
+
       setTimeout(
-        finishLoading,
+
+        function(){
+
+          finishLoading();
+
+        },
+
         4000
+
       );
 
     }
 
   },
+
   10000
+
 );
 
 </script>
