@@ -37,7 +37,7 @@
 
     /* Sidebar Design */
     .sidebar {
-      width: 250px; background: rgba(0, 0, 0, 0.4); border-right: 1px solid var(--card-border);
+      width: 250px; background: rgba(15, 12, 32, 0.95); border-right: 1px solid var(--card-border);
       display: flex; flex-direction: column; transition: 0.3s ease; position: fixed; top: 60px; bottom: 0; left: 0; z-index: 900;
     }
     .menu-list { list-style: none; padding: 15px 10px; flex: 1; }
@@ -77,7 +77,7 @@
 
     .btn {
       padding: 12px 20px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;
-      background: var(--primary); color: #fff; transition: 0.2s; width: 100%; text-align: center;
+      background: var(--primary); color: #fff; transition: 0.2s; width: 100%; text-align: center; display: inline-block; text-decoration: none;
     }
     .btn:hover { background: var(--primary-hover); }
 
@@ -96,6 +96,11 @@
     /* Media Feed UI */
     .feed-card { margin-bottom: 16px; }
     .feed-card video, .feed-card img { width: 100%; max-height: 350px; object-fit: cover; border-radius: 10px; margin-top: 10px; }
+
+    /* Games UI Grid */
+    .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
+    .game-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 12px; text-align: center; }
+    .game-card img { width: 100%; height: 130px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
 
     /* Responsive Mobile CSS */
     @media (max-width: 768px) {
@@ -125,6 +130,8 @@
         <li class="menu-item" onclick="switchTab('profile', this)"><i class="fa-solid fa-user"></i> Profile</li>
         <li class="menu-item" onclick="switchTab('withdraw', this)"><i class="fa-solid fa-hand-holding-dollar"></i> Withdraw</li>
         <li class="menu-item" onclick="switchTab('announcements', this)"><i class="fa-solid fa-bell"></i> Announcements</li>
+        <!-- New Games Button Added -->
+        <li class="menu-item" onclick="switchTab('games', this)"><i class="fa-solid fa-gamepad"></i> Games 🎮</li>
         <li class="menu-item" style="margin-top: 30px; color: var(--danger);" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</li>
       </ul>
     </aside>
@@ -233,6 +240,17 @@
         </div>
       </section>
 
+      <!-- Tab 5: Games Section (New) -->
+      <section id="tab-games" class="tab-content">
+        <div class="card">
+          <h3>Play Games & Earn 🎮</h3>
+          <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">Play available games below.</p>
+          <div id="games-container" class="games-grid">
+            <p style="color: var(--text-muted);">No games available right now.</p>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -313,7 +331,32 @@
       }
     });
 
-    // 3. Profile Picture Local Base64 Upload
+    // 3. Load Games List from Firebase Realtime Database ('games' node)
+    const gamesRef = ref(db, 'games');
+    onValue(gamesRef, (snapshot) => {
+      const gamesContainer = document.getElementById('games-container');
+      if (snapshot.exists()) {
+        gamesContainer.innerHTML = '';
+        const games = snapshot.val();
+        Object.keys(games).reverse().forEach(key => {
+          const game = games[key];
+          const gameCard = document.createElement('div');
+          gameCard.className = 'game-card';
+          
+          const defaultBanner = "https://via.placeholder.com/200x120?text=Game";
+          gameCard.innerHTML = `
+            <img src="${game.image || defaultBanner}" alt="${game.title || 'Game'}">
+            <h4 style="font-size:15px; margin-bottom:8px;">${game.title || 'Untitled Game'}</h4>
+            <a href="${game.link || '#'}" target="_blank" class="btn" style="padding: 8px 12px; font-size: 13px;">Play Game 🎮</a>
+          `;
+          gamesContainer.appendChild(gameCard);
+        });
+      } else {
+        gamesContainer.innerHTML = '<p style="color: var(--text-muted);">No games uploaded yet.</p>';
+      }
+    });
+
+    // 4. Profile Picture Local Base64 Upload
     window.uploadProfilePicture = function(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -329,7 +372,7 @@
       reader.readAsDataURL(file);
     };
 
-    // 4. Withdrawal Request Sender
+    // 5. Withdrawal Request Sender
     window.submitWithdrawal = async function() {
       const type = document.getElementById('withdraw-type').value;
       const number = document.getElementById('withdraw-number').value.trim();
@@ -365,7 +408,7 @@
       document.getElementById('withdraw-amount').value = '';
     };
 
-    // 5. Withdrawal History Listener
+    // 6. Withdrawal History Listener
     if (session && session.uid) {
       const withdrawRef = ref(db, 'withdrawals');
       onValue(withdrawRef, (snapshot) => {
