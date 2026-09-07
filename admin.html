@@ -1,0 +1,3129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>JAVICASH — Super Admin Control Center</title>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+    :root {
+      --primary: #6c5ce7;
+      --primary-dark: #5142c4;
+      --accent: #00cec9;
+      --success: #2ed573;
+      --danger: #ff4757;
+      --warning: #ffa502;
+
+      --bg: #070611;
+      --panel: rgba(255,255,255,.055);
+      --panel-2: rgba(255,255,255,.035);
+      --border: rgba(255,255,255,.10);
+
+      --text: #ffffff;
+      --muted: #9b9aaa;
+
+      --shadow: 0 20px 60px rgba(0,0,0,.45);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(108,92,231,.18), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(0,206,201,.10), transparent 30%),
+        var(--bg);
+
+      color: var(--text);
+      font-family: "Poppins", sans-serif;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    /* =========================================================
+       SECURITY SCREEN
+    ========================================================= */
+
+    #security-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      background: #020204;
+      text-align: center;
+      padding: 25px;
+    }
+
+    .security-box {
+      width: min(430px, 100%);
+      padding: 35px 25px;
+
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 24px;
+
+      background: rgba(255,255,255,.03);
+      box-shadow: var(--shadow);
+    }
+
+    .security-icon {
+      width: 90px;
+      height: 90px;
+      margin: auto auto 20px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      background: rgba(255,71,87,.10);
+      color: var(--danger);
+
+      font-size: 40px;
+    }
+
+    .security-box h1 {
+      font-size: 25px;
+      margin-bottom: 10px;
+    }
+
+    .security-box p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    /* =========================================================
+       APP
+    ========================================================= */
+
+    #app {
+      display: none;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* =========================================================
+       SIDEBAR
+    ========================================================= */
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+
+      width: 250px;
+
+      padding: 22px 15px;
+
+      background: rgba(8,7,18,.92);
+      backdrop-filter: blur(20px);
+
+      border-right: 1px solid var(--border);
+
+      z-index: 1000;
+    }
+
+    .brand {
+      padding: 10px 14px 25px;
+    }
+
+    .brand-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .brand-title span {
+      color: var(--accent);
+    }
+
+    .brand-subtitle {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .nav-btn {
+      width: 100%;
+
+      display: flex;
+      align-items: center;
+      gap: 13px;
+
+      padding: 13px 14px;
+
+      border: 0;
+      border-radius: 12px;
+
+      color: var(--muted);
+      background: transparent;
+
+      text-align: left;
+
+      transition: .2s ease;
+    }
+
+    .nav-btn:hover,
+    .nav-btn.active {
+      color: white;
+      background: rgba(108,92,231,.18);
+    }
+
+    .nav-btn i {
+      width: 20px;
+      text-align: center;
+    }
+
+    .nav-count {
+      margin-left: auto;
+
+      min-width: 23px;
+      height: 23px;
+
+      padding: 0 6px;
+
+      display: grid;
+      place-items: center;
+
+      background: var(--danger);
+      border-radius: 20px;
+
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* =========================================================
+       MAIN
+    ========================================================= */
+
+    .main {
+      width: calc(100% - 250px);
+      margin-left: 250px;
+      padding: 25px;
+    }
+
+    .topbar {
+      min-height: 70px;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      padding: 15px 20px;
+      margin-bottom: 25px;
+
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+
+      backdrop-filter: blur(18px);
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .admin-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      color: var(--success);
+      font-size: 12px;
+    }
+
+    .online-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 12px var(--success);
+    }
+
+    /* =========================================================
+       SECTIONS
+    ========================================================= */
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .section-title {
+      margin-bottom: 20px;
+    }
+
+    .section-title h2 {
+      font-size: 24px;
+    }
+
+    .section-title p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    /* =========================================================
+       CARDS
+    ========================================================= */
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .stat-card,
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(15px);
+    }
+
+    .stat-card {
+      padding: 20px;
+    }
+
+    .stat-icon {
+      width: 45px;
+      height: 45px;
+
+      display: grid;
+      place-items: center;
+
+      margin-bottom: 14px;
+
+      border-radius: 13px;
+
+      background: rgba(108,92,231,.16);
+      color: var(--primary);
+
+      font-size: 19px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stat-value {
+      font-size: 25px;
+      font-weight: 800;
+      margin-top: 3px;
+    }
+
+    .card {
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      margin-bottom: 18px;
+    }
+
+    .card-title h3 {
+      font-size: 17px;
+    }
+
+    /* =========================================================
+       FORM
+    ========================================================= */
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 7px;
+
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .input,
+    .select,
+    .textarea {
+      width: 100%;
+
+      padding: 13px 14px;
+
+      border: 1px solid var(--border);
+      border-radius: 11px;
+
+      outline: none;
+
+      background: rgba(0,0,0,.30);
+      color: white;
+
+      transition: .2s;
+    }
+
+    .textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .input:focus,
+    .select:focus,
+    .textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108,92,231,.10);
+    }
+
+    /* =========================================================
+       BUTTONS
+    ========================================================= */
+
+    .btn {
+      border: 0;
+      border-radius: 11px;
+
+      padding: 12px 16px;
+
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+
+      color: white;
+      font-weight: 600;
+
+      transition: .2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #07120b;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+    }
+
+    .btn-warning {
+      background: var(--warning);
+      color: #171000;
+    }
+
+    .btn-muted {
+      background: rgba(255,255,255,.08);
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    /* =========================================================
+       MEMBER SEARCH
+    ========================================================= */
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-row .input {
+      flex: 1;
+    }
+
+    .member-result {
+      display: none;
+      margin-top: 18px;
+    }
+
+    .member-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .member-field {
+      padding: 13px;
+
+      border-radius: 12px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid var(--border);
+    }
+
+    .member-field small {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+
+    .member-field strong {
+      font-size: 13px;
+      word-break: break-word;
+    }
+
+    .danger-note {
+      margin-top: 15px;
+      padding: 12px;
+
+      background: rgba(255,71,87,.08);
+      border: 1px solid rgba(255,71,87,.20);
+      border-radius: 10px;
+
+      color: #ff9ca6;
+      font-size: 11px;
+    }
+
+    /* =========================================================
+       WITHDRAWAL
+    ========================================================= */
+
+    .request-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .request {
+      padding: 16px;
+
+      border-radius: 14px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid var(--border);
+    }
+
+    .request-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+
+    .request-id {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .status {
+      padding: 5px 9px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .status-pending {
+      background: rgba(255,165,2,.12);
+      color: var(--warning);
+    }
+
+    .status-approved,
+    .status-completed {
+      background: rgba(46,213,115,.12);
+      color: var(--success);
+    }
+
+    .status-rejected {
+      background: rgba(255,71,87,.12);
+      color: var(--danger);
+    }
+
+    .request-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .request-info {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .request-info b {
+      color: white;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .request-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    /* =========================================================
+       UPLOAD
+    ========================================================= */
+
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .file-box {
+      padding: 25px;
+      text-align: center;
+
+      border: 1px dashed rgba(255,255,255,.16);
+      border-radius: 15px;
+
+      background: rgba(0,0,0,.18);
+    }
+
+    .file-box i {
+      font-size: 35px;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    /* =========================================================
+       MODAL
+    ========================================================= */
+
+    .modal {
+      display: none;
+
+      position: fixed;
+      inset: 0;
+
+      z-index: 9999;
+
+      justify-content: center;
+      align-items: center;
+
+      padding: 20px;
+
+      background: rgba(0,0,0,.80);
+      backdrop-filter: blur(10px);
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-box {
+      width: min(520px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+
+      padding: 24px;
+
+      border: 1px solid var(--border);
+      border-radius: 20px;
+
+      background: #111020;
+      box-shadow: var(--shadow);
+    }
+
+    /* =========================================================
+       TOAST
+    ========================================================= */
+
+    #toast {
+      position: fixed;
+
+      right: 20px;
+      bottom: 20px;
+
+      max-width: 350px;
+
+      padding: 14px 18px;
+
+      border-radius: 12px;
+
+      background: #17162a;
+      border: 1px solid var(--border);
+
+      box-shadow: var(--shadow);
+
+      transform: translateY(100px);
+      opacity: 0;
+
+      transition: .25s;
+
+      z-index: 999999;
+    }
+
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* =========================================================
+       MOBILE
+    ========================================================= */
+
+    .mobile-header {
+      display: none;
+    }
+
+    @media (max-width: 1000px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .upload-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+
+      body {
+        padding-bottom: 75px;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        width: 100%;
+        margin-left: 0;
+        padding: 12px;
+      }
+
+      .mobile-header {
+        display: flex;
+
+        position: sticky;
+        top: 0;
+
+        z-index: 900;
+
+        justify-content: space-between;
+        align-items: center;
+
+        padding: 13px 5px 15px;
+
+        background: rgba(7,6,17,.92);
+        backdrop-filter: blur(20px);
+      }
+
+      .mobile-brand {
+        font-weight: 800;
+      }
+
+      .mobile-brand span {
+        color: var(--accent);
+      }
+
+      .topbar {
+        display: none;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .stat-card {
+        padding: 15px;
+      }
+
+      .stat-value {
+        font-size: 21px;
+      }
+
+      .search-row {
+        flex-direction: column;
+      }
+
+      .member-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .request-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .request-actions {
+        flex-wrap: wrap;
+      }
+
+      .bottom-nav {
+        position: fixed;
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+
+        z-index: 3000;
+
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+
+        padding: 7px;
+
+        border: 1px solid var(--border);
+        border-radius: 18px;
+
+        background: rgba(10,9,22,.94);
+        backdrop-filter: blur(20px);
+      }
+
+      .bottom-nav button {
+        position: relative;
+
+        border: 0;
+        background: transparent;
+
+        color: var(--muted);
+
+        padding: 9px 3px;
+
+        font-size: 10px;
+      }
+
+      .bottom-nav button i {
+        display: block;
+        font-size: 17px;
+        margin-bottom: 3px;
+      }
+
+      .bottom-nav button.active {
+        color: var(--accent);
+      }
+
+      .bottom-count {
+        position: absolute;
+        top: 1px;
+        right: 13px;
+
+        min-width: 16px;
+        height: 16px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 20px;
+
+        background: var(--danger);
+        color: white;
+
+        font-size: 8px;
+      }
+    }
+
+    @media (min-width: 701px) {
+      .bottom-nav {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================================================
+       SECURITY SCREEN
+  ========================================================== -->
+
+  <div id="security-screen">
+
+    <div class="security-box">
+
+      <div class="security-icon">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+
+      <h1>JAVICASH ADMIN</h1>
+
+      <p id="security-message">
+        Verifying administrator authentication...
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       APPLICATION
+  ========================================================== -->
+
+  <div id="app">
+
+    <div class="layout">
+
+      <!-- DESKTOP SIDEBAR -->
+
+      <aside class="sidebar">
+
+        <div class="brand">
+          <div class="brand-title">
+            JAVI<span>CASH</span>
+          </div>
+
+          <div class="brand-subtitle">
+            Super Admin Control Center
+          </div>
+        </div>
+
+        <nav class="nav">
+
+          <button class="nav-btn active" data-section="overview">
+            <i class="fa-solid fa-chart-pie"></i>
+            Overview
+          </button>
+
+          <button class="nav-btn" data-section="members">
+            <i class="fa-solid fa-users"></i>
+            Members
+          </button>
+
+          <button class="nav-btn" data-section="withdrawals">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+            Withdrawals
+            <span class="nav-count" id="side-withdraw-count">0</span>
+          </button>
+
+          <button class="nav-btn" data-section="notifications">
+            <i class="fa-solid fa-bullhorn"></i>
+            Notifications
+          </button>
+
+          <button class="nav-btn" data-section="games">
+            <i class="fa-solid fa-gamepad"></i>
+            Game Upload
+          </button>
+
+          <button class="nav-btn" data-section="content">
+            <i class="fa-solid fa-photo-film"></i>
+            Content
+          </button>
+
+          <button class="nav-btn" id="desktop-logout">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Logout
+          </button>
+
+        </nav>
+
+      </aside>
+
+
+      <!-- MAIN -->
+
+      <main class="main">
+
+        <!-- MOBILE HEADER -->
+
+        <div class="mobile-header">
+
+          <div class="mobile-brand">
+            JAVI<span>CASH</span>
+          </div>
+
+          <button
+            class="btn btn-danger"
+            id="mobile-logout"
+            style="padding:8px 12px;font-size:11px;"
+          >
+            <i class="fa-solid fa-power-off"></i>
+          </button>
+
+        </div>
+
+
+        <!-- TOP BAR -->
+
+        <div class="topbar">
+
+          <div class="page-title" id="page-title">
+            Admin Overview
+          </div>
+
+          <div class="admin-status">
+            <span class="online-dot"></span>
+            ADMIN VERIFIED
+          </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             OVERVIEW
+        ====================================================== -->
+
+        <section
+          class="section active"
+          id="section-overview"
+        >
+
+          <div class="section-title">
+            <h2>Dashboard Overview</h2>
+            <p>Realtime JAVICASH administration center.</p>
+          </div>
+
+          <div class="stats-grid">
+
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="fa-solid fa-users"></i>
+              </div>
+
+              <div class="stat-label">
+                Members
+              </div>
+
+              <div
+                class="stat-value"
+                id="stat-members"
+              >
+                0
+              </div>
+            </div>
+
+
+            <div class="stat-card">
+
+              <div class="stat-icon">
+                <i class="fa-solid fa-coins"></i>
+              </div>
+
+              <div class="stat-label">
+                Total Coins
+              </div>
+
+              <div
+                class="stat-value"
+                id="stat-coins"
+              >
+                0
+              </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+              <div class="stat-icon">
+                <i class="fa-solid fa-money-bill-transfer"></i>
+              </div>
+
+              <div class="stat-label">
+                Pending Withdrawals
+              </div>
+
+              <div
+                class="stat-value"
+                id="stat-withdrawals"
+              >
+                0
+              </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+              <div class="stat-icon">
+                <i class="fa-solid fa-gamepad"></i>
+              </div>
+
+              <div class="stat-label">
+                Published Games
+              </div>
+
+              <div
+                class="stat-value"
+                id="stat-games"
+              >
+                0
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="card-title">
+              <h3>
+                <i class="fa-solid fa-shield-halved"></i>
+                Security Status
+              </h3>
+            </div>
+
+            <p style="color:var(--muted);font-size:13px;line-height:1.8;">
+              Administrator access is controlled by Firebase Authentication
+              and Firebase Realtime Database Security Rules.
+              Client-side localStorage is not trusted for authorization.
+            </p>
+
+          </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             MEMBERS
+        ====================================================== -->
+
+        <section
+          class="section"
+          id="section-members"
+        >
+
+          <div class="section-title">
+
+            <h2>Member Search</h2>
+
+            <p>
+              Search a member using their registered Unique Member ID.
+            </p>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="card-title">
+
+              <h3>
+                <i class="fa-solid fa-magnifying-glass"></i>
+                Track Member
+              </h3>
+
+            </div>
+
+
+            <div class="search-row">
+
+              <input
+                class="input"
+                id="member-search-input"
+                placeholder="Enter Unique Member ID"
+                autocomplete="off"
+              >
+
+              <button
+                class="btn btn-primary"
+                id="member-search-btn"
+              >
+                <i class="fa-solid fa-search"></i>
+                Search
+              </button>
+
+            </div>
+
+
+            <div
+              class="member-result"
+              id="member-result"
+            >
+
+              <div class="member-grid">
+
+                <div class="member-field">
+                  <small>Unique Member ID</small>
+                  <strong id="member-unique-id">—</strong>
+                </div>
+
+                <div class="member-field">
+                  <small>Firebase UID</small>
+                  <strong id="member-firebase-uid">—</strong>
+                </div>
+
+                <div class="member-field">
+                  <small>Name</small>
+                  <strong id="member-name">—</strong>
+                </div>
+
+                <div class="member-field">
+                  <small>Email</small>
+                  <strong id="member-email">—</strong>
+                </div>
+
+                <div class="member-field">
+                  <small>Coins</small>
+                  <strong id="member-coins">—</strong>
+                </div>
+
+                <div class="member-field">
+                  <small>Phone</small>
+                  <strong id="member-phone">—</strong>
+                </div>
+
+                <div class="member-field">
+                  <small>Created</small>
+                  <strong id="member-created">—</strong>
+                </div>
+
+                <div class="member-field">
+                  <small>Profile Photo</small>
+                  <strong id="member-photo">—</strong>
+                </div>
+
+              </div>
+
+
+              <div class="danger-note">
+                <i class="fa-solid fa-lock"></i>
+                Passwords are intentionally never stored or displayed.
+                Firebase Authentication does not expose user passwords
+                to administrators.
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             WITHDRAWALS
+        ====================================================== -->
+
+        <section
+          class="section"
+          id="section-withdrawals"
+        >
+
+          <div class="section-title">
+
+            <h2>Withdrawal Requests</h2>
+
+            <p>
+              Realtime member withdrawal requests.
+            </p>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="request-list" id="withdrawal-list">
+
+              <p style="color:var(--muted);font-size:13px;">
+                Loading withdrawal requests...
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             NOTIFICATIONS
+        ====================================================== -->
+
+        <section
+          class="section"
+          id="section-notifications"
+        >
+
+          <div class="section-title">
+
+            <h2>Global Notification</h2>
+
+            <p>
+              Publish an announcement to authenticated members.
+            </p>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Notification Message
+              </label>
+
+              <textarea
+                class="textarea"
+                id="notification-message"
+                placeholder="Write your announcement..."
+              ></textarea>
+
+            </div>
+
+
+            <button
+              class="btn btn-primary btn-full"
+              id="publish-notification"
+            >
+
+              <i class="fa-solid fa-paper-plane"></i>
+
+              Publish Global Notification
+
+            </button>
+
+          </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             GAME UPLOAD
+        ====================================================== -->
+
+        <section
+          class="section"
+          id="section-games"
+        >
+
+          <div class="section-title">
+
+            <h2>Game Upload</h2>
+
+            <p>
+              Upload an APK to Firebase Storage and publish its metadata.
+            </p>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Game Name
+              </label>
+
+              <input
+                class="input"
+                id="game-title"
+                placeholder="Example: Snake Arcade Edition"
+              >
+
+            </div>
+
+
+            <div class="file-box">
+
+              <i class="fa-solid fa-file-arrow-up"></i>
+
+              <p
+                style="
+                  color:var(--muted);
+                  font-size:12px;
+                  margin-bottom:15px;
+                "
+              >
+                Select APK from your device.
+              </p>
+
+              <input
+                type="file"
+                id="game-file"
+                accept=".apk,application/vnd.android.package-archive"
+                class="input"
+              >
+
+            </div>
+
+
+            <button
+              class="btn btn-primary btn-full"
+              id="upload-game"
+              style="margin-top:15px;"
+            >
+
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+
+              Upload & Publish Game
+
+            </button>
+
+          </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             CONTENT
+        ====================================================== -->
+
+        <section
+          class="section"
+          id="section-content"
+        >
+
+          <div class="section-title">
+
+            <h2>Content Management</h2>
+
+            <p>
+              Publish text, image or video metadata to the member dashboard.
+            </p>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Content Title
+              </label>
+
+              <input
+                class="input"
+                id="content-title"
+                placeholder="Content title"
+              >
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Description / Announcement
+              </label>
+
+              <textarea
+                class="textarea"
+                id="content-description"
+                placeholder="Write content..."
+              ></textarea>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Content Type
+              </label>
+
+              <select
+                class="select"
+                id="content-type"
+              >
+
+                <option value="announcement">
+                  Announcement
+                </option>
+
+                <option value="image">
+                  Image
+                </option>
+
+                <option value="video">
+                  Video
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label class="form-label">
+                Media URL
+              </label>
+
+              <input
+                class="input"
+                id="content-url"
+                placeholder="https://..."
+              >
+
+            </div>
+
+
+            <button
+              class="btn btn-primary btn-full"
+              id="publish-content"
+            >
+
+              <i class="fa-solid fa-upload"></i>
+
+              Publish Content
+
+            </button>
+
+          </div>
+
+        </section>
+
+      </main>
+
+    </div>
+
+
+    <!-- MOBILE BOTTOM NAV -->
+
+    <nav class="bottom-nav">
+
+      <button
+        class="active"
+        data-section="overview"
+      >
+        <i class="fa-solid fa-chart-pie"></i>
+        Home
+      </button>
+
+      <button data-section="members">
+        <i class="fa-solid fa-users"></i>
+        Members
+      </button>
+
+      <button data-section="withdrawals">
+
+        <i class="fa-solid fa-money-bill-transfer"></i>
+
+        Withdraw
+
+        <span
+          class="bottom-count"
+          id="bottom-withdraw-count"
+        >
+          0
+        </span>
+
+      </button>
+
+      <button data-section="notifications">
+        <i class="fa-solid fa-bullhorn"></i>
+        Notice
+      </button>
+
+      <button data-section="games">
+        <i class="fa-solid fa-gamepad"></i>
+        Games
+      </button>
+
+    </nav>
+
+  </div>
+
+
+  <!-- =========================================================
+       MODAL
+  ========================================================== -->
+
+  <div
+    class="modal"
+    id="withdraw-modal"
+  >
+
+    <div class="modal-box">
+
+      <div
+        class="card-title"
+        style="margin-bottom:20px;"
+      >
+
+        <h3>
+          <i class="fa-solid fa-money-check-dollar"></i>
+          Manage Withdrawal
+        </h3>
+
+        <button
+          class="btn btn-muted"
+          id="close-modal"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+      </div>
+
+
+      <div id="modal-request-details"></div>
+
+
+      <div class="form-group" style="margin-top:18px;">
+
+        <label class="form-label">
+          Rejection Reason
+        </label>
+
+        <textarea
+          class="textarea"
+          id="rejection-reason"
+          placeholder="Required when rejecting..."
+        ></textarea>
+
+      </div>
+
+
+      <div style="display:flex;gap:10px;">
+
+        <button
+          class="btn btn-success"
+          id="approve-request"
+          style="flex:1;"
+        >
+          <i class="fa-solid fa-check"></i>
+          Approve
+        </button>
+
+        <button
+          class="btn btn-danger"
+          id="reject-request"
+          style="flex:1;"
+        >
+          <i class="fa-solid fa-xmark"></i>
+          Reject
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- TOAST -->
+
+  <div id="toast"></div>
+
+
+  <!-- =========================================================
+       FIREBASE
+  ========================================================== -->
+
+  <script type="module">
+
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    import {
+      getDatabase,
+      ref,
+      get,
+      set,
+      update,
+      push,
+      onValue,
+      query,
+      orderByChild,
+      equalTo
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    import {
+      getStorage,
+      ref as storageRef,
+      uploadBytes,
+      getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+
+    /* =========================================================
+       FIREBASE CONFIGURATION
+    ========================================================== */
+
+    const firebaseConfig = {
+
+      apiKey:
+        "AIzaSyCwCrQBaYWr6Nr8jdZeeGGyQbjsFW-7LLQ",
+
+      authDomain:
+        "javicash-13a23.firebaseapp.com",
+
+      projectId:
+        "javicash-13a23",
+
+      storageBucket:
+        "javicash-13a23.firebasestorage.app",
+
+      messagingSenderId:
+        "940101890411",
+
+      appId:
+        "1:940101890411:web:e4554cbf62319dd8f01c2e",
+
+      measurementId:
+        "G-G6957LRB21",
+
+      databaseURL:
+        "https://javicash-13a23-default-rtdb.firebaseio.com"
+
+    };
+
+
+    const app = initializeApp(firebaseConfig);
+
+    const auth = getAuth(app);
+
+    const db = getDatabase(app);
+
+    const storage = getStorage(app);
+
+
+    /* =========================================================
+       ADMIN IDENTITY
+       
+       IMPORTANT:
+       This is only a frontend UX check.
+       Firebase Security Rules below perform the real
+       authorization.
+    ========================================================== */
+
+    const ADMIN_EMAIL =
+      "zubirosmani0@gmail.com";
+
+
+    /* =========================================================
+       GLOBAL STATE
+    ========================================================== */
+
+    let currentUser = null;
+
+    let selectedRequestId = null;
+
+    let withdrawalData = {};
+
+    let unsubscribeWithdrawals = null;
+
+
+    /* =========================================================
+       HELPERS
+    ========================================================== */
+
+    function $(id) {
+      return document.getElementById(id);
+    }
+
+
+    function escapeHTML(value) {
+
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+    }
+
+
+    function showToast(message, type = "normal") {
+
+      const toast = $("toast");
+
+      toast.textContent = message;
+
+      toast.style.borderColor =
+        type === "error"
+          ? "rgba(255,71,87,.45)"
+          : type === "success"
+          ? "rgba(46,213,115,.45)"
+          : "rgba(255,255,255,.1)";
+
+      toast.classList.add("show");
+
+      setTimeout(() => {
+
+        toast.classList.remove("show");
+
+      }, 3000);
+
+    }
+
+
+    function formatDate(timestamp) {
+
+      if (!timestamp) return "N/A";
+
+      const date = new Date(timestamp);
+
+      if (Number.isNaN(date.getTime())) {
+        return String(timestamp);
+      }
+
+      return date.toLocaleString();
+
+    }
+
+
+    /* =========================================================
+       AUTHENTICATION / ADMIN ACCESS
+    ========================================================== */
+
+    onAuthStateChanged(auth, async (user) => {
+
+      currentUser = user;
+
+      if (!user) {
+
+        denyAccess("Please login with the administrator account.");
+
+        return;
+      }
+
+
+      const email =
+        (user.email || "").toLowerCase();
+
+
+      /*
+       * Frontend check for fast UX.
+       *
+       * REAL SECURITY IS ENFORCED BY FIREBASE RULES.
+       */
+
+      if (
+        email !== ADMIN_EMAIL.toLowerCase() ||
+        user.emailVerified !== true
+      ) {
+
+        await signOut(auth);
+
+        denyAccess(
+          "This Firebase account is not authorized as JAVICASH administrator."
+        );
+
+        return;
+      }
+
+
+      /*
+       * Refresh token so Firebase receives the latest
+       * authentication state.
+       */
+
+      try {
+
+        await user.getIdToken(true);
+
+      } catch (error) {
+
+        console.error(error);
+
+      }
+
+
+      $("security-screen").style.display = "none";
+
+      $("app").style.display = "block";
+
+
+      startRealtimeListeners();
+
+    });
+
+
+    function denyAccess(message) {
+
+      $("security-screen").style.display = "flex";
+
+      $("security-message").textContent =
+        message;
+
+      $("app").style.display = "none";
+
+    }
+
+
+    /* =========================================================
+       NAVIGATION
+    ========================================================== */
+
+    document
+      .querySelectorAll("[data-section]")
+      .forEach(button => {
+
+        button.addEventListener("click", () => {
+
+          const section =
+            button.dataset.section;
+
+          document
+            .querySelectorAll(".section")
+            .forEach(item => {
+
+              item.classList.remove("active");
+
+            });
+
+
+          const target =
+            $("section-" + section);
+
+          if (target) {
+            target.classList.add("active");
+          }
+
+
+          document
+            .querySelectorAll("[data-section]")
+            .forEach(item => {
+
+              item.classList.remove("active");
+
+            });
+
+
+          document
+            .querySelectorAll(
+              `[data-section="${section}"]`
+            )
+            .forEach(item => {
+
+              item.classList.add("active");
+
+            });
+
+
+          const titles = {
+
+            overview:
+              "Admin Overview",
+
+            members:
+              "Member Management",
+
+            withdrawals:
+              "Withdrawal Requests",
+
+            notifications:
+              "Global Notifications",
+
+            games:
+              "Game Upload",
+
+            content:
+              "Content Management"
+
+          };
+
+
+          $("page-title").textContent =
+            titles[section] || "JAVICASH Admin";
+
+        });
+
+      });
+
+
+    /* =========================================================
+       REALTIME LISTENERS
+    ========================================================== */
+
+    function startRealtimeListeners() {
+
+      listenToUsers();
+
+      listenToWithdrawals();
+
+      listenToGames();
+
+    }
+
+
+    /* =========================================================
+       USERS
+    ========================================================== */
+
+    function listenToUsers() {
+
+      const usersRef =
+        ref(db, "users");
+
+      onValue(
+        usersRef,
+        snapshot => {
+
+          if (!snapshot.exists()) {
+
+            $("stat-members").textContent = "0";
+
+            $("stat-coins").textContent = "0";
+
+            return;
+          }
+
+
+          const users =
+            snapshot.val();
+
+          let memberCount = 0;
+
+          let totalCoins = 0;
+
+
+          Object.values(users)
+            .forEach(user => {
+
+              memberCount++;
+
+              totalCoins +=
+                Number(user.coins || 0);
+
+            });
+
+
+          $("stat-members").textContent =
+            memberCount.toLocaleString();
+
+          $("stat-coins").textContent =
+            totalCoins.toLocaleString();
+
+        },
+        error => {
+
+          console.error(error);
+
+          showToast(
+            "Unable to read member data.",
+            "error"
+          );
+
+        }
+      );
+
+    }
+
+
+    /* =========================================================
+       MEMBER SEARCH BY UNIQUE ID
+    ========================================================== */
+
+    $("member-search-btn")
+      .addEventListener("click", searchMember);
+
+
+    $("member-search-input")
+      .addEventListener("keydown", event => {
+
+        if (event.key === "Enter") {
+          searchMember();
+        }
+
+      });
+
+
+    async function searchMember() {
+
+      const uniqueId =
+        $("member-search-input")
+          .value
+          .trim();
+
+
+      if (!uniqueId) {
+
+        showToast(
+          "Enter a Unique Member ID.",
+          "error"
+        );
+
+        return;
+      }
+
+
+      try {
+
+        /*
+         * Expected structure:
+         *
+         * users/{firebaseUid}/
+         *   uniqueId: "584920"
+         */
+
+        const usersQuery =
+          query(
+            ref(db, "users"),
+            orderByChild("uniqueId"),
+            equalTo(uniqueId)
+          );
+
+
+        const snapshot =
+          await get(usersQuery);
+
+
+        if (!snapshot.exists()) {
+
+          $("member-result").style.display =
+            "none";
+
+          showToast(
+            "Member not found.",
+            "error"
+          );
+
+          return;
+        }
+
+
+        const data =
+          snapshot.val();
+
+        const uid =
+          Object.keys(data)[0];
+
+        const member =
+          data[uid];
+
+
+        $("member-unique-id").textContent =
+          member.uniqueId || uniqueId;
+
+        $("member-firebase-uid").textContent =
+          member.uid || uid;
+
+        $("member-name").textContent =
+          member.name || "N/A";
+
+        $("member-email").textContent =
+          member.email || "N/A";
+
+        $("member-coins").textContent =
+          Number(member.coins || 0).toLocaleString();
+
+        $("member-phone").textContent =
+          member.phone || "N/A";
+
+        $("member-created").textContent =
+          formatDate(
+            member.created_at ||
+            member.createdAt
+          );
+
+        $("member-photo").textContent =
+          member.photoURL
+            ? "Available"
+            : "Not uploaded";
+
+
+        $("member-result").style.display =
+          "block";
+
+      } catch (error) {
+
+        console.error(error);
+
+        showToast(
+          "Member search failed: " + error.message,
+          "error"
+        );
+
+      }
+
+    }
+
+
+    /* =========================================================
+       WITHDRAWAL REALTIME MONITOR
+    ========================================================== */
+
+    function listenToWithdrawals() {
+
+      const withdrawalRef =
+        ref(db, "withdrawal_requests");
+
+
+      unsubscribeWithdrawals =
+        onValue(
+          withdrawalRef,
+          snapshot => {
+
+            withdrawalData = {};
+
+            let pendingCount = 0;
+
+
+            if (snapshot.exists()) {
+
+              const data =
+                snapshot.val();
+
+
+              Object.entries(data)
+                .forEach(([id, request]) => {
+
+                  withdrawalData[id] =
+                    request;
+
+
+                  const status =
+                    String(
+                      request.status ||
+                      "Pending"
+                    ).toLowerCase();
+
+
+                  if (
+                    status === "pending"
+                  ) {
+
+                    pendingCount++;
+
+                  }
+
+                });
+
+            }
+
+
+            $("stat-withdrawals")
+              .textContent =
+              pendingCount.toLocaleString();
+
+
+            $("side-withdraw-count")
+              .textContent =
+              pendingCount > 99
+                ? "99+"
+                : pendingCount;
+
+
+            $("bottom-withdraw-count")
+              .textContent =
+              pendingCount > 99
+                ? "99+"
+                : pendingCount;
+
+
+            renderWithdrawals();
+
+          },
+          error => {
+
+            console.error(error);
+
+            showToast(
+              "Withdrawal listener error.",
+              "error"
+            );
+
+          }
+        );
+
+    }
+
+
+    function renderWithdrawals() {
+
+      const container =
+        $("withdrawal-list");
+
+
+      container.innerHTML = "";
+
+
+      const entries =
+        Object.entries(withdrawalData)
+          .sort(
+            ([,a], [,b]) =>
+              Number(b.createdAt || b.timestamp || 0) -
+              Number(a.createdAt || a.timestamp || 0)
+          );
+
+
+      if (!entries.length) {
+
+        container.innerHTML = `
+          <p style="color:var(--muted);font-size:13px;">
+            No withdrawal requests found.
+          </p>
+        `;
+
+        return;
+      }
+
+
+      entries.forEach(([id, request]) => {
+
+        const status =
+          String(
+            request.status || "Pending"
+          );
+
+
+        const normalizedStatus =
+          status.toLowerCase();
+
+
+        const statusClass =
+          normalizedStatus === "pending"
+            ? "status-pending"
+            : normalizedStatus === "rejected"
+            ? "status-rejected"
+            : "status-completed";
+
+
+        const item =
+          document.createElement("div");
+
+        item.className = "request";
+
+
+        item.innerHTML = `
+
+          <div class="request-top">
+
+            <div class="request-id">
+              ID: ${escapeHTML(
+                request.uniqueId ||
+                request.uid ||
+                id
+              )}
+            </div>
+
+            <span
+              class="status ${statusClass}"
+            >
+              ${escapeHTML(status)}
+            </span>
+
+          </div>
+
+
+          <div class="request-grid">
+
+            <div class="request-info">
+              Member
+              <b>
+                ${escapeHTML(
+                  request.name || "N/A"
+                )}
+              </b>
+            </div>
+
+            <div class="request-info">
+              Method
+              <b>
+                ${escapeHTML(
+                  request.method || "N/A"
+                )}
+              </b>
+            </div>
+
+            <div class="request-info">
+              Number
+              <b>
+                ${escapeHTML(
+                  request.phone_number ||
+                  request.accountNumber ||
+                  "N/A"
+                )}
+              </b>
+            </div>
+
+            <div class="request-info">
+              Account
+              <b>
+                ${escapeHTML(
+                  request.account_type ||
+                  "Personal"
+                )}
+              </b>
+            </div>
+
+            <div class="request-info">
+              Amount
+              <b>
+                ${escapeHTML(
+                  request.amount || "0"
+                )}
+              </b>
+            </div>
+
+            <div class="request-info">
+              Requested
+              <b>
+                ${escapeHTML(
+                  formatDate(
+                    request.createdAt ||
+                    request.timestamp
+                  )
+                )}
+              </b>
+            </div>
+
+          </div>
+
+
+          ${
+            normalizedStatus === "pending"
+            ? `
+              <div class="request-actions">
+
+                <button
+                  class="btn btn-primary"
+                  data-manage="${escapeHTML(id)}"
+                >
+                  <i class="fa-solid fa-gear"></i>
+                  Manage Request
+                </button>
+
+              </div>
+            `
+            : ""
+          }
+
+        `;
+
+
+        container.appendChild(item);
+
+      });
+
+
+      container
+        .querySelectorAll("[data-manage]")
+        .forEach(button => {
+
+          button.addEventListener(
+            "click",
+            () => {
+
+              openWithdrawalModal(
+                button.dataset.manage
+              );
+
+            }
+          );
+
+        });
+
+    }
+
+
+    /* =========================================================
+       WITHDRAWAL MODAL
+    ========================================================== */
+
+    function openWithdrawalModal(requestId) {
+
+      const request =
+        withdrawalData[requestId];
+
+
+      if (!request) {
+
+        showToast(
+          "Request no longer exists.",
+          "error"
+        );
+
+        return;
+      }
+
+
+      selectedRequestId =
+        requestId;
+
+
+      $("rejection-reason").value =
+        "";
+
+
+      $("modal-request-details").innerHTML = `
+
+        <div class="member-grid">
+
+          <div class="member-field">
+            <small>Unique ID</small>
+            <strong>
+              ${escapeHTML(
+                request.uniqueId ||
+                request.uid
+              )}
+            </strong>
+          </div>
+
+          <div class="member-field">
+            <small>Name</small>
+            <strong>
+              ${escapeHTML(
+                request.name || "N/A"
+              )}
+            </strong>
+          </div>
+
+          <div class="member-field">
+            <small>Payment Method</small>
+            <strong>
+              ${escapeHTML(
+                request.method || "N/A"
+              )}
+            </strong>
+          </div>
+
+          <div class="member-field">
+            <small>Account Number</small>
+            <strong>
+              ${escapeHTML(
+                request.phone_number ||
+                request.accountNumber ||
+                "N/A"
+              )}
+            </strong>
+          </div>
+
+          <div class="member-field">
+            <small>Account Type</small>
+            <strong>
+              ${escapeHTML(
+                request.account_type ||
+                "Personal"
+              )}
+            </strong>
+          </div>
+
+          <div class="member-field">
+            <small>Amount</small>
+            <strong>
+              ${escapeHTML(
+                request.amount || "0"
+              )}
+            </strong>
+          </div>
+
+        </div>
+
+      `;
+
+
+      $("withdraw-modal")
+        .classList.add("show");
+
+    }
+
+
+    $("close-modal")
+      .addEventListener(
+        "click",
+        () => {
+
+          $("withdraw-modal")
+            .classList.remove("show");
+
+          selectedRequestId = null;
+
+        }
+      );
+
+
+    /* =========================================================
+       APPROVE WITHDRAWAL
+    ========================================================== */
+
+    $("approve-request")
+      .addEventListener(
+        "click",
+        async () => {
+
+          if (!selectedRequestId) {
+            return;
+          }
+
+
+          const request =
+            withdrawalData[
+              selectedRequestId
+            ];
+
+
+          if (!request) {
+            return;
+          }
+
+
+          const confirmed =
+            confirm(
+              "Have you manually completed the payment? Mark this request as Completed?"
+            );
+
+
+          if (!confirmed) {
+            return;
+          }
+
+
+          try {
+
+            await update(
+              ref(
+                db,
+                `withdrawal_requests/${selectedRequestId}`
+              ),
+              {
+                status: "Completed",
+
+                updatedAt:
+                  Date.now(),
+
+                processedBy:
+                  currentUser.uid
+              }
+            );
+
+
+            showToast(
+              "Withdrawal marked as Completed.",
+              "success"
+            );
+
+
+            $("withdraw-modal")
+              .classList.remove("show");
+
+            selectedRequestId = null;
+
+          } catch (error) {
+
+            console.error(error);
+
+            showToast(
+              "Unable to update request: " +
+              error.message,
+              "error"
+            );
+
+          }
+
+        }
+      );
+
+
+    /* =========================================================
+       REJECT WITHDRAWAL
+    ========================================================== */
+
+    $("reject-request")
+      .addEventListener(
+        "click",
+        async () => {
+
+          if (!selectedRequestId) {
+            return;
+          }
+
+
+          const reason =
+            $("rejection-reason")
+              .value
+              .trim();
+
+
+          if (!reason) {
+
+            showToast(
+              "Enter a rejection reason.",
+              "error"
+            );
+
+            return;
+          }
+
+
+          try {
+
+            await update(
+              ref(
+                db,
+                `withdrawal_requests/${selectedRequestId}`
+              ),
+              {
+                status: "Rejected",
+
+                rejectionReason:
+                  reason,
+
+                updatedAt:
+                  Date.now(),
+
+                processedBy:
+                  currentUser.uid
+              }
+            );
+
+
+            showToast(
+              "Withdrawal request rejected.",
+              "success"
+            );
+
+
+            $("withdraw-modal")
+              .classList.remove("show");
+
+            selectedRequestId = null;
+
+          } catch (error) {
+
+            console.error(error);
+
+            showToast(
+              "Unable to reject request: " +
+              error.message,
+              "error"
+            );
+
+          }
+
+        }
+      );
+
+
+    /* =========================================================
+       GLOBAL NOTIFICATION
+    ========================================================== */
+
+    $("publish-notification")
+      .addEventListener(
+        "click",
+        async () => {
+
+          const message =
+            $("notification-message")
+              .value
+              .trim();
+
+
+          if (!message) {
+
+            showToast(
+              "Write a notification first.",
+              "error"
+            );
+
+            return;
+          }
+
+
+          try {
+
+            await set(
+              ref(db, "global_announcement"),
+              {
+                message,
+
+                updated_at:
+                  Date.now(),
+
+                publishedBy:
+                  currentUser.uid
+              }
+            );
+
+
+            showToast(
+              "Global notification published.",
+              "success"
+            );
+
+
+            $("notification-message")
+              .value = "";
+
+          } catch (error) {
+
+            console.error(error);
+
+            showToast(
+              "Notification failed: " +
+              error.message,
+              "error"
+            );
+
+          }
+
+        }
+      );
+
+
+    /* =========================================================
+       GAME UPLOAD
+    ========================================================== */
+
+    $("upload-game")
+      .addEventListener(
+        "click",
+        uploadGame
+      );
+
+
+    async function uploadGame() {
+
+      const title =
+        $("game-title")
+          .value
+          .trim();
+
+
+      const file =
+        $("game-file")
+          .files[0];
+
+
+      if (!title) {
+
+        showToast(
+          "Enter the game name.",
+          "error"
+        );
+
+        return;
+      }
+
+
+      if (!file) {
+
+        showToast(
+          "Select an APK file.",
+          "error"
+        );
+
+        return;
+      }
+
+
+      if (
+        !file.name
+          .toLowerCase()
+          .endsWith(".apk")
+      ) {
+
+        showToast(
+          "Only APK files are allowed.",
+          "error"
+        );
+
+        return;
+      }
+
+
+      /*
+       * Production systems should also enforce
+       * maximum upload size in Firebase Storage Rules
+       * and/or backend validation.
+       */
+
+
+      try {
+
+        showToast(
+          "Uploading APK..."
+        );
+
+
+        const fileName =
+          `${Date.now()}_${file.name}`;
+
+
+        const fileRef =
+          storageRef(
+            storage,
+            `games/${fileName}`
+          );
+
+
+        await uploadBytes(
+          fileRef,
+          file
+        );
+
+
+        const downloadURL =
+          await getDownloadURL(
+            fileRef
+          );
+
+
+        const gameRef =
+          push(
+            ref(db, "games_list")
+          );
+
+
+        await set(
+          gameRef,
+          {
+            title,
+
+            apk_url:
+              downloadURL,
+
+            storage_path:
+              `games/${fileName}`,
+
+            uploaded_at:
+              Date.now(),
+
+            published:
+              true,
+
+            uploaded_by:
+              currentUser.uid
+          }
+        );
+
+
+        showToast(
+          "Game published successfully.",
+          "success"
+        );
+
+
+        $("game-title").value = "";
+
+        $("game-file").value = "";
+
+      } catch (error) {
+
+        console.error(error);
+
+        showToast(
+          "Game upload failed: " +
+          error.message,
+          "error"
+        );
+
+      }
+
+    }
+
+
+    /* =========================================================
+       GAME COUNTER
+    ========================================================== */
+
+    function listenToGames() {
+
+      onValue(
+        ref(db, "games_list"),
+        snapshot => {
+
+          const count =
+            snapshot.exists()
+              ? Object.keys(
+                  snapshot.val()
+                ).length
+              : 0;
+
+
+          $("stat-games").textContent =
+            count.toLocaleString();
+
+        }
+      );
+
+    }
+
+
+    /* =========================================================
+       CONTENT MANAGEMENT
+    ========================================================== */
+
+    $("publish-content")
+      .addEventListener(
+        "click",
+        async () => {
+
+          const title =
+            $("content-title")
+              .value
+              .trim();
+
+
+          const description =
+            $("content-description")
+              .value
+              .trim();
+
+
+          const type =
+            $("content-type")
+              .value;
+
+
+          const url =
+            $("content-url")
+              .value
+              .trim();
+
+
+          if (!title) {
+
+            showToast(
+              "Enter content title.",
+              "error"
+            );
+
+            return;
+          }
+
+
+          try {
+
+            const contentRef =
+              push(
+                ref(db, "content")
+              );
+
+
+            await set(
+              contentRef,
+              {
+                title,
+
+                description,
+
+                type,
+
+                mediaURL:
+                  url,
+
+                published:
+                  true,
+
+                createdAt:
+                  Date.now(),
+
+                createdBy:
+                  currentUser.uid
+              }
+            );
+
+
+            showToast(
+              "Content published.",
+              "success"
+            );
+
+
+            $("content-title").value = "";
+
+            $("content-description").value = "";
+
+            $("content-url").value = "";
+
+          } catch (error) {
+
+            console.error(error);
+
+            showToast(
+              "Content publishing failed: " +
+              error.message,
+              "error"
+            );
+
+          }
+
+        }
+      );
+
+
+    /* =========================================================
+       LOGOUT
+    ========================================================== */
+
+    async function adminLogout() {
+
+      try {
+
+        await signOut(auth);
+
+        /*
+         * Do NOT rely on localStorage for admin authorization.
+         */
+
+        window.location.href =
+          "index.html";
+
+      } catch (error) {
+
+        console.error(error);
+
+        showToast(
+          "Logout failed.",
+          "error"
+        );
+
+      }
+
+    }
+
+
+    $("desktop-logout")
+      .addEventListener(
+        "click",
+        adminLogout
+      );
+
+
+    $("mobile-logout")
+      .addEventListener(
+        "click",
+        adminLogout
+      );
+
+  </script>
+
+</body>
+</html>
