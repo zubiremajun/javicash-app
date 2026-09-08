@@ -1,0 +1,2853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#6c5ce7">
+
+  <title>JAVICASH - Secure Access</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- EmailJS -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js">
+  </script>
+
+  <style>
+    :root {
+      --primary-color: #6c5ce7;
+      --primary-hover: #5b4bc4;
+      --bg-gradient: linear-gradient(
+        135deg,
+        #0f0c20 0%,
+        #15102a 50%,
+        #06040a 100%
+      );
+
+      --card-bg: rgba(255,255,255,.05);
+      --card-border: rgba(255,255,255,.10);
+
+      --text-color: #fff;
+      --text-muted: #a0a0b0;
+
+      --error-color: #ff4757;
+      --success-color: #2ed573;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family:
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 20px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      color: var(--text-color);
+      background: var(--bg-gradient);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 440px;
+
+      padding: 32px 24px;
+
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+
+      box-shadow:
+        0 15px 35px rgba(0,0,0,.5);
+    }
+
+    .logo-container {
+      width: 80px;
+      height: 80px;
+
+      margin: 0 auto 12px;
+
+      overflow: hidden;
+      border-radius: 20px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: rgba(255,255,255,.03);
+    }
+
+    .logo-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .brand-title {
+      margin-bottom: 8px;
+
+      color: var(--primary-color);
+
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 2px;
+
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .welcome-text {
+      margin-bottom: 24px;
+
+      color: var(--text-muted);
+
+      font-size: 13px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      width: 100%;
+
+      padding: 14px;
+
+      border: 0;
+      border-radius: 12px;
+
+      font-size: 15px;
+      font-weight: 600;
+
+      cursor: pointer;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+
+      transition:
+        transform .15s ease,
+        background .2s ease,
+        box-shadow .2s ease;
+    }
+
+    .btn:active {
+      transform: scale(.98);
+    }
+
+    .btn:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-primary {
+      color: #fff;
+      background: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      box-shadow:
+        0 4px 15px rgba(108,92,231,.4);
+    }
+
+    .btn-outline {
+      color: #fff;
+      background: transparent;
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-outline:hover {
+      background: rgba(255,255,255,.05);
+    }
+
+    .btn-google {
+      margin-bottom: 20px;
+      color: #333;
+      background: #fff;
+    }
+
+    .btn-google:hover {
+      background: #f1f1f1;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .input-group label {
+      display: block;
+
+      margin-bottom: 6px;
+
+      color: var(--text-muted);
+
+      font-size: 12px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-field {
+      width: 100%;
+
+      padding: 14px 42px 14px 14px;
+
+      color: #fff;
+      background: rgba(0,0,0,.2);
+
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+
+      outline: none;
+
+      font-size: 14px;
+
+      transition: border-color .2s ease;
+    }
+
+    .input-field:focus {
+      border-color: var(--primary-color);
+    }
+
+    .input-field.error {
+      border-color: var(--error-color);
+    }
+
+    .toggle-password {
+      position: absolute;
+
+      right: 14px;
+      top: 50%;
+
+      transform: translateY(-50%);
+
+      color: var(--text-muted);
+
+      cursor: pointer;
+    }
+
+    .error-msg {
+      display: none;
+
+      margin-top: 5px;
+
+      color: var(--error-color);
+
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .forgot-link {
+      display: block;
+
+      margin-top: 8px;
+
+      color: var(--primary-color);
+
+      font-size: 12px;
+      text-align: right;
+
+      text-decoration: none;
+
+      cursor: pointer;
+    }
+
+    .timer-text {
+      margin: 12px 0;
+
+      color: var(--text-muted);
+
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .resend-btn {
+      display: block;
+
+      margin: auto;
+
+      padding: 0;
+
+      color: var(--primary-color);
+      background: transparent;
+
+      border: 0;
+
+      font-weight: 600;
+
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .resend-btn:disabled {
+      color: var(--text-muted);
+      cursor: not-allowed;
+      text-decoration: none;
+    }
+
+    .dashboard-card {
+      margin-top: 15px;
+      padding: 20px;
+
+      background: rgba(255,255,255,.03);
+
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+    }
+
+    .uid-badge {
+      margin: 10px 0;
+      padding: 10px;
+
+      color: #fff;
+      background: rgba(108,92,231,.2);
+
+      border: 1px dashed var(--primary-color);
+      border-radius: 8px;
+
+      font-family: monospace;
+      font-size: 18px;
+      letter-spacing: 2px;
+
+      word-break: break-all;
+      text-align: center;
+    }
+
+    .status-box {
+      display: none;
+
+      margin-bottom: 16px;
+      padding: 12px;
+
+      border-radius: 10px;
+
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .status-box.error {
+      display: block;
+
+      color: #fff;
+      background: rgba(255,71,87,.15);
+
+      border: 1px solid rgba(255,71,87,.4);
+    }
+
+    .status-box.success {
+      display: block;
+
+      color: #fff;
+      background: rgba(46,213,115,.15);
+
+      border: 1px solid rgba(46,213,115,.4);
+    }
+
+    .loading-spinner {
+      width: 17px;
+      height: 17px;
+
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: #fff;
+
+      border-radius: 50%;
+
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .security-note {
+      margin-top: 18px;
+
+      color: #777;
+
+      font-size: 10px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    @media(max-width:480px) {
+      body {
+        padding: 12px;
+      }
+
+      .container {
+        padding: 26px 18px;
+        border-radius: 20px;
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- LOGO -->
+    <div class="logo-container">
+      <img
+        src="https://lh3.googleusercontent.com/d/1-HtKoZn4P0ztzUW0V-QP3mBU0SyGYnSn"
+        alt="JAVICASH Logo">
+    </div>
+
+    <h1 class="brand-title">JAVICASH</h1>
+
+    <p class="welcome-text">
+      Hello user, welcome to JAVICASH zubirosmani 549.
+      Register a new account or log in to access your dashboard.
+    </p>
+
+    <div id="status-box" class="status-box"></div>
+
+
+    <!-- =====================================================
+         LANDING
+    ====================================================== -->
+
+    <div id="view-landing" class="view active">
+
+      <button
+        class="btn btn-google"
+        id="btn-google-auth">
+
+        <i class="fa-brands fa-google"></i>
+
+        Continue with Google
+
+      </button>
+
+      <div class="btn-group">
+
+        <button
+          class="btn btn-primary"
+          onclick="switchView('view-register')">
+
+          <i class="fa-solid fa-user-plus"></i>
+          Register
+
+        </button>
+
+        <button
+          class="btn btn-outline"
+          onclick="switchView('view-login')">
+
+          <i class="fa-solid fa-right-to-bracket"></i>
+          Login
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         REGISTER
+    ====================================================== -->
+
+    <div id="view-register" class="view">
+
+      <div class="input-group">
+
+        <label>Full Name</label>
+
+        <input
+          type="text"
+          id="reg-name"
+          class="input-field"
+          autocomplete="name"
+          placeholder="John Doe">
+
+        <div
+          class="error-msg"
+          id="err-reg-name">
+        </div>
+
+      </div>
+
+
+      <div class="input-group">
+
+        <label>Email Address</label>
+
+        <input
+          type="email"
+          id="reg-email"
+          class="input-field"
+          autocomplete="email"
+          placeholder="user@example.com">
+
+        <div
+          class="error-msg"
+          id="err-reg-email">
+        </div>
+
+      </div>
+
+
+      <div class="input-group">
+
+        <label>Password</label>
+
+        <div class="input-wrapper">
+
+          <input
+            type="password"
+            id="reg-pass"
+            class="input-field"
+            autocomplete="new-password"
+            placeholder="••••••••">
+
+          <i
+            class="fa-regular fa-eye toggle-password"
+            onclick="togglePassVisibility('reg-pass', this)">
+          </i>
+
+        </div>
+
+        <div
+          class="error-msg"
+          id="err-reg-pass">
+        </div>
+
+      </div>
+
+
+      <div class="input-group">
+
+        <label>Confirm Password</label>
+
+        <div class="input-wrapper">
+
+          <input
+            type="password"
+            id="reg-cpass"
+            class="input-field"
+            autocomplete="new-password"
+            placeholder="••••••••">
+
+          <i
+            class="fa-regular fa-eye toggle-password"
+            onclick="togglePassVisibility('reg-cpass', this)">
+          </i>
+
+        </div>
+
+        <div
+          class="error-msg"
+          id="err-reg-cpass">
+        </div>
+
+      </div>
+
+
+      <button
+        class="btn btn-primary"
+        id="btn-reg-next"
+        onclick="handleRegistrationSubmit()">
+
+        <span>Continue</span>
+
+      </button>
+
+
+      <button
+        class="btn btn-outline"
+        style="margin-top:10px"
+        onclick="switchView('view-landing')">
+
+        Back
+
+      </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         REGISTRATION OTP
+    ====================================================== -->
+
+    <div id="view-reg-otp" class="view">
+
+      <h3 style="text-align:center">
+        Verify Email OTP
+      </h3>
+
+      <p class="welcome-text">
+        We sent a 6-digit verification code to your email.
+      </p>
+
+      <div class="input-group">
+
+        <input
+          type="text"
+          id="reg-otp-input"
+          class="input-field"
+          inputmode="numeric"
+          maxlength="6"
+          placeholder="Enter 6-digit OTP"
+          style="
+            text-align:center;
+            font-size:18px;
+            letter-spacing:5px;
+          ">
+
+        <div
+          class="error-msg"
+          id="err-reg-otp">
+        </div>
+
+      </div>
+
+
+      <div class="timer-text">
+
+        Time Remaining:
+
+        <span
+          id="reg-timer-display"
+          style="
+            color:var(--primary-color);
+            font-weight:bold;
+          ">
+
+          60
+
+        </span>
+
+        s
+
+      </div>
+
+
+      <button
+        class="resend-btn"
+        id="btn-reg-resend"
+        disabled
+        onclick="resendRegistrationOTP()">
+
+        Resend OTP
+
+      </button>
+
+
+      <button
+        class="btn btn-primary"
+        style="margin-top:15px"
+        onclick="verifyRegistrationOTP()">
+
+        Verify & Create Account
+
+      </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         LOGIN
+    ====================================================== -->
+
+    <div id="view-login" class="view">
+
+      <div class="input-group">
+
+        <label>Unique Member ID</label>
+
+        <input
+          type="text"
+          id="login-uid"
+          class="input-field"
+          inputmode="numeric"
+          maxlength="6"
+          autocomplete="username"
+          placeholder="6-digit Unique ID">
+
+        <div
+          class="error-msg"
+          id="err-login-uid">
+        </div>
+
+      </div>
+
+
+      <div class="input-group">
+
+        <label>Email Address</label>
+
+        <input
+          type="email"
+          id="login-email"
+          class="input-field"
+          autocomplete="email"
+          placeholder="user@example.com">
+
+        <div
+          class="error-msg"
+          id="err-login-email">
+        </div>
+
+      </div>
+
+
+      <div class="input-group">
+
+        <label>Password</label>
+
+        <div class="input-wrapper">
+
+          <input
+            type="password"
+            id="login-pass"
+            class="input-field"
+            autocomplete="current-password"
+            placeholder="••••••••">
+
+          <i
+            class="fa-regular fa-eye toggle-password"
+            onclick="togglePassVisibility('login-pass', this)">
+          </i>
+
+        </div>
+
+        <div
+          class="error-msg"
+          id="err-login-pass">
+        </div>
+
+
+        <a
+          class="forgot-link"
+          onclick="switchView('view-forgot')">
+
+          Forgot Password?
+
+        </a>
+
+      </div>
+
+
+      <button
+        class="btn btn-primary"
+        id="btn-login"
+        onclick="handleLoginSubmit()">
+
+        <span>Login</span>
+
+      </button>
+
+
+      <button
+        class="btn btn-outline"
+        style="margin-top:10px"
+        onclick="switchView('view-landing')">
+
+        Back
+
+      </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         FORGOT PASSWORD
+    ====================================================== -->
+
+    <div id="view-forgot" class="view">
+
+      <h3 style="text-align:center">
+        Reset Password
+      </h3>
+
+      <p class="welcome-text">
+        Enter your registered email address.
+      </p>
+
+
+      <div class="input-group">
+
+        <label>Unique ID (Optional)</label>
+
+        <input
+          type="text"
+          id="forgot-uid"
+          class="input-field"
+          inputmode="numeric"
+          maxlength="6"
+          placeholder="6-digit Unique ID">
+
+      </div>
+
+
+      <div class="input-group">
+
+        <label>Registered Email</label>
+
+        <input
+          type="email"
+          id="forgot-email"
+          class="input-field"
+          autocomplete="email"
+          placeholder="user@example.com">
+
+        <div
+          class="error-msg"
+          id="err-forgot-email">
+        </div>
+
+      </div>
+
+
+      <button
+        class="btn btn-primary"
+        id="btn-forgot"
+        onclick="handleForgotSubmit()">
+
+        Send Reset Code
+
+      </button>
+
+
+      <button
+        class="btn btn-outline"
+        style="margin-top:10px"
+        onclick="switchView('view-login')">
+
+        Back
+
+      </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         FORGOT OTP
+    ====================================================== -->
+
+    <div id="view-forgot-otp" class="view">
+
+      <h3 style="text-align:center">
+        Verify Security Code
+      </h3>
+
+      <p class="welcome-text">
+        Enter the OTP sent to your email.
+      </p>
+
+
+      <div class="input-group">
+
+        <input
+          type="text"
+          id="forgot-otp-input"
+          class="input-field"
+          inputmode="numeric"
+          maxlength="6"
+          placeholder="Enter 6-digit OTP"
+          style="
+            text-align:center;
+            font-size:18px;
+            letter-spacing:5px;
+          ">
+
+        <div
+          class="error-msg"
+          id="err-forgot-otp">
+        </div>
+
+      </div>
+
+
+      <div class="timer-text">
+
+        Time Remaining:
+
+        <span
+          id="forgot-timer-display"
+          style="
+            color:var(--primary-color);
+            font-weight:bold;
+          ">
+
+          60
+
+        </span>
+
+        s
+
+      </div>
+
+
+      <button
+        class="resend-btn"
+        id="btn-forgot-resend"
+        disabled
+        onclick="resendForgotOTP()">
+
+        Resend OTP
+
+      </button>
+
+
+      <button
+        class="btn btn-primary"
+        style="margin-top:15px"
+        onclick="verifyForgotOTP()">
+
+        Verify Code
+
+      </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         RESET PASSWORD
+    ====================================================== -->
+
+    <div id="view-reset-pass" class="view">
+
+      <h3 style="text-align:center">
+        New Password
+      </h3>
+
+      <p class="welcome-text">
+        Create a new secure password.
+      </p>
+
+
+      <div class="input-group">
+
+        <label>New Password</label>
+
+        <div class="input-wrapper">
+
+          <input
+            type="password"
+            id="reset-new-pass"
+            class="input-field"
+            autocomplete="new-password"
+            placeholder="••••••••">
+
+          <i
+            class="fa-regular fa-eye toggle-password"
+            onclick="togglePassVisibility('reset-new-pass', this)">
+          </i>
+
+        </div>
+
+      </div>
+
+
+      <div class="input-group">
+
+        <label>Confirm New Password</label>
+
+        <div class="input-wrapper">
+
+          <input
+            type="password"
+            id="reset-cpass"
+            class="input-field"
+            autocomplete="new-password"
+            placeholder="••••••••">
+
+          <i
+            class="fa-regular fa-eye toggle-password"
+            onclick="togglePassVisibility('reset-cpass', this)">
+          </i>
+
+        </div>
+
+        <div
+          class="error-msg"
+          id="err-reset-pass">
+        </div>
+
+      </div>
+
+
+      <button
+        class="btn btn-primary"
+        onclick="handlePasswordResetSave()">
+
+        Update Password & Login
+
+      </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         FALLBACK DASHBOARD
+    ====================================================== -->
+
+    <div id="view-dashboard" class="view">
+
+      <h2 style="text-align:center">
+        Welcome Back!
+      </h2>
+
+      <p class="welcome-text">
+        You are now signed in to JAVICASH.
+      </p>
+
+
+      <div class="dashboard-card">
+
+        <p style="
+          font-size:12px;
+          color:var(--text-muted);
+        ">
+
+          YOUR UNIQUE MEMBER ID
+
+        </p>
+
+
+        <div
+          class="uid-badge"
+          id="dash-uid">
+
+          ------
+
+        </div>
+
+
+        <p style="
+          font-size:13px;
+          margin-top:10px;
+        ">
+
+          Name:
+
+          <b id="dash-name">
+            ---
+          </b>
+
+        </p>
+
+
+        <p style="
+          font-size:13px;
+          margin-top:5px;
+        ">
+
+          Email:
+
+          <b id="dash-email">
+            ---
+          </b>
+
+        </p>
+
+      </div>
+
+
+      <button
+        class="btn btn-outline"
+        style="
+          margin-top:20px;
+          border-color:var(--error-color);
+          color:var(--error-color);
+        "
+        onclick="handleLogout()">
+
+        Logout
+
+      </button>
+
+    </div>
+
+
+    <p class="security-note">
+      JAVICASH authentication is handled by Firebase Authentication.
+      Passwords are never stored in the Realtime Database.
+    </p>
+
+  </div>
+
+
+  <!-- =======================================================
+       FIREBASE
+  ======================================================== -->
+
+  <script type="module">
+
+    import {
+      initializeApp
+    }
+    from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+
+
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      sendPasswordResetEmail,
+      updatePassword,
+      onAuthStateChanged,
+      signOut
+    }
+    from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+
+    import {
+      getDatabase,
+      ref,
+      get,
+      set,
+      update,
+      query,
+      orderByChild,
+      equalTo
+    }
+    from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+
+
+    /* =====================================================
+       FIREBASE CONFIG
+    ====================================================== */
+
+    const firebaseConfig = {
+
+      apiKey:
+        "AIzaSyCwCrQBaYWr6Nr8jdZeeGGyQbjsFW-7LLQ",
+
+      authDomain:
+        "javicash-13a23.firebaseapp.com",
+
+      projectId:
+        "javicash-13a23",
+
+      storageBucket:
+        "javicash-13a23.firebasestorage.app",
+
+      messagingSenderId:
+        "940101890411",
+
+      appId:
+        "1:940101890411:web:e4554cbf62319dd8f01c2e",
+
+      measurementId:
+        "G-G6957LRB21",
+
+      databaseURL:
+        "https://javicash-13a23-default-rtdb.firebaseio.com"
+    };
+
+
+    const app = initializeApp(firebaseConfig);
+
+    const auth = getAuth(app);
+
+    const db = getDatabase(app);
+
+    const googleProvider =
+      new GoogleAuthProvider();
+
+
+    /* =====================================================
+       ADMIN EMAIL
+       
+       IMPORTANT:
+       This is only used to decide which page to open
+       AFTER Firebase Authentication has authenticated
+       the user.
+
+       Security MUST also be enforced by Firebase Rules.
+    ====================================================== */
+
+    const ADMIN_EMAIL =
+      "zubirosmani0@gmail.com";
+
+
+    /* =====================================================
+       EMAILJS
+    ====================================================== */
+
+    const EMAILJS_SERVICE_ID =
+      "service_uhc1czk";
+
+    const EMAILJS_TEMPLATE_ID =
+      "template_cwtzegc";
+
+    const EMAILJS_PUBLIC_KEY =
+      "3Hbg-0gXLuoRnX2pC";
+
+
+    if (window.emailjs) {
+      emailjs.init(EMAILJS_PUBLIC_KEY);
+    }
+
+
+    /* =====================================================
+       STATE
+    ====================================================== */
+
+    let currentOTP = null;
+
+    let otpExpiresAt = 0;
+
+    let otpTimerInterval = null;
+
+    let tempUserData = {};
+
+    let forgotUserKey = null;
+
+    let forgotEmail = null;
+
+
+    /* =====================================================
+       UI
+    ====================================================== */
+
+    window.switchView = function(viewId) {
+
+      document
+        .querySelectorAll(".view")
+        .forEach(view =>
+          view.classList.remove("active")
+        );
+
+      const target =
+        document.getElementById(viewId);
+
+      if (target) {
+        target.classList.add("active");
+      }
+
+      clearErrorMessages();
+
+      hideStatus();
+    };
+
+
+    function clearErrorMessages() {
+
+      document
+        .querySelectorAll(".error-msg")
+        .forEach(el => {
+
+          el.style.display = "none";
+          el.textContent = "";
+
+        });
+
+
+      document
+        .querySelectorAll(".input-field")
+        .forEach(el =>
+          el.classList.remove("error")
+        );
+    }
+
+
+    function showError(fieldId, errorId, message) {
+
+      const field =
+        document.getElementById(fieldId);
+
+      const error =
+        document.getElementById(errorId);
+
+      if (field) {
+        field.classList.add("error");
+      }
+
+      if (error) {
+
+        error.textContent = message;
+        error.style.display = "block";
+
+      }
+    }
+
+
+    function showStatus(message, type = "error") {
+
+      const box =
+        document.getElementById("status-box");
+
+      box.textContent = message;
+
+      box.className =
+        "status-box " + type;
+
+    }
+
+
+    function hideStatus() {
+
+      const box =
+        document.getElementById("status-box");
+
+      box.className =
+        "status-box";
+
+      box.textContent = "";
+
+    }
+
+
+    function setButtonLoading(button, loading, text) {
+
+      if (!button) return;
+
+      if (loading) {
+
+        button.disabled = true;
+
+        button.innerHTML = `
+          <span class="loading-spinner"></span>
+          <span>Processing...</span>
+        `;
+
+      } else {
+
+        button.disabled = false;
+
+        button.innerHTML =
+          `<span>${text}</span>`;
+
+      }
+    }
+
+
+    window.togglePassVisibility =
+      function(fieldId, iconEl) {
+
+        const field =
+          document.getElementById(fieldId);
+
+        if (!field) return;
+
+        if (field.type === "password") {
+
+          field.type = "text";
+
+          iconEl.classList.replace(
+            "fa-eye",
+            "fa-eye-slash"
+          );
+
+        } else {
+
+          field.type = "password";
+
+          iconEl.classList.replace(
+            "fa-eye-slash",
+            "fa-eye"
+          );
+        }
+      };
+
+
+    /* =====================================================
+       EMAIL NORMALIZATION
+    ====================================================== */
+
+    function normalizeEmail(email) {
+
+      return String(email || "")
+        .trim()
+        .toLowerCase();
+
+    }
+
+
+    /*
+      RTDB email key.
+
+      This is kept compatible with your existing
+      email_registry structure.
+    */
+
+    function sanitizeEmail(email) {
+
+      return normalizeEmail(email)
+        .replace(/\./g, "_dot_")
+        .replace(/@/g, "_at_");
+    }
+
+
+    /* =====================================================
+       UNIQUE MEMBER ID
+       
+       IMPORTANT:
+       The final uniqueness guarantee should be enforced
+       server-side for very large-scale production.
+    ====================================================== */
+
+    async function generateUniqueMemberID() {
+
+      for (let attempt = 0; attempt < 20; attempt++) {
+
+        const newId =
+          Math.floor(
+            100000 +
+            Math.random() * 900000
+          ).toString();
+
+
+        const snapshot =
+          await get(
+            ref(db, `users/${newId}`)
+          );
+
+
+        if (!snapshot.exists()) {
+
+          return newId;
+
+        }
+      }
+
+
+      throw new Error(
+        "Unable to generate a unique Member ID. Please try again."
+      );
+    }
+
+
+    /* =====================================================
+       EMAIL OTP
+    ====================================================== */
+
+    async function sendEmailOTP(email, otp) {
+
+      if (!window.emailjs) {
+        throw new Error(
+          "Email service is unavailable."
+        );
+      }
+
+
+      const templateParams = {
+
+        to_email: email,
+
+        user_email: email,
+
+        email: email,
+
+        otp: otp,
+
+        otp_code: otp,
+
+        message:
+          `Your JAVICASH security code is ${otp}.`
+      };
+
+
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        templateParams
+      );
+
+    }
+
+
+    function generateOTP() {
+
+      return Math.floor(
+        100000 +
+        Math.random() * 900000
+      ).toString();
+
+    }
+
+
+    function startOTPTimer(displayId, resendId) {
+
+      clearInterval(otpTimerInterval);
+
+      const display =
+        document.getElementById(displayId);
+
+      const resend =
+        document.getElementById(resendId);
+
+      if (resend) {
+        resend.disabled = true;
+      }
+
+
+      function tick() {
+
+        const remaining =
+          Math.max(
+            0,
+            Math.ceil(
+              (otpExpiresAt - Date.now()) / 1000
+            )
+          );
+
+
+        if (display) {
+          display.textContent =
+            remaining;
+        }
+
+
+        if (remaining <= 0) {
+
+          clearInterval(otpTimerInterval);
+
+          if (resend) {
+            resend.disabled = false;
+          }
+        }
+      }
+
+
+      tick();
+
+      otpTimerInterval =
+        setInterval(tick, 250);
+
+    }
+
+
+    /* =====================================================
+       REGISTRATION
+    ====================================================== */
+
+    window.handleRegistrationSubmit =
+      async function() {
+
+        clearErrorMessages();
+        hideStatus();
+
+
+        const button =
+          document.getElementById(
+            "btn-reg-next"
+          );
+
+
+        const name =
+          document
+            .getElementById("reg-name")
+            .value
+            .trim();
+
+
+        const email =
+          normalizeEmail(
+            document
+              .getElementById("reg-email")
+              .value
+          );
+
+
+        const pass =
+          document
+            .getElementById("reg-pass")
+            .value;
+
+
+        const cpass =
+          document
+            .getElementById("reg-cpass")
+            .value;
+
+
+        let valid = true;
+
+
+        if (name.length < 2) {
+
+          showError(
+            "reg-name",
+            "err-reg-name",
+            "Please enter your full name."
+          );
+
+          valid = false;
+        }
+
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+
+          showError(
+            "reg-email",
+            "err-reg-email",
+            "Please enter a valid email address."
+          );
+
+          valid = false;
+        }
+
+
+        if (pass.length < 6) {
+
+          showError(
+            "reg-pass",
+            "err-reg-pass",
+            "Password must contain at least 6 characters."
+          );
+
+          valid = false;
+        }
+
+
+        if (pass !== cpass) {
+
+          showError(
+            "reg-cpass",
+            "err-reg-cpass",
+            "Passwords do not match."
+          );
+
+          valid = false;
+        }
+
+
+        if (!valid) return;
+
+
+        setButtonLoading(
+          button,
+          true,
+          "Continue"
+        );
+
+
+        try {
+
+          /*
+            Check your existing email_registry first.
+          */
+
+          const emailKey =
+            sanitizeEmail(email);
+
+
+          const emailSnapshot =
+            await get(
+              ref(
+                db,
+                `email_registry/${emailKey}`
+              )
+            );
+
+
+          if (emailSnapshot.exists()) {
+
+            showError(
+              "reg-email",
+              "err-reg-email",
+              "An account already exists with this email."
+            );
+
+            return;
+          }
+
+
+          /*
+            DO NOT save the password in temp database
+            or RTDB.
+
+            It remains only in this browser memory
+            until Firebase Authentication creates
+            the account.
+          */
+
+          tempUserData = {
+
+            name,
+            email,
+            pass
+
+          };
+
+
+          currentOTP =
+            generateOTP();
+
+
+          otpExpiresAt =
+            Date.now() + 60 * 1000;
+
+
+          await sendEmailOTP(
+            email,
+            currentOTP
+          );
+
+
+          document
+            .getElementById(
+              "reg-otp-input"
+            )
+            .value = "";
+
+
+          startOTPTimer(
+            "reg-timer-display",
+            "btn-reg-resend"
+          );
+
+
+          switchView(
+            "view-reg-otp"
+          );
+
+
+        } catch (error) {
+
+          console.error(
+            "Registration preparation error:",
+            error
+          );
+
+
+          showStatus(
+            getFirebaseError(error),
+            "error"
+          );
+
+        } finally {
+
+          setButtonLoading(
+            button,
+            false,
+            "Continue"
+          );
+
+        }
+      };
+
+
+    window.resendRegistrationOTP =
+      async function() {
+
+        if (
+          !tempUserData.email
+        ) return;
+
+
+        try {
+
+          currentOTP =
+            generateOTP();
+
+          otpExpiresAt =
+            Date.now() + 60 * 1000;
+
+
+          await sendEmailOTP(
+            tempUserData.email,
+            currentOTP
+          );
+
+
+          startOTPTimer(
+            "reg-timer-display",
+            "btn-reg-resend"
+          );
+
+
+          showStatus(
+            "A new verification code has been sent.",
+            "success"
+          );
+
+
+        } catch (error) {
+
+          showStatus(
+            "Unable to send a new OTP.",
+            "error"
+          );
+
+        }
+      };
+
+
+    window.verifyRegistrationOTP =
+      async function() {
+
+        const entered =
+          document
+            .getElementById(
+              "reg-otp-input"
+            )
+            .value
+            .trim();
+
+
+        if (
+          !currentOTP ||
+          Date.now() > otpExpiresAt ||
+          entered !== currentOTP
+        ) {
+
+          showError(
+            "reg-otp-input",
+            "err-reg-otp",
+            "Invalid or expired OTP."
+          );
+
+          return;
+        }
+
+
+        clearInterval(
+          otpTimerInterval
+        );
+
+
+        try {
+
+          /*
+            1. Create the real Firebase Auth account.
+          */
+
+          const credential =
+            await createUserWithEmailAndPassword(
+              auth,
+              tempUserData.email,
+              tempUserData.pass
+            );
+
+
+          const firebaseUser =
+            credential.user;
+
+
+          /*
+            2. Generate the public/member ID.
+          */
+
+          const uniqueID =
+            await generateUniqueMemberID();
+
+
+          /*
+            3. Store profile data only.
+            
+            NEVER store password.
+          */
+
+          const userData = {
+
+            uid: uniqueID,
+
+            authUid: firebaseUser.uid,
+
+            name: tempUserData.name,
+
+            email: tempUserData.email,
+
+            created_at:
+              new Date().toISOString(),
+
+            coins: 0,
+
+            balance: 0
+
+          };
+
+
+          /*
+            4. Save member profile.
+          */
+
+          await set(
+            ref(db, `users/${uniqueID}`),
+            userData
+          );
+
+
+          /*
+            5. Email registry.
+          */
+
+          await set(
+            ref(
+              db,
+              `email_registry/${sanitizeEmail(
+                tempUserData.email
+              )}`
+            ),
+            uniqueID
+          );
+
+
+          /*
+            6. Clear temporary password from JS state.
+          */
+
+          tempUserData.pass = null;
+
+          currentOTP = null;
+
+
+          /*
+            7. Firebase is now authenticated.
+            Redirect to member dashboard.
+          */
+
+          window.location.replace(
+            "dashboard.html"
+          );
+
+
+        } catch (error) {
+
+          console.error(
+            "Registration error:",
+            error
+          );
+
+
+          showStatus(
+            getFirebaseError(error),
+            "error"
+          );
+
+
+          /*
+            If Auth account was created but database
+            write failed, do NOT create a second account.
+            The dashboard can still recover the profile
+            after the database issue is fixed.
+          */
+
+        }
+      };
+
+
+    /* =====================================================
+       MEMBER LOGIN + ADMIN DIRECT LOGIN
+    ====================================================== */
+
+    window.handleLoginSubmit =
+      async function() {
+
+        clearErrorMessages();
+        hideStatus();
+
+
+        const button =
+          document.getElementById(
+            "btn-login"
+          );
+
+
+        const memberId =
+          document
+            .getElementById("login-uid")
+            .value
+            .trim();
+
+
+        const email =
+          normalizeEmail(
+            document
+              .getElementById("login-email")
+              .value
+          );
+
+
+        const password =
+          document
+            .getElementById("login-pass")
+            .value;
+
+
+        let valid = true;
+
+
+        /*
+          Admin does not need Member ID.
+          We intentionally allow an empty Member ID
+          when the email is the authorized admin email.
+        */
+
+        const isAdminEmail =
+          email === ADMIN_EMAIL;
+
+
+        if (!isAdminEmail && !/^\d{6}$/.test(memberId)) {
+
+          showError(
+            "login-uid",
+            "err-login-uid",
+            "Enter your 6-digit Member ID."
+          );
+
+          valid = false;
+        }
+
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+
+          showError(
+            "login-email",
+            "err-login-email",
+            "Enter a valid email address."
+          );
+
+          valid = false;
+        }
+
+
+        if (!password) {
+
+          showError(
+            "login-pass",
+            "err-login-pass",
+            "Password is required."
+          );
+
+          valid = false;
+        }
+
+
+        if (!valid) return;
+
+
+        setButtonLoading(
+          button,
+          true,
+          "Login"
+        );
+
+
+        try {
+
+          /*
+            IMPORTANT:
+            We do NOT compare the password in JavaScript.
+
+            Firebase Authentication verifies it.
+          */
+
+          const credential =
+            await signInWithEmailAndPassword(
+              auth,
+              email,
+              password
+            );
+
+
+          const firebaseUser =
+            credential.user;
+
+
+          /*
+            ADMIN DIRECT LOGIN
+          */
+
+          if (
+            normalizeEmail(
+              firebaseUser.email
+            ) === ADMIN_EMAIL
+          ) {
+
+            /*
+              IMPORTANT:
+              Firebase Authentication successfully
+              verified the password.
+
+              Now admin.html itself MUST perform
+              another authorization check using
+              Firebase Auth / custom claims.
+            */
+
+            window.location.replace(
+              "admin.html"
+            );
+
+            return;
+          }
+
+
+          /*
+            REGULAR MEMBER LOGIN
+          */
+
+          if (!/^\d{6}$/.test(memberId)) {
+
+            await signOut(auth);
+
+            showError(
+              "login-uid",
+              "err-login-uid",
+              "Member ID is required."
+            );
+
+            return;
+          }
+
+
+          /*
+            Find the requested member profile.
+          */
+
+          const userSnapshot =
+            await get(
+              ref(
+                db,
+                `users/${memberId}`
+              )
+            );
+
+
+          if (!userSnapshot.exists()) {
+
+            await signOut(auth);
+
+            showError(
+              "login-uid",
+              "err-login-uid",
+              "Member ID not found."
+            );
+
+            return;
+          }
+
+
+          const userData =
+            userSnapshot.val();
+
+
+          /*
+            IMPORTANT SECURITY CHECK:
+            The RTDB profile must belong to the
+            Firebase Auth account that just logged in.
+          */
+
+          if (
+            userData.authUid !==
+            firebaseUser.uid
+          ) {
+
+            await signOut(auth);
+
+            showStatus(
+              "This Member ID does not belong to the authenticated account.",
+              "error"
+            );
+
+            return;
+          }
+
+
+          /*
+            Email must also match.
+          */
+
+          if (
+            normalizeEmail(userData.email) !==
+            normalizeEmail(firebaseUser.email)
+          ) {
+
+            await signOut(auth);
+
+            showError(
+              "login-email",
+              "err-login-email",
+              "Email does not match this Member ID."
+            );
+
+            return;
+          }
+
+
+          /*
+            Everything is correct.
+          */
+
+          window.location.replace(
+            "dashboard.html"
+          );
+
+
+        } catch (error) {
+
+          console.error(
+            "Login error:",
+            error
+          );
+
+
+          showStatus(
+            getFirebaseError(error),
+            "error"
+          );
+
+
+        } finally {
+
+          setButtonLoading(
+            button,
+            false,
+            "Login"
+          );
+
+        }
+      };
+
+
+    /* =====================================================
+       FORGOT PASSWORD
+       
+       Firebase Authentication handles the actual
+       password reset.
+
+       No password is stored/read from RTDB.
+    ====================================================== */
+
+    window.handleForgotSubmit =
+      async function() {
+
+        clearErrorMessages();
+        hideStatus();
+
+
+        const button =
+          document.getElementById(
+            "btn-forgot"
+          );
+
+
+        const email =
+          normalizeEmail(
+            document
+              .getElementById("forgot-email")
+              .value
+          );
+
+
+        const memberId =
+          document
+            .getElementById("forgot-uid")
+            .value
+            .trim();
+
+
+        if (
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        ) {
+
+          showError(
+            "forgot-email",
+            "err-forgot-email",
+            "Enter a valid registered email."
+          );
+
+          return;
+        }
+
+
+        setButtonLoading(
+          button,
+          true,
+          "Send Reset Code"
+        );
+
+
+        try {
+
+          /*
+            If Member ID is supplied, verify that it
+            corresponds to the entered email.
+          */
+
+          if (memberId) {
+
+            const snapshot =
+              await get(
+                ref(
+                  db,
+                  `users/${memberId}`
+                )
+              );
+
+
+            if (!snapshot.exists()) {
+
+              showError(
+                "forgot-uid",
+                "err-forgot-email",
+                "Member ID not found."
+              );
+
+              return;
+            }
+
+
+            const data =
+              snapshot.val();
+
+
+            if (
+              normalizeEmail(data.email) !==
+              email
+            ) {
+
+              showError(
+                "forgot-email",
+                "err-forgot-email",
+                "Email does not match this Member ID."
+              );
+
+              return;
+            }
+          }
+
+
+          /*
+            Firebase sends the official password reset
+            email.
+
+            No password is read from RTDB.
+          */
+
+          await sendPasswordResetEmail(
+            auth,
+            email
+          );
+
+
+          showStatus(
+            "Password reset email sent. Check your inbox.",
+            "success"
+          );
+
+
+          setTimeout(() => {
+
+            switchView(
+              "view-login"
+            );
+
+          }, 1500);
+
+
+        } catch (error) {
+
+          console.error(
+            "Password reset error:",
+            error
+          );
+
+
+          showStatus(
+            getFirebaseError(error),
+            "error"
+          );
+
+
+        } finally {
+
+          setButtonLoading(
+            button,
+            false,
+            "Send Reset Code"
+          );
+
+        }
+      };
+
+
+    /*
+      Keep these functions so your existing UI
+      does not break if something calls them.
+
+      Firebase's official reset-email flow is now used
+      instead of storing password/OTP state in RTDB.
+    */
+
+    window.resendForgotOTP =
+      function() {
+
+        showStatus(
+          "Please request a new Firebase password-reset email from the previous step.",
+          "success"
+        );
+
+      };
+
+
+    window.verifyForgotOTP =
+      function() {
+
+        showStatus(
+          "Firebase handles the password-reset verification through the secure reset link.",
+          "success"
+        );
+
+      };
+
+
+    window.handlePasswordResetSave =
+      async function() {
+
+        showStatus(
+          "Please use the password-reset link sent by Firebase to create your new password.",
+          "success"
+        );
+
+      };
+
+
+    /* =====================================================
+       GOOGLE SIGN-IN
+    ====================================================== */
+
+    document
+      .getElementById("btn-google-auth")
+      .addEventListener(
+        "click",
+        async function() {
+
+          const button =
+            this;
+
+
+          setButtonLoading(
+            button,
+            true,
+            "Continue with Google"
+          );
+
+
+          try {
+
+            const result =
+              await signInWithPopup(
+                auth,
+                googleProvider
+              );
+
+
+            const firebaseUser =
+              result.user;
+
+
+            if (!firebaseUser.email) {
+
+              throw new Error(
+                "Google account does not provide an email address."
+              );
+            }
+
+
+            const email =
+              normalizeEmail(
+                firebaseUser.email
+              );
+
+
+            /*
+              ADMIN GOOGLE ACCOUNT
+            */
+
+            if (email === ADMIN_EMAIL) {
+
+              window.location.replace(
+                "admin.html"
+              );
+
+              return;
+            }
+
+
+            /*
+              Existing member?
+            */
+
+            const emailKey =
+              sanitizeEmail(email);
+
+
+            const emailMapSnapshot =
+              await get(
+                ref(
+                  db,
+                  `email_registry/${emailKey}`
+                )
+              );
+
+
+            let memberId;
+
+
+            if (emailMapSnapshot.exists()) {
+
+              memberId =
+                emailMapSnapshot.val();
+
+            } else {
+
+              /*
+                First-time Google user.
+              */
+
+              memberId =
+                await generateUniqueMemberID();
+
+
+              const userData = {
+
+                uid: memberId,
+
+                authUid:
+                  firebaseUser.uid,
+
+                name:
+                  firebaseUser.displayName ||
+                  "Google User",
+
+                email,
+
+                photoURL:
+                  firebaseUser.photoURL ||
+                  "",
+
+                provider:
+                  "google.com",
+
+                created_at:
+                  new Date().toISOString(),
+
+                coins: 0,
+
+                balance: 0
+
+              };
+
+
+              await set(
+                ref(
+                  db,
+                  `users/${memberId}`
+                ),
+                userData
+              );
+
+
+              await set(
+                ref(
+                  db,
+                  `email_registry/${emailKey}`
+                ),
+                memberId
+              );
+
+            }
+
+
+            /*
+              Verify that the Firebase Auth account
+              matches the stored member profile.
+            */
+
+            const memberSnapshot =
+              await get(
+                ref(
+                  db,
+                  `users/${memberId}`
+                )
+              );
+
+
+            if (!memberSnapshot.exists()) {
+
+              throw new Error(
+                "Member profile could not be loaded."
+              );
+            }
+
+
+            const memberData =
+              memberSnapshot.val();
+
+
+            if (
+              memberData.authUid !==
+              firebaseUser.uid
+            ) {
+
+              await signOut(auth);
+
+              throw new Error(
+                "This email is linked to a different member account."
+              );
+            }
+
+
+            window.location.replace(
+              "dashboard.html"
+            );
+
+
+          } catch (error) {
+
+            console.error(
+              "Google authentication error:",
+              error
+            );
+
+
+            showStatus(
+              getFirebaseError(error),
+              "error"
+            );
+
+
+          } finally {
+
+            setButtonLoading(
+              button,
+              false,
+              "Continue with Google"
+            );
+
+          }
+
+        }
+      );
+
+
+    /* =====================================================
+       AUTH STATE
+       
+       We intentionally do NOT use localStorage as
+       authentication.
+
+       Firebase Auth is the source of truth.
+    ====================================================== */
+
+    onAuthStateChanged(
+      auth,
+      async function(user) {
+
+        if (!user) {
+          return;
+        }
+
+
+        const currentPage =
+          location.pathname
+            .split("/")
+            .pop()
+            .toLowerCase();
+
+
+        /*
+          If already authenticated and this is index.html,
+          route the user automatically.
+        */
+
+        if (
+          currentPage === "index.html" ||
+          currentPage === ""
+        ) {
+
+          const email =
+            normalizeEmail(
+              user.email
+            );
+
+
+          if (email === ADMIN_EMAIL) {
+
+            window.location.replace(
+              "admin.html"
+            );
+
+            return;
+          }
+
+
+          /*
+            Find member by authUid.
+          */
+
+          try {
+
+            const memberQuery =
+              query(
+                ref(db, "users"),
+                orderByChild("authUid"),
+                equalTo(user.uid)
+              );
+
+
+            const snapshot =
+              await get(memberQuery);
+
+
+            if (snapshot.exists()) {
+
+              window.location.replace(
+                "dashboard.html"
+              );
+
+            }
+
+          } catch (error) {
+
+            console.error(
+              "Auth routing error:",
+              error
+            );
+
+          }
+        }
+
+      }
+    );
+
+
+    /* =====================================================
+       LOGOUT
+    ====================================================== */
+
+    window.handleLogout =
+      async function() {
+
+        try {
+
+          await signOut(auth);
+
+          window.location.replace(
+            "index.html"
+          );
+
+        } catch (error) {
+
+          console.error(
+            "Logout error:",
+            error
+          );
+
+        }
+      };
+
+
+    /* =====================================================
+       FIREBASE ERROR TRANSLATION
+    ====================================================== */
+
+    function getFirebaseError(error) {
+
+      if (!error) {
+        return "An unknown error occurred.";
+      }
+
+
+      const code =
+        error.code || "";
+
+
+      const messages = {
+
+        "auth/email-already-in-use":
+          "This email is already registered.",
+
+        "auth/invalid-email":
+          "The email address is invalid.",
+
+        "auth/weak-password":
+          "Password is too weak.",
+
+        "auth/invalid-credential":
+          "Incorrect email or password.",
+
+        "auth/user-not-found":
+          "Account not found.",
+
+        "auth/wrong-password":
+          "Incorrect email or password.",
+
+        "auth/popup-closed-by-user":
+          "Google Sign-In was cancelled.",
+
+        "auth/popup-blocked":
+          "Your browser blocked the Google login popup.",
+
+        "auth/cancelled-popup-request":
+          "Google Sign-In was cancelled.",
+
+        "auth/network-request-failed":
+          "Network connection failed. Please try again.",
+
+        "auth/too-many-requests":
+          "Too many attempts. Please wait and try again.",
+
+        "auth/user-disabled":
+          "This account has been disabled.",
+
+        "auth/operation-not-allowed":
+          "This authentication method is not enabled in Firebase.",
+
+        "permission_denied":
+          "Firebase denied this operation. Check your Database Rules."
+
+      };
+
+
+      return (
+        messages[code] ||
+        error.message ||
+        "Authentication failed. Please try again."
+      );
+
+    }
+
+  </script>
+
+</body>
+</html>
