@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1021,17 +1022,17 @@
 
 
     <!-- =====================================================
-         FALLBACK DASHBOARD
+         FALLBACK DASHBOARD / REGISTRATION SUCCESS PREVIEW
     ====================================================== -->
 
     <div id="view-dashboard" class="view">
 
       <h2 style="text-align:center">
-        Welcome Back!
+        Account Created Successfully!
       </h2>
 
       <p class="welcome-text">
-        You are now signed in to JAVICASH.
+        Your JAVICASH member profile has been created successfully.
       </p>
 
 
@@ -1082,6 +1083,49 @@
           </b>
 
         </p>
+
+      </div>
+
+
+      <!-- =====================================================
+           5 SECOND REDIRECT NOTICE
+      ====================================================== -->
+
+      <div
+        class="timer-text"
+        style="
+          margin-top:20px;
+          color:var(--text-muted);
+        ">
+
+        Redirecting to your dashboard in
+
+        <span
+          id="registration-redirect-countdown"
+          style="
+            color:var(--primary-color);
+            font-size:18px;
+            font-weight:800;
+          ">
+
+          5
+
+        </span>
+
+        seconds...
+
+      </div>
+
+
+      <div
+        style="
+          margin-top:8px;
+          color:var(--success-color);
+          font-size:11px;
+          text-align:center;
+        ">
+
+        Please wait while we securely prepare your dashboard.
 
       </div>
 
@@ -1193,13 +1237,6 @@
 
     /* =====================================================
        ADMIN EMAIL
-       
-       IMPORTANT:
-       This is only used to decide which page to open
-       AFTER Firebase Authentication has authenticated
-       the user.
-
-       Security MUST also be enforced by Firebase Rules.
     ====================================================== */
 
     const ADMIN_EMAIL =
@@ -1242,6 +1279,19 @@
     let forgotEmail = null;
 
 
+    /*
+      IMPORTANT:
+      This flag prevents onAuthStateChanged()
+      from redirecting the newly-created account
+      before the 5-second registration preview
+      has finished.
+    */
+
+    let registrationPreviewActive = false;
+
+    let registrationRedirectTimer = null;
+
+
     /* =====================================================
        UI
     ====================================================== */
@@ -1264,6 +1314,7 @@
       clearErrorMessages();
 
       hideStatus();
+
     };
 
 
@@ -1284,6 +1335,7 @@
         .forEach(el =>
           el.classList.remove("error")
         );
+
     }
 
 
@@ -1305,6 +1357,7 @@
         error.style.display = "block";
 
       }
+
     }
 
 
@@ -1355,6 +1408,7 @@
           `<span>${text}</span>`;
 
       }
+
     }
 
 
@@ -1383,7 +1437,9 @@
             "fa-eye-slash",
             "fa-eye"
           );
+
         }
+
       };
 
 
@@ -1402,9 +1458,6 @@
 
     /*
       RTDB email key.
-
-      This is kept compatible with your existing
-      email_registry structure.
     */
 
     function sanitizeEmail(email) {
@@ -1412,15 +1465,12 @@
       return normalizeEmail(email)
         .replace(/\./g, "_dot_")
         .replace(/@/g, "_at_");
+
     }
 
 
     /* =====================================================
        UNIQUE MEMBER ID
-       
-       IMPORTANT:
-       The final uniqueness guarantee should be enforced
-       server-side for very large-scale production.
     ====================================================== */
 
     async function generateUniqueMemberID() {
@@ -1445,12 +1495,14 @@
           return newId;
 
         }
+
       }
 
 
       throw new Error(
         "Unable to generate a unique Member ID. Please try again."
       );
+
     }
 
 
@@ -1461,9 +1513,11 @@
     async function sendEmailOTP(email, otp) {
 
       if (!window.emailjs) {
+
         throw new Error(
           "Email service is unavailable."
         );
+
       }
 
 
@@ -1481,6 +1535,7 @@
 
         message:
           `Your JAVICASH security code is ${otp}.`
+
       };
 
 
@@ -1513,6 +1568,7 @@
       const resend =
         document.getElementById(resendId);
 
+
       if (resend) {
         resend.disabled = true;
       }
@@ -1542,7 +1598,9 @@
           if (resend) {
             resend.disabled = false;
           }
+
         }
+
       }
 
 
@@ -1610,6 +1668,7 @@
           );
 
           valid = false;
+
         }
 
 
@@ -1622,6 +1681,7 @@
           );
 
           valid = false;
+
         }
 
 
@@ -1634,6 +1694,7 @@
           );
 
           valid = false;
+
         }
 
 
@@ -1646,6 +1707,7 @@
           );
 
           valid = false;
+
         }
 
 
@@ -1687,16 +1749,13 @@
             );
 
             return;
+
           }
 
 
           /*
             DO NOT save the password in temp database
             or RTDB.
-
-            It remains only in this browser memory
-            until Firebase Authentication creates
-            the account.
           */
 
           tempUserData = {
@@ -1753,6 +1812,7 @@
             "error"
           );
 
+
         } finally {
 
           setButtonLoading(
@@ -1762,6 +1822,7 @@
           );
 
         }
+
       };
 
 
@@ -1777,6 +1838,7 @@
 
           currentOTP =
             generateOTP();
+
 
           otpExpiresAt =
             Date.now() + 60 * 1000;
@@ -1808,7 +1870,173 @@
           );
 
         }
+
       };
+
+
+    /* =====================================================
+       REGISTRATION SUCCESS PREVIEW
+       
+       NEW:
+       Show profile for exactly 5 seconds before
+       redirecting to dashboard.html.
+    ====================================================== */
+
+    function startRegistrationPreview(userData) {
+
+      /*
+        Prevent Firebase Auth State listener from
+        redirecting during the 5-second preview.
+      */
+
+      registrationPreviewActive = true;
+
+
+      /*
+        Stop any previous preview timer.
+      */
+
+      if (registrationRedirectTimer) {
+
+        clearInterval(
+          registrationRedirectTimer
+        );
+
+        registrationRedirectTimer = null;
+
+      }
+
+
+      /*
+        Fill newly-created member profile.
+      */
+
+      const uidElement =
+        document.getElementById(
+          "dash-uid"
+        );
+
+      const nameElement =
+        document.getElementById(
+          "dash-name"
+        );
+
+      const emailElement =
+        document.getElementById(
+          "dash-email"
+        );
+
+      const countdownElement =
+        document.getElementById(
+          "registration-redirect-countdown"
+        );
+
+
+      if (uidElement) {
+
+        uidElement.textContent =
+          userData.uid || "------";
+
+      }
+
+
+      if (nameElement) {
+
+        nameElement.textContent =
+          userData.name || "---";
+
+      }
+
+
+      if (emailElement) {
+
+        emailElement.textContent =
+          userData.email || "---";
+
+      }
+
+
+      /*
+        Initial countdown value.
+      */
+
+      let remainingSeconds = 5;
+
+
+      if (countdownElement) {
+
+        countdownElement.textContent =
+          remainingSeconds;
+
+      }
+
+
+      /*
+        Show the success preview.
+      */
+
+      switchView(
+        "view-dashboard"
+      );
+
+
+      /*
+        Use a one-second interval.
+
+        The redirect is executed when the countdown
+        reaches zero, approximately exactly 5 seconds
+        after this preview begins.
+      */
+
+      const previewStartedAt =
+        Date.now();
+
+
+      registrationRedirectTimer =
+        setInterval(function() {
+
+          const elapsed =
+            Date.now() - previewStartedAt;
+
+
+          const remaining =
+            Math.max(
+              0,
+              5 - Math.floor(elapsed / 1000)
+            );
+
+
+          if (countdownElement) {
+
+            countdownElement.textContent =
+              remaining;
+
+          }
+
+
+          /*
+            Redirect after the full 5-second period.
+          */
+
+          if (elapsed >= 5000) {
+
+            clearInterval(
+              registrationRedirectTimer
+            );
+
+            registrationRedirectTimer =
+              null;
+
+
+            window.location.replace(
+              "dashboard.html"
+            );
+
+          }
+
+        }, 100);
+
+    }
 
 
     window.verifyRegistrationOTP =
@@ -1836,6 +2064,7 @@
           );
 
           return;
+
         }
 
 
@@ -1931,12 +2160,16 @@
 
 
           /*
-            7. Firebase is now authenticated.
-            Redirect to member dashboard.
+            7. NEW FLOW:
+            
+            Do NOT redirect immediately.
+
+            Show the newly-created profile for
+            5 seconds first.
           */
 
-          window.location.replace(
-            "dashboard.html"
+          startRegistrationPreview(
+            userData
           );
 
 
@@ -1954,14 +2187,8 @@
           );
 
 
-          /*
-            If Auth account was created but database
-            write failed, do NOT create a second account.
-            The dashboard can still recover the profile
-            after the database issue is fixed.
-          */
-
         }
+
       };
 
 
@@ -2008,8 +2235,6 @@
 
         /*
           Admin does not need Member ID.
-          We intentionally allow an empty Member ID
-          when the email is the authorized admin email.
         */
 
         const isAdminEmail =
@@ -2025,6 +2250,7 @@
           );
 
           valid = false;
+
         }
 
 
@@ -2037,6 +2263,7 @@
           );
 
           valid = false;
+
         }
 
 
@@ -2049,6 +2276,7 @@
           );
 
           valid = false;
+
         }
 
 
@@ -2065,10 +2293,7 @@
         try {
 
           /*
-            IMPORTANT:
-            We do NOT compare the password in JavaScript.
-
-            Firebase Authentication verifies it.
+            Firebase Authentication verifies password.
           */
 
           const credential =
@@ -2093,21 +2318,12 @@
             ) === ADMIN_EMAIL
           ) {
 
-            /*
-              IMPORTANT:
-              Firebase Authentication successfully
-              verified the password.
-
-              Now admin.html itself MUST perform
-              another authorization check using
-              Firebase Auth / custom claims.
-            */
-
             window.location.replace(
               "admin.html"
             );
 
             return;
+
           }
 
 
@@ -2126,11 +2342,12 @@
             );
 
             return;
+
           }
 
 
           /*
-            Find the requested member profile.
+            Find requested member profile.
           */
 
           const userSnapshot =
@@ -2153,6 +2370,7 @@
             );
 
             return;
+
           }
 
 
@@ -2161,9 +2379,8 @@
 
 
           /*
-            IMPORTANT SECURITY CHECK:
-            The RTDB profile must belong to the
-            Firebase Auth account that just logged in.
+            RTDB profile must belong to
+            Firebase Auth account.
           */
 
           if (
@@ -2179,6 +2396,7 @@
             );
 
             return;
+
           }
 
 
@@ -2200,6 +2418,7 @@
             );
 
             return;
+
           }
 
 
@@ -2235,16 +2454,12 @@
           );
 
         }
+
       };
 
 
     /* =====================================================
        FORGOT PASSWORD
-       
-       Firebase Authentication handles the actual
-       password reset.
-
-       No password is stored/read from RTDB.
     ====================================================== */
 
     window.handleForgotSubmit =
@@ -2286,6 +2501,7 @@
           );
 
           return;
+
         }
 
 
@@ -2299,8 +2515,8 @@
         try {
 
           /*
-            If Member ID is supplied, verify that it
-            corresponds to the entered email.
+            If Member ID is supplied, verify
+            that it corresponds to entered email.
           */
 
           if (memberId) {
@@ -2323,6 +2539,7 @@
               );
 
               return;
+
             }
 
 
@@ -2342,15 +2559,14 @@
               );
 
               return;
+
             }
+
           }
 
 
           /*
-            Firebase sends the official password reset
-            email.
-
-            No password is read from RTDB.
+            Firebase sends official password reset email.
           */
 
           await sendPasswordResetEmail(
@@ -2397,15 +2613,13 @@
           );
 
         }
+
       };
 
 
     /*
-      Keep these functions so your existing UI
-      does not break if something calls them.
-
-      Firebase's official reset-email flow is now used
-      instead of storing password/OTP state in RTDB.
+      Keep these functions so existing UI
+      does not break.
     */
 
     window.resendForgotOTP =
@@ -2480,6 +2694,7 @@
               throw new Error(
                 "Google account does not provide an email address."
               );
+
             }
 
 
@@ -2500,6 +2715,7 @@
               );
 
               return;
+
             }
 
 
@@ -2589,8 +2805,8 @@
 
 
             /*
-              Verify that the Firebase Auth account
-              matches the stored member profile.
+              Verify Firebase Auth account matches
+              stored member profile.
             */
 
             const memberSnapshot =
@@ -2607,6 +2823,7 @@
               throw new Error(
                 "Member profile could not be loaded."
               );
+
             }
 
 
@@ -2624,6 +2841,7 @@
               throw new Error(
                 "This email is linked to a different member account."
               );
+
             }
 
 
@@ -2663,10 +2881,12 @@
     /* =====================================================
        AUTH STATE
        
-       We intentionally do NOT use localStorage as
-       authentication.
-
-       Firebase Auth is the source of truth.
+       Firebase Auth remains the source of truth.
+       
+       IMPORTANT:
+       Registration preview temporarily blocks only
+       automatic routing while the 5-second preview
+       is active.
     ====================================================== */
 
     onAuthStateChanged(
@@ -2674,6 +2894,17 @@
       async function(user) {
 
         if (!user) {
+          return;
+        }
+
+
+        /*
+          NEW:
+          Do not interrupt the registration success
+          preview with automatic dashboard routing.
+        */
+
+        if (registrationPreviewActive) {
           return;
         }
 
@@ -2708,6 +2939,7 @@
             );
 
             return;
+
           }
 
 
@@ -2745,6 +2977,7 @@
             );
 
           }
+
         }
 
       }
@@ -2760,11 +2993,33 @@
 
         try {
 
+          /*
+            Cancel registration preview if logout
+            is clicked during the 5-second window.
+          */
+
+          registrationPreviewActive = false;
+
+
+          if (registrationRedirectTimer) {
+
+            clearInterval(
+              registrationRedirectTimer
+            );
+
+            registrationRedirectTimer =
+              null;
+
+          }
+
+
           await signOut(auth);
+
 
           window.location.replace(
             "index.html"
           );
+
 
         } catch (error) {
 
@@ -2774,6 +3029,7 @@
           );
 
         }
+
       };
 
 
