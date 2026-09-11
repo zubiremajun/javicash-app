@@ -444,9 +444,7 @@
     <div id="status-box" class="status-box"></div>
 
 
-    <!-- =====================================================
-         LANDING
-    ====================================================== -->
+    <!-- LANDING -->
 
     <div id="view-landing" class="view active">
 
@@ -485,9 +483,7 @@
     </div>
 
 
-    <!-- =====================================================
-         REGISTER
-    ====================================================== -->
+    <!-- REGISTER -->
 
     <div id="view-register" class="view">
 
@@ -607,9 +603,7 @@
     </div>
 
 
-    <!-- =====================================================
-         REGISTRATION OTP
-    ====================================================== -->
+    <!-- REGISTRATION OTP -->
 
     <div id="view-reg-otp" class="view">
 
@@ -629,6 +623,7 @@
           class="input-field"
           inputmode="numeric"
           maxlength="6"
+          autocomplete="one-time-code"
           placeholder="Enter 6-digit OTP"
           style="
             text-align:center;
@@ -677,6 +672,7 @@
 
       <button
         class="btn btn-primary"
+        id="btn-reg-verify"
         style="margin-top:15px"
         onclick="verifyRegistrationOTP()">
 
@@ -687,9 +683,7 @@
     </div>
 
 
-    <!-- =====================================================
-         LOGIN
-    ====================================================== -->
+    <!-- LOGIN -->
 
     <div id="view-login" class="view">
 
@@ -792,9 +786,7 @@
     </div>
 
 
-    <!-- =====================================================
-         FORGOT PASSWORD
-    ====================================================== -->
+    <!-- FORGOT PASSWORD -->
 
     <div id="view-forgot" class="view">
 
@@ -863,9 +855,7 @@
     </div>
 
 
-    <!-- =====================================================
-         FORGOT OTP
-    ====================================================== -->
+    <!-- FORGOT OTP -->
 
     <div id="view-forgot-otp" class="view">
 
@@ -944,9 +934,7 @@
     </div>
 
 
-    <!-- =====================================================
-         RESET PASSWORD
-    ====================================================== -->
+    <!-- RESET PASSWORD -->
 
     <div id="view-reset-pass" class="view">
 
@@ -1021,9 +1009,7 @@
     </div>
 
 
-    <!-- =====================================================
-         FALLBACK DASHBOARD / REGISTRATION SUCCESS PREVIEW
-    ====================================================== -->
+    <!-- SUCCESS -->
 
     <div id="view-dashboard" class="view">
 
@@ -1086,10 +1072,6 @@
 
       </div>
 
-
-      <!-- =====================================================
-           5 SECOND REDIRECT NOTICE
-      ====================================================== -->
 
       <div
         class="timer-text"
@@ -1168,14 +1150,16 @@
 
     import {
       getAuth,
+      setPersistence,
+      browserLocalPersistence,
       GoogleAuthProvider,
       signInWithPopup,
       createUserWithEmailAndPassword,
       signInWithEmailAndPassword,
       sendPasswordResetEmail,
-      updatePassword,
       onAuthStateChanged,
-      signOut
+      signOut,
+      fetchSignInMethodsForEmail
     }
     from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
@@ -1225,18 +1209,25 @@
     };
 
 
-    const app = initializeApp(firebaseConfig);
+    const app =
+      initializeApp(firebaseConfig);
 
-    const auth = getAuth(app);
+    const auth =
+      getAuth(app);
 
-    const db = getDatabase(app);
+    const db =
+      getDatabase(app);
 
     const googleProvider =
       new GoogleAuthProvider();
 
+    googleProvider.setCustomParameters({
+      prompt: "select_account"
+    });
+
 
     /* =====================================================
-       ADMIN EMAIL
+       ADMIN
     ====================================================== */
 
     const ADMIN_EMAIL =
@@ -1258,7 +1249,9 @@
 
 
     if (window.emailjs) {
-      emailjs.init(EMAILJS_PUBLIC_KEY);
+      window.emailjs.init(
+        EMAILJS_PUBLIC_KEY
+      );
     }
 
 
@@ -1274,22 +1267,35 @@
 
     let tempUserData = {};
 
-    let forgotUserKey = null;
-
-    let forgotEmail = null;
-
-
-    /*
-      IMPORTANT:
-      This flag prevents onAuthStateChanged()
-      from redirecting the newly-created account
-      before the 5-second registration preview
-      has finished.
-    */
-
     let registrationPreviewActive = false;
 
     let registrationRedirectTimer = null;
+
+    let authInitializationFinished = false;
+
+
+    /* =====================================================
+       FIREBASE AUTH PERSISTENCE
+    ====================================================== */
+
+    /*
+      LOCAL persistence keeps the authenticated user
+      available after navigation to dashboard.html.
+    */
+    const persistenceReady =
+      setPersistence(
+        auth,
+        browserLocalPersistence
+      ).catch(error => {
+
+        console.error(
+          "Auth persistence initialization failed:",
+          error
+        );
+
+        return null;
+
+      });
 
 
     /* =====================================================
@@ -1339,7 +1345,11 @@
     }
 
 
-    function showError(fieldId, errorId, message) {
+    function showError(
+      fieldId,
+      errorId,
+      message
+    ) {
 
       const field =
         document.getElementById(fieldId);
@@ -1353,20 +1363,31 @@
 
       if (error) {
 
-        error.textContent = message;
-        error.style.display = "block";
+        error.textContent =
+          message;
+
+        error.style.display =
+          "block";
 
       }
 
     }
 
 
-    function showStatus(message, type = "error") {
+    function showStatus(
+      message,
+      type = "error"
+    ) {
 
       const box =
-        document.getElementById("status-box");
+        document.getElementById(
+          "status-box"
+        );
 
-      box.textContent = message;
+      if (!box) return;
+
+      box.textContent =
+        message;
 
       box.className =
         "status-box " + type;
@@ -1377,23 +1398,33 @@
     function hideStatus() {
 
       const box =
-        document.getElementById("status-box");
+        document.getElementById(
+          "status-box"
+        );
+
+      if (!box) return;
 
       box.className =
         "status-box";
 
-      box.textContent = "";
+      box.textContent =
+        "";
 
     }
 
 
-    function setButtonLoading(button, loading, text) {
+    function setButtonLoading(
+      button,
+      loading,
+      text
+    ) {
 
       if (!button) return;
 
       if (loading) {
 
-        button.disabled = true;
+        button.disabled =
+          true;
 
         button.innerHTML = `
           <span class="loading-spinner"></span>
@@ -1402,7 +1433,8 @@
 
       } else {
 
-        button.disabled = false;
+        button.disabled =
+          false;
 
         button.innerHTML =
           `<span>${text}</span>`;
@@ -1413,16 +1445,25 @@
 
 
     window.togglePassVisibility =
-      function(fieldId, iconEl) {
+      function(
+        fieldId,
+        iconEl
+      ) {
 
         const field =
-          document.getElementById(fieldId);
+          document.getElementById(
+            fieldId
+          );
 
         if (!field) return;
 
-        if (field.type === "password") {
+        if (
+          field.type ===
+          "password"
+        ) {
 
-          field.type = "text";
+          field.type =
+            "text";
 
           iconEl.classList.replace(
             "fa-eye",
@@ -1431,7 +1472,8 @@
 
         } else {
 
-          field.type = "password";
+          field.type =
+            "password";
 
           iconEl.classList.replace(
             "fa-eye-slash",
@@ -1444,7 +1486,7 @@
 
 
     /* =====================================================
-       EMAIL NORMALIZATION
+       EMAIL
     ====================================================== */
 
     function normalizeEmail(email) {
@@ -1456,10 +1498,6 @@
     }
 
 
-    /*
-      RTDB email key.
-    */
-
     function sanitizeEmail(email) {
 
       return normalizeEmail(email)
@@ -1470,12 +1508,89 @@
 
 
     /* =====================================================
+       LOCAL SESSION
+    ====================================================== */
+
+    function saveLocalSession(
+      userData,
+      firebaseUser
+    ) {
+
+      const session = {
+
+        uid:
+          userData.memberId ||
+          userData.uid ||
+          "",
+
+        authUid:
+          firebaseUser.uid,
+
+        name:
+          userData.name || "",
+
+        email:
+          userData.email ||
+          firebaseUser.email ||
+          "",
+
+        memberId:
+          userData.memberId ||
+          userData.uid ||
+          "",
+
+        role:
+          userData.role ||
+          "member",
+
+        isAdmin:
+          userData.isAdmin === true,
+
+        photoURL:
+          userData.photoURL ||
+          firebaseUser.photoURL ||
+          "",
+
+        balance:
+          Number(userData.balance || 0),
+
+        coins:
+          Number(userData.coins || 0)
+
+      };
+
+
+      localStorage.setItem(
+        "javicash_session",
+        JSON.stringify(session)
+      );
+
+
+      return session;
+
+    }
+
+
+    function clearLocalSession() {
+
+      localStorage.removeItem(
+        "javicash_session"
+      );
+
+    }
+
+
+    /* =====================================================
        UNIQUE MEMBER ID
     ====================================================== */
 
     async function generateUniqueMemberID() {
 
-      for (let attempt = 0; attempt < 20; attempt++) {
+      for (
+        let attempt = 0;
+        attempt < 30;
+        attempt++
+      ) {
 
         const newId =
           Math.floor(
@@ -1484,15 +1599,39 @@
           ).toString();
 
 
-        const snapshot =
+        /*
+          The dedicated memberIds index is the
+          authoritative uniqueness check.
+        */
+
+        const idSnapshot =
           await get(
-            ref(db, `users/${newId}`)
+            ref(
+              db,
+              `memberIds/${newId}`
+            )
           );
 
 
-        if (!snapshot.exists()) {
+        if (!idSnapshot.exists()) {
 
-          return newId;
+          /*
+            Legacy compatibility:
+            also check users/{memberId}.
+          */
+
+          const legacySnapshot =
+            await get(
+              ref(
+                db,
+                `users/${newId}`
+              )
+            );
+
+
+          if (!legacySnapshot.exists()) {
+            return newId;
+          }
 
         }
 
@@ -1510,44 +1649,6 @@
        EMAIL OTP
     ====================================================== */
 
-    async function sendEmailOTP(email, otp) {
-
-      if (!window.emailjs) {
-
-        throw new Error(
-          "Email service is unavailable."
-        );
-
-      }
-
-
-      const templateParams = {
-
-        to_email: email,
-
-        user_email: email,
-
-        email: email,
-
-        otp: otp,
-
-        otp_code: otp,
-
-        message:
-          `Your JAVICASH security code is ${otp}.`
-
-      };
-
-
-      await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
-        templateParams
-      );
-
-    }
-
-
     function generateOTP() {
 
       return Math.floor(
@@ -1558,19 +1659,75 @@
     }
 
 
-    function startOTPTimer(displayId, resendId) {
+    async function sendEmailOTP(
+      email,
+      otp
+    ) {
 
-      clearInterval(otpTimerInterval);
+      if (!window.emailjs) {
+
+        throw new Error(
+          "Email service is unavailable. Please refresh the page and try again."
+        );
+
+      }
+
+
+      const templateParams = {
+
+        to_email:
+          email,
+
+        user_email:
+          email,
+
+        email:
+          email,
+
+        otp:
+          otp,
+
+        otp_code:
+          otp,
+
+        message:
+          `Your JAVICASH security code is ${otp}.`
+
+      };
+
+
+      await window.emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        templateParams
+      );
+
+    }
+
+
+    function startOTPTimer(
+      displayId,
+      resendId
+    ) {
+
+      clearInterval(
+        otpTimerInterval
+      );
 
       const display =
-        document.getElementById(displayId);
+        document.getElementById(
+          displayId
+        );
 
       const resend =
-        document.getElementById(resendId);
+        document.getElementById(
+          resendId
+        );
 
 
       if (resend) {
-        resend.disabled = true;
+        resend.disabled =
+          true;
       }
 
 
@@ -1580,7 +1737,10 @@
           Math.max(
             0,
             Math.ceil(
-              (otpExpiresAt - Date.now()) / 1000
+              (
+                otpExpiresAt -
+                Date.now()
+              ) / 1000
             )
           );
 
@@ -1593,10 +1753,13 @@
 
         if (remaining <= 0) {
 
-          clearInterval(otpTimerInterval);
+          clearInterval(
+            otpTimerInterval
+          );
 
           if (resend) {
-            resend.disabled = false;
+            resend.disabled =
+              false;
           }
 
         }
@@ -1607,7 +1770,149 @@
       tick();
 
       otpTimerInterval =
-        setInterval(tick, 250);
+        setInterval(
+          tick,
+          250
+        );
+
+    }
+
+
+    /* =====================================================
+       PRE-OTP EMAIL EXISTENCE CHECK
+    ====================================================== */
+
+    async function emailAlreadyRegistered(
+      email
+    ) {
+
+      const normalized =
+        normalizeEmail(email);
+
+
+      /*
+        CHECK 1:
+        Firebase Authentication.
+
+        Important:
+        Firebase may intentionally return []
+        when Email Enumeration Protection is enabled.
+      */
+
+      try {
+
+        const methods =
+          await fetchSignInMethodsForEmail(
+            auth,
+            normalized
+          );
+
+
+        if (
+          Array.isArray(methods) &&
+          methods.length > 0
+        ) {
+
+          return {
+            exists: true,
+            source: "firebase-auth"
+          };
+
+        }
+
+      } catch (error) {
+
+        /*
+          Do not make a legitimate registration fail
+          simply because this optional lookup is blocked.
+        */
+
+        console.warn(
+          "Firebase Auth email lookup unavailable:",
+          error
+        );
+
+      }
+
+
+      /*
+        CHECK 2:
+        JAVICASH email registry.
+
+        This is useful when Firebase email enumeration
+        protection is enabled.
+
+        If the database rules deny this unauthenticated
+        lookup, we cannot claim the email is unused.
+        The final createUser call remains authoritative.
+      */
+
+      try {
+
+        const emailKey =
+          sanitizeEmail(
+            normalized
+          );
+
+        const snapshot =
+          await get(
+            ref(
+              db,
+              `email_registry/${emailKey}`
+            )
+          );
+
+
+        if (snapshot.exists()) {
+
+          return {
+            exists: true,
+            source: "email-registry"
+          };
+
+        }
+
+      } catch (error) {
+
+        if (
+          error &&
+          (
+            error.code ===
+              "PERMISSION_DENIED" ||
+            error.code ===
+              "permission_denied"
+          )
+        ) {
+
+          /*
+            Do NOT display raw "Permission denied".
+            Continue to OTP and let Firebase Auth
+            make the final duplicate-account decision.
+          */
+
+          console.warn(
+            "Email registry lookup denied by RTDB rules."
+          );
+
+          return {
+            exists: false,
+            source: "auth-fallback"
+          };
+
+        }
+
+        console.warn(
+          "Email registry lookup failed:",
+          error
+        );
+
+      }
+
+
+      return {
+        exists: false,
+        source: "not-found"
+      };
 
     }
 
@@ -1631,7 +1936,9 @@
 
         const name =
           document
-            .getElementById("reg-name")
+            .getElementById(
+              "reg-name"
+            )
             .value
             .trim();
 
@@ -1639,24 +1946,31 @@
         const email =
           normalizeEmail(
             document
-              .getElementById("reg-email")
+              .getElementById(
+                "reg-email"
+              )
               .value
           );
 
 
         const pass =
           document
-            .getElementById("reg-pass")
+            .getElementById(
+              "reg-pass"
+            )
             .value;
 
 
         const cpass =
           document
-            .getElementById("reg-cpass")
+            .getElementById(
+              "reg-cpass"
+            )
             .value;
 
 
-        let valid = true;
+        let valid =
+          true;
 
 
         if (name.length < 2) {
@@ -1667,12 +1981,16 @@
             "Please enter your full name."
           );
 
-          valid = false;
+          valid =
+            false;
 
         }
 
 
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            .test(email)
+        ) {
 
           showError(
             "reg-email",
@@ -1680,7 +1998,8 @@
             "Please enter a valid email address."
           );
 
-          valid = false;
+          valid =
+            false;
 
         }
 
@@ -1693,7 +2012,8 @@
             "Password must contain at least 6 characters."
           );
 
-          valid = false;
+          valid =
+            false;
 
         }
 
@@ -1706,12 +2026,15 @@
             "Passwords do not match."
           );
 
-          valid = false;
+          valid =
+            false;
 
         }
 
 
-        if (!valid) return;
+        if (!valid) {
+          return;
+        }
 
 
         setButtonLoading(
@@ -1723,29 +2046,22 @@
 
         try {
 
+          await persistenceReady;
+
+
           /*
-            Check your existing email_registry first.
+            Do not allow registration using the
+            administrator email.
           */
 
-          const emailKey =
-            sanitizeEmail(email);
-
-
-          const emailSnapshot =
-            await get(
-              ref(
-                db,
-                `email_registry/${emailKey}`
-              )
-            );
-
-
-          if (emailSnapshot.exists()) {
+          if (
+            email === ADMIN_EMAIL
+          ) {
 
             showError(
               "reg-email",
               "err-reg-email",
-              "An account already exists with this email."
+              "This email is reserved for JAVICASH administration."
             );
 
             return;
@@ -1754,15 +2070,43 @@
 
 
           /*
-            DO NOT save the password in temp database
-            or RTDB.
+            PRE-OTP CHECK
+          */
+
+          const existence =
+            await emailAlreadyRegistered(
+              email
+            );
+
+
+          if (existence.exists) {
+
+            showError(
+              "reg-email",
+              "err-reg-email",
+              "This email is already registered"
+            );
+
+            return;
+
+          }
+
+
+          /*
+            Password exists only temporarily in
+            memory and is never written to RTDB.
           */
 
           tempUserData = {
 
-            name,
-            email,
-            pass
+            name:
+              name,
+
+            email:
+              email,
+
+            pass:
+              pass
 
           };
 
@@ -1772,7 +2116,8 @@
 
 
           otpExpiresAt =
-            Date.now() + 60 * 1000;
+            Date.now() +
+            60 * 1000;
 
 
           await sendEmailOTP(
@@ -1785,7 +2130,8 @@
             .getElementById(
               "reg-otp-input"
             )
-            .value = "";
+            .value =
+            "";
 
 
           startOTPTimer(
@@ -1826,12 +2172,28 @@
       };
 
 
+    /* =====================================================
+       RESEND REGISTRATION OTP
+    ====================================================== */
+
     window.resendRegistrationOTP =
       async function() {
 
         if (
           !tempUserData.email
-        ) return;
+        ) {
+          return;
+        }
+
+
+        const button =
+          document.getElementById(
+            "btn-reg-resend"
+          );
+
+
+        button.disabled =
+          true;
 
 
         try {
@@ -1841,7 +2203,8 @@
 
 
           otpExpiresAt =
-            Date.now() + 60 * 1000;
+            Date.now() +
+            60 * 1000;
 
 
           await sendEmailOTP(
@@ -1864,10 +2227,20 @@
 
         } catch (error) {
 
+          console.error(
+            "OTP resend error:",
+            error
+          );
+
+
           showStatus(
-            "Unable to send a new OTP.",
+            getFirebaseError(error),
             "error"
           );
+
+
+          button.disabled =
+            false;
 
         }
 
@@ -1875,41 +2248,227 @@
 
 
     /* =====================================================
-       REGISTRATION SUCCESS PREVIEW
-       
-       NEW:
-       Show profile for exactly 5 seconds before
-       redirecting to dashboard.html.
+       SAVE MEMBER PROFILE
     ====================================================== */
 
-    function startRegistrationPreview(userData) {
+    async function saveMemberProfile(
+      firebaseUser,
+      memberId,
+      name,
+      email,
+      provider = "password"
+    ) {
+
+      const isAdmin =
+        normalizeEmail(
+          email
+        ) ===
+        ADMIN_EMAIL;
+
+
+      const now =
+        new Date().toISOString();
+
 
       /*
-        Prevent Firebase Auth State listener from
-        redirecting during the 5-second preview.
+        Canonical Firebase UID profile.
+
+        Requirement:
+        /users/{uid}
       */
 
-      registrationPreviewActive = true;
+      const canonicalProfile = {
+
+        uid:
+          firebaseUser.uid,
+
+        authUid:
+          firebaseUser.uid,
+
+        memberId:
+          memberId,
+
+        name:
+          name,
+
+        email:
+          email,
+
+        provider:
+          provider,
+
+        role:
+          isAdmin
+            ? "admin"
+            : "member",
+
+        isAdmin:
+          isAdmin,
+
+        created_at:
+          now,
+
+        coins:
+          0,
+
+        balance:
+          0
+
+      };
 
 
       /*
-        Stop any previous preview timer.
+        Legacy/member-ID profile.
+
+        This keeps compatibility with the existing
+        JAVICASH dashboard/admin architecture.
       */
 
-      if (registrationRedirectTimer) {
+      const memberProfile = {
 
-        clearInterval(
-          registrationRedirectTimer
-        );
+        uid:
+          memberId,
 
-        registrationRedirectTimer = null;
+        memberId:
+          memberId,
+
+        authUid:
+          firebaseUser.uid,
+
+        name:
+          name,
+
+        email:
+          email,
+
+        provider:
+          provider,
+
+        role:
+          isAdmin
+            ? "admin"
+            : "member",
+
+        isAdmin:
+          isAdmin,
+
+        created_at:
+          now,
+
+        coins:
+          0,
+
+        balance:
+          0
+
+      };
+
+
+      if (firebaseUser.photoURL) {
+
+        canonicalProfile.photoURL =
+          firebaseUser.photoURL;
+
+        memberProfile.photoURL =
+          firebaseUser.photoURL;
 
       }
 
 
       /*
-        Fill newly-created member profile.
+        Atomic multi-location write.
+
+        If rules reject either path, the complete
+        write fails instead of leaving half a profile.
       */
+
+      const updates = {};
+
+
+      updates[
+        `users/${firebaseUser.uid}`
+      ] =
+        canonicalProfile;
+
+
+      updates[
+        `users/${memberId}`
+      ] =
+        memberProfile;
+
+
+      updates[
+        `memberIds/${memberId}`
+      ] = {
+
+        authUid:
+          firebaseUser.uid,
+
+        email:
+          email,
+
+        created_at:
+          now
+
+      };
+
+
+      updates[
+        `email_registry/${sanitizeEmail(email)}`
+      ] = {
+
+        memberId:
+          memberId,
+
+        authUid:
+          firebaseUser.uid,
+
+        email:
+          email,
+
+        created_at:
+          now
+
+      };
+
+
+      await update(
+        ref(db),
+        updates
+      );
+
+
+      return memberProfile;
+
+    }
+
+
+    /* =====================================================
+       REGISTRATION SUCCESS PREVIEW
+    ====================================================== */
+
+    function startRegistrationPreview(
+      userData,
+      firebaseUser
+    ) {
+
+      registrationPreviewActive =
+        true;
+
+
+      if (
+        registrationRedirectTimer
+      ) {
+
+        clearInterval(
+          registrationRedirectTimer
+        );
+
+        registrationRedirectTimer =
+          null;
+
+      }
+
 
       const uidElement =
         document.getElementById(
@@ -1935,7 +2494,9 @@
       if (uidElement) {
 
         uidElement.textContent =
-          userData.uid || "------";
+          userData.memberId ||
+          userData.uid ||
+          "------";
 
       }
 
@@ -1943,7 +2504,8 @@
       if (nameElement) {
 
         nameElement.textContent =
-          userData.name || "---";
+          userData.name ||
+          "---";
 
       }
 
@@ -1951,16 +2513,20 @@
       if (emailElement) {
 
         emailElement.textContent =
-          userData.email || "---";
+          userData.email ||
+          "---";
 
       }
 
 
-      /*
-        Initial countdown value.
-      */
+      saveLocalSession(
+        userData,
+        firebaseUser
+      );
 
-      let remainingSeconds = 5;
+
+      let remainingSeconds =
+        5;
 
 
       if (countdownElement) {
@@ -1971,76 +2537,78 @@
       }
 
 
-      /*
-        Show the success preview.
-      */
-
       switchView(
         "view-dashboard"
       );
 
-
-      /*
-        Use a one-second interval.
-
-        The redirect is executed when the countdown
-        reaches zero, approximately exactly 5 seconds
-        after this preview begins.
-      */
 
       const previewStartedAt =
         Date.now();
 
 
       registrationRedirectTimer =
-        setInterval(function() {
+        setInterval(
+          function() {
 
-          const elapsed =
-            Date.now() - previewStartedAt;
-
-
-          const remaining =
-            Math.max(
-              0,
-              5 - Math.floor(elapsed / 1000)
-            );
+            const elapsed =
+              Date.now() -
+              previewStartedAt;
 
 
-          if (countdownElement) {
-
-            countdownElement.textContent =
-              remaining;
-
-          }
-
-
-          /*
-            Redirect after the full 5-second period.
-          */
-
-          if (elapsed >= 5000) {
-
-            clearInterval(
-              registrationRedirectTimer
-            );
-
-            registrationRedirectTimer =
-              null;
+            const remaining =
+              Math.max(
+                0,
+                5 -
+                Math.floor(
+                  elapsed / 1000
+                )
+              );
 
 
-            window.location.replace(
-              "dashboard.html"
-            );
+            if (countdownElement) {
 
-          }
+              countdownElement.textContent =
+                remaining;
 
-        }, 100);
+            }
+
+
+            if (elapsed >= 5000) {
+
+              clearInterval(
+                registrationRedirectTimer
+              );
+
+              registrationRedirectTimer =
+                null;
+
+              registrationPreviewActive =
+                false;
+
+
+              window.location.replace(
+                "dashboard.html"
+              );
+
+            }
+
+          },
+          100
+        );
 
     }
 
 
+    /* =====================================================
+       VERIFY REGISTRATION OTP
+    ====================================================== */
+
     window.verifyRegistrationOTP =
       async function() {
+
+        clearErrorMessages();
+        hideStatus();
+
 
         const entered =
           document
@@ -2051,10 +2619,25 @@
             .trim();
 
 
+        if (!/^\d{6}$/.test(entered)) {
+
+          showError(
+            "reg-otp-input",
+            "err-reg-otp",
+            "Enter the 6-digit verification code."
+          );
+
+          return;
+
+        }
+
+
         if (
           !currentOTP ||
-          Date.now() > otpExpiresAt ||
-          entered !== currentOTP
+          Date.now() >
+            otpExpiresAt ||
+          entered !==
+            currentOTP
         ) {
 
           showError(
@@ -2068,6 +2651,19 @@
         }
 
 
+        const button =
+          document.getElementById(
+            "btn-reg-verify"
+          );
+
+
+        setButtonLoading(
+          button,
+          true,
+          "Verify & Create Account"
+        );
+
+
         clearInterval(
           otpTimerInterval
         );
@@ -2075,16 +2671,55 @@
 
         try {
 
+          await persistenceReady;
+
+
           /*
-            1. Create the real Firebase Auth account.
+            FINAL AUTH CHECK.
+
+            This is authoritative if the client-side
+            pre-check could not inspect Firebase Auth.
           */
 
-          const credential =
-            await createUserWithEmailAndPassword(
-              auth,
-              tempUserData.email,
-              tempUserData.pass
-            );
+          let credential;
+
+
+          try {
+
+            credential =
+              await createUserWithEmailAndPassword(
+                auth,
+                tempUserData.email,
+                tempUserData.pass
+              );
+
+          } catch (authError) {
+
+            if (
+              authError.code ===
+              "auth/email-already-in-use"
+            ) {
+
+              showError(
+                "reg-email",
+                "err-reg-email",
+                "This email is already registered"
+              );
+
+
+              switchView(
+                "view-register"
+              );
+
+
+              return;
+
+            }
+
+
+            throw authError;
+
+          }
 
 
           const firebaseUser =
@@ -2092,7 +2727,7 @@
 
 
           /*
-            2. Generate the public/member ID.
+            Unique public JAVICASH Member ID.
           */
 
           const uniqueID =
@@ -2100,92 +2735,98 @@
 
 
           /*
-            3. Store profile data only.
-            
-            NEVER store password.
+            Save profile under canonical Firebase UID
+            and legacy member ID.
           */
 
-          const userData = {
-
-            uid: uniqueID,
-
-            authUid: firebaseUser.uid,
-
-            name: tempUserData.name,
-
-            email: tempUserData.email,
-
-            created_at:
-              new Date().toISOString(),
-
-            coins: 0,
-
-            balance: 0
-
-          };
+          const memberProfile =
+            await saveMemberProfile(
+              firebaseUser,
+              uniqueID,
+              tempUserData.name,
+              tempUserData.email,
+              "password"
+            );
 
 
           /*
-            4. Save member profile.
+            Clear sensitive temporary data.
           */
 
-          await set(
-            ref(db, `users/${uniqueID}`),
-            userData
+          tempUserData.pass =
+            null;
+
+          tempUserData =
+            {};
+
+          currentOTP =
+            null;
+
+          otpExpiresAt =
+            0;
+
+
+          /*
+            Build final session.
+          */
+
+          saveLocalSession(
+            memberProfile,
+            firebaseUser
           );
 
 
           /*
-            5. Email registry.
-          */
-
-          await set(
-            ref(
-              db,
-              `email_registry/${sanitizeEmail(
-                tempUserData.email
-              )}`
-            ),
-            uniqueID
-          );
-
-
-          /*
-            6. Clear temporary password from JS state.
-          */
-
-          tempUserData.pass = null;
-
-          currentOTP = null;
-
-
-          /*
-            7. NEW FLOW:
-            
-            Do NOT redirect immediately.
-
-            Show the newly-created profile for
-            5 seconds first.
+            Five-second success screen.
           */
 
           startRegistrationPreview(
-            userData
+            memberProfile,
+            firebaseUser
           );
 
 
         } catch (error) {
 
           console.error(
-            "Registration error:",
+            "Registration verification error:",
             error
           );
 
 
-          showStatus(
-            getFirebaseError(error),
-            "error"
-          );
+          /*
+            If Firebase Auth account was created but
+            profile write failed, keep the authenticated
+            state available and show a useful message.
+          */
 
+          if (
+            error &&
+            error.code ===
+              "PERMISSION_DENIED"
+          ) {
+
+            showStatus(
+              "Account authentication succeeded, but Firebase Database permissions blocked profile creation. Please update your Realtime Database Rules.",
+              "error"
+            );
+
+          } else {
+
+            showStatus(
+              getFirebaseError(error),
+              "error"
+            );
+
+          }
+
+        } finally {
+
+          setButtonLoading(
+            button,
+            false,
+            "Verify & Create Account"
+          );
 
         }
 
@@ -2193,7 +2834,7 @@
 
 
     /* =====================================================
-       MEMBER LOGIN + ADMIN DIRECT LOGIN
+       MEMBER LOGIN
     ====================================================== */
 
     window.handleLoginSubmit =
@@ -2211,7 +2852,9 @@
 
         const memberId =
           document
-            .getElementById("login-uid")
+            .getElementById(
+              "login-uid"
+            )
             .value
             .trim();
 
@@ -2219,29 +2862,34 @@
         const email =
           normalizeEmail(
             document
-              .getElementById("login-email")
+              .getElementById(
+                "login-email"
+              )
               .value
           );
 
 
         const password =
           document
-            .getElementById("login-pass")
+            .getElementById(
+              "login-pass"
+            )
             .value;
 
 
-        let valid = true;
+        let valid =
+          true;
 
-
-        /*
-          Admin does not need Member ID.
-        */
 
         const isAdminEmail =
-          email === ADMIN_EMAIL;
+          email ===
+          ADMIN_EMAIL;
 
 
-        if (!isAdminEmail && !/^\d{6}$/.test(memberId)) {
+        if (
+          !isAdminEmail &&
+          !/^\d{6}$/.test(memberId)
+        ) {
 
           showError(
             "login-uid",
@@ -2249,12 +2897,16 @@
             "Enter your 6-digit Member ID."
           );
 
-          valid = false;
+          valid =
+            false;
 
         }
 
 
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            .test(email)
+        ) {
 
           showError(
             "login-email",
@@ -2262,7 +2914,8 @@
             "Enter a valid email address."
           );
 
-          valid = false;
+          valid =
+            false;
 
         }
 
@@ -2275,12 +2928,15 @@
             "Password is required."
           );
 
-          valid = false;
+          valid =
+            false;
 
         }
 
 
-        if (!valid) return;
+        if (!valid) {
+          return;
+        }
 
 
         setButtonLoading(
@@ -2292,9 +2948,8 @@
 
         try {
 
-          /*
-            Firebase Authentication verifies password.
-          */
+          await persistenceReady;
+
 
           const credential =
             await signInWithEmailAndPassword(
@@ -2309,14 +2964,55 @@
 
 
           /*
-            ADMIN DIRECT LOGIN
+            ADMIN
           */
 
           if (
             normalizeEmail(
               firebaseUser.email
-            ) === ADMIN_EMAIL
+            ) ===
+            ADMIN_EMAIL
           ) {
+
+            /*
+              Ensure local session contains
+              admin information.
+            */
+
+            const adminSession = {
+
+              uid:
+                firebaseUser.uid,
+
+              authUid:
+                firebaseUser.uid,
+
+              memberId:
+                "ADMIN",
+
+              name:
+                firebaseUser.displayName ||
+                "JAVICASH Administrator",
+
+              email:
+                firebaseUser.email,
+
+              role:
+                "admin",
+
+              isAdmin:
+                true
+
+            };
+
+
+            localStorage.setItem(
+              "javicash_session",
+              JSON.stringify(
+                adminSession
+              )
+            );
+
 
             window.location.replace(
               "admin.html"
@@ -2328,10 +3024,12 @@
 
 
           /*
-            REGULAR MEMBER LOGIN
+            REGULAR MEMBER
           */
 
-          if (!/^\d{6}$/.test(memberId)) {
+          if (
+            !/^\d{6}$/.test(memberId)
+          ) {
 
             await signOut(auth);
 
@@ -2347,7 +3045,7 @@
 
 
           /*
-            Find requested member profile.
+            Read legacy member profile.
           */
 
           const userSnapshot =
@@ -2379,8 +3077,7 @@
 
 
           /*
-            RTDB profile must belong to
-            Firebase Auth account.
+            Verify ownership.
           */
 
           if (
@@ -2401,12 +3098,16 @@
 
 
           /*
-            Email must also match.
+            Verify email.
           */
 
           if (
-            normalizeEmail(userData.email) !==
-            normalizeEmail(firebaseUser.email)
+            normalizeEmail(
+              userData.email
+            ) !==
+            normalizeEmail(
+              firebaseUser.email
+            )
           ) {
 
             await signOut(auth);
@@ -2423,8 +3124,66 @@
 
 
           /*
-            Everything is correct.
+            Ensure canonical UID profile exists.
           */
+
+          try {
+
+            const canonicalSnapshot =
+              await get(
+                ref(
+                  db,
+                  `users/${firebaseUser.uid}`
+                )
+              );
+
+
+            if (
+              !canonicalSnapshot.exists()
+            ) {
+
+              await set(
+                ref(
+                  db,
+                  `users/${firebaseUser.uid}`
+                ),
+                {
+                  ...userData,
+                  uid:
+                    firebaseUser.uid,
+                  authUid:
+                    firebaseUser.uid,
+                  memberId:
+                    memberId
+                }
+              );
+
+            }
+
+          } catch (profileError) {
+
+            /*
+              Do not block a valid login merely because
+              the compatibility profile cannot be read.
+            */
+
+            console.warn(
+              "Canonical profile sync warning:",
+              profileError
+            );
+
+          }
+
+
+          /*
+            Save active session for dashboard.
+          */
+
+          saveLocalSession(
+            userData,
+            firebaseUser
+          );
+
 
           window.location.replace(
             "dashboard.html"
@@ -2478,20 +3237,25 @@
         const email =
           normalizeEmail(
             document
-              .getElementById("forgot-email")
+              .getElementById(
+                "forgot-email"
+              )
               .value
           );
 
 
         const memberId =
           document
-            .getElementById("forgot-uid")
+            .getElementById(
+              "forgot-uid"
+            )
             .value
             .trim();
 
 
         if (
-          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            .test(email)
         ) {
 
           showError(
@@ -2515,27 +3279,21 @@
         try {
 
           /*
-            If Member ID is supplied, verify
-            that it corresponds to entered email.
+            Optional Member ID validation.
           */
 
           if (memberId) {
 
-            const snapshot =
-              await get(
-                ref(
-                  db,
-                  `users/${memberId}`
-                )
-              );
-
-
-            if (!snapshot.exists()) {
+            if (
+              !/^\d{6}$/.test(
+                memberId
+              )
+            ) {
 
               showError(
                 "forgot-uid",
                 "err-forgot-email",
-                "Member ID not found."
+                "Member ID must contain 6 digits."
               );
 
               return;
@@ -2543,22 +3301,69 @@
             }
 
 
-            const data =
-              snapshot.val();
+            try {
+
+              const snapshot =
+                await get(
+                  ref(
+                    db,
+                    `users/${memberId}`
+                  )
+                );
 
 
-            if (
-              normalizeEmail(data.email) !==
-              email
-            ) {
+              if (!snapshot.exists()) {
 
-              showError(
-                "forgot-email",
-                "err-forgot-email",
-                "Email does not match this Member ID."
-              );
+                showError(
+                  "forgot-uid",
+                  "err-forgot-email",
+                  "Member ID not found."
+                );
 
-              return;
+                return;
+
+              }
+
+
+              const data =
+                snapshot.val();
+
+
+              if (
+                normalizeEmail(
+                  data.email
+                ) !==
+                email
+              ) {
+
+                showError(
+                  "forgot-email",
+                  "err-forgot-email",
+                  "Email does not match this Member ID."
+                );
+
+                return;
+
+              }
+
+            } catch (dbError) {
+
+              if (
+                isPermissionDenied(
+                  dbError
+                )
+              ) {
+
+                showStatus(
+                  "Database permission prevented Member ID verification. You can still request the Firebase password reset email.",
+                  "error"
+                );
+
+                return;
+
+              }
+
+              throw dbError;
 
             }
 
@@ -2566,7 +3371,7 @@
 
 
           /*
-            Firebase sends official password reset email.
+            Firebase sends the secure reset email.
           */
 
           await sendPasswordResetEmail(
@@ -2581,13 +3386,16 @@
           );
 
 
-          setTimeout(() => {
+          setTimeout(
+            function() {
 
-            switchView(
-              "view-login"
-            );
+              switchView(
+                "view-login"
+              );
 
-          }, 1500);
+            },
+            1500
+          );
 
 
         } catch (error) {
@@ -2618,8 +3426,9 @@
 
 
     /*
-      Keep these functions so existing UI
-      does not break.
+      Legacy UI compatibility.
+      Firebase handles the secure reset process
+      through the reset email link.
     */
 
     window.resendForgotOTP =
@@ -2637,7 +3446,7 @@
       function() {
 
         showStatus(
-          "Firebase handles the password-reset verification through the secure reset link.",
+          "Firebase handles password-reset verification through the secure reset link.",
           "success"
         );
 
@@ -2645,10 +3454,10 @@
 
 
     window.handlePasswordResetSave =
-      async function() {
+      function() {
 
         showStatus(
-          "Please use the password-reset link sent by Firebase to create your new password.",
+          "Please use the Firebase password-reset link sent to your email.",
           "success"
         );
 
@@ -2660,7 +3469,9 @@
     ====================================================== */
 
     document
-      .getElementById("btn-google-auth")
+      .getElementById(
+        "btn-google-auth"
+      )
       .addEventListener(
         "click",
         async function() {
@@ -2678,6 +3489,9 @@
 
           try {
 
+            await persistenceReady;
+
+
             const result =
               await signInWithPopup(
                 auth,
@@ -2689,7 +3503,9 @@
               result.user;
 
 
-            if (!firebaseUser.email) {
+            if (
+              !firebaseUser.email
+            ) {
 
               throw new Error(
                 "Google account does not provide an email address."
@@ -2705,10 +3521,78 @@
 
 
             /*
-              ADMIN GOOGLE ACCOUNT
+              ADMIN GOOGLE LOGIN
             */
 
-            if (email === ADMIN_EMAIL) {
+            if (
+              email ===
+              ADMIN_EMAIL
+            ) {
+
+              const adminSession = {
+
+                uid:
+                  firebaseUser.uid,
+
+                authUid:
+                  firebaseUser.uid,
+
+                memberId:
+                  "ADMIN",
+
+                name:
+                  firebaseUser.displayName ||
+                  "JAVICASH Administrator",
+
+                email:
+                  email,
+
+                role:
+                  "admin",
+
+                isAdmin:
+                  true,
+
+                photoURL:
+                  firebaseUser.photoURL ||
+                  ""
+
+              };
+
+
+              /*
+                Attempt to maintain admin profile.
+                Failure here does not prevent Firebase
+                Auth from working.
+              */
+
+              try {
+
+                await update(
+                  ref(
+                    db,
+                    `users/${firebaseUser.uid}`
+                  ),
+                  adminSession
+                );
+
+              } catch (dbError) {
+
+                console.warn(
+                  "Admin profile update warning:",
+                  dbError
+                );
+
+              }
+
+
+              localStorage.setItem(
+                "javicash_session",
+                JSON.stringify(
+                  adminSession
+                )
+              );
+
 
               window.location.replace(
                 "admin.html"
@@ -2720,129 +3604,415 @@
 
 
             /*
-              Existing member?
+              Find existing member using email registry.
             */
 
             const emailKey =
               sanitizeEmail(email);
 
 
-            const emailMapSnapshot =
-              await get(
-                ref(
-                  db,
-                  `email_registry/${emailKey}`
+            let memberId =
+              null;
+
+
+            let emailRegistryData =
+              null;
+
+
+            try {
+
+              const emailSnapshot =
+                await get(
+                  ref(
+                    db,
+                    `email_registry/${emailKey}`
+                  )
+                );
+
+
+              if (
+                emailSnapshot.exists()
+              ) {
+
+                emailRegistryData =
+                  emailSnapshot.val();
+
+
+                /*
+                  Support both old:
+                  email_registry/email = memberId
+
+                  and new:
+                  email_registry/email = { memberId, authUid }
+                */
+
+                if (
+                  typeof emailRegistryData ===
+                  "string"
+                ) {
+
+                  memberId =
+                    emailRegistryData;
+
+                } else {
+
+                  memberId =
+                    emailRegistryData.memberId ||
+                    null;
+
+                }
+
+              }
+
+            } catch (dbError) {
+
+              if (
+                !isPermissionDenied(
+                  dbError
                 )
-              );
+              ) {
 
+                throw dbError;
 
-            let memberId;
-
-
-            if (emailMapSnapshot.exists()) {
-
-              memberId =
-                emailMapSnapshot.val();
-
-            } else {
+              }
 
               /*
-                First-time Google user.
+                Registry lookup unavailable.
+                Fall back to auth UID profile.
               */
 
-              memberId =
-                await generateUniqueMemberID();
-
-
-              const userData = {
-
-                uid: memberId,
-
-                authUid:
-                  firebaseUser.uid,
-
-                name:
-                  firebaseUser.displayName ||
-                  "Google User",
-
-                email,
-
-                photoURL:
-                  firebaseUser.photoURL ||
-                  "",
-
-                provider:
-                  "google.com",
-
-                created_at:
-                  new Date().toISOString(),
-
-                coins: 0,
-
-                balance: 0
-
-              };
-
-
-              await set(
-                ref(
-                  db,
-                  `users/${memberId}`
-                ),
-                userData
-              );
-
-
-              await set(
-                ref(
-                  db,
-                  `email_registry/${emailKey}`
-                ),
-                memberId
+              console.warn(
+                "Google email registry lookup denied; using UID profile."
               );
 
             }
 
 
             /*
-              Verify Firebase Auth account matches
-              stored member profile.
+              If registry does not provide a member,
+              check canonical UID profile.
             */
 
-            const memberSnapshot =
-              await get(
-                ref(
-                  db,
-                  `users/${memberId}`
-                )
-              );
+            if (!memberId) {
+
+              try {
+
+                const canonicalSnapshot =
+                  await get(
+                    ref(
+                      db,
+                      `users/${firebaseUser.uid}`
+                    )
+                  );
 
 
-            if (!memberSnapshot.exists()) {
+                if (
+                  canonicalSnapshot.exists()
+                ) {
 
-              throw new Error(
-                "Member profile could not be loaded."
-              );
+                  const canonicalData =
+                    canonicalSnapshot.val();
+
+
+                  if (
+                    normalizeEmail(
+                      canonicalData.email
+                    ) === email
+                  ) {
+
+                    memberId =
+                      canonicalData.memberId ||
+                      canonicalData.uid;
+
+                  }
+
+                }
+
+              } catch (dbError) {
+
+                if (
+                  !isPermissionDenied(
+                    dbError
+                  )
+                ) {
+
+                  throw dbError;
+
+                }
+
+              }
 
             }
 
 
-            const memberData =
-              memberSnapshot.val();
+            /*
+              Existing Google member.
+            */
+
+            if (memberId) {
+
+              const memberSnapshot =
+                await get(
+                  ref(
+                    db,
+                    `users/${memberId}`
+                  )
+                );
 
 
-            if (
-              memberData.authUid !==
-              firebaseUser.uid
-            ) {
+              if (
+                memberSnapshot.exists()
+              ) {
 
-              await signOut(auth);
+                const memberData =
+                  memberSnapshot.val();
 
-              throw new Error(
-                "This email is linked to a different member account."
-              );
+
+                if (
+                  memberData.authUid &&
+                  memberData.authUid !==
+                    firebaseUser.uid
+                ) {
+
+                  await signOut(auth);
+
+                  throw new Error(
+                    "This email is linked to a different member account."
+                  );
+
+                }
+
+
+                /*
+                  Repair/synchronize old profile.
+                */
+
+                const repairedProfile = {
+
+                  ...memberData,
+
+                  uid:
+                    memberId,
+
+                  memberId:
+                    memberId,
+
+                  authUid:
+                    firebaseUser.uid,
+
+                  email:
+                    email,
+
+                  name:
+                    memberData.name ||
+                    firebaseUser.displayName ||
+                    "Google User",
+
+                  provider:
+                    "google.com",
+
+                  role:
+                    "member",
+
+                  isAdmin:
+                    false,
+
+                  photoURL:
+                    firebaseUser.photoURL ||
+                    memberData.photoURL ||
+                    "",
+
+                  coins:
+                    Number(
+                      memberData.coins || 0
+                    ),
+
+                  balance:
+                    Number(
+                      memberData.balance || 0
+                    )
+
+                };
+
+
+                await update(
+                  ref(
+                    db,
+                    `users/${memberId}`
+                  ),
+                  repairedProfile
+                );
+
+
+                await update(
+                  ref(
+                    db,
+                    `users/${firebaseUser.uid}`
+                  ),
+                  {
+                    ...repairedProfile,
+                    uid:
+                      firebaseUser.uid,
+                    memberId:
+                      memberId
+                  }
+                );
+
+
+                saveLocalSession(
+                  repairedProfile,
+                  firebaseUser
+                );
+
+
+                window.location.replace(
+                  "dashboard.html"
+                );
+
+                return;
+
+              }
 
             }
+
+
+            /*
+              First-time Google user.
+            */
+
+            memberId =
+              await generateUniqueMemberID();
+
+
+            const googleProfile = {
+
+              uid:
+                memberId,
+
+              memberId:
+                memberId,
+
+              authUid:
+                firebaseUser.uid,
+
+              name:
+                firebaseUser.displayName ||
+                "Google User",
+
+              email:
+                email,
+
+              photoURL:
+                firebaseUser.photoURL ||
+                "",
+
+              provider:
+                "google.com",
+
+              role:
+                "member",
+
+              isAdmin:
+                false,
+
+              created_at:
+                new Date().toISOString(),
+
+              coins:
+                0,
+
+              balance:
+                0
+
+            };
+
+
+            const updates = {};
+
+
+            updates[
+              `users/${firebaseUser.uid}`
+            ] = {
+
+              ...googleProfile,
+
+              uid:
+                firebaseUser.uid
+
+            };
+
+
+            updates[
+              `users/${memberId}`
+            ] =
+              googleProfile;
+
+
+            updates[
+              `memberIds/${memberId}`
+            ] = {
+
+              authUid:
+                firebaseUser.uid,
+
+              email:
+                email,
+
+              created_at:
+                new Date().toISOString()
+
+            };
+
+
+            updates[
+              `email_registry/${emailKey}`
+            ] = {
+
+              memberId:
+                memberId,
+
+              authUid:
+                firebaseUser.uid,
+
+              email:
+                email,
+
+              created_at:
+                new Date().toISOString()
+
+            };
+
+
+            try {
+
+              await update(
+                ref(db),
+                updates
+              );
+
+            } catch (dbError) {
+
+              /*
+                If profile creation is denied after
+                Google authentication, sign out so the
+                account is not left in an inconsistent
+                state.
+              */
+
+              await signOut(
+                auth
+              );
+
+
+              throw dbError;
+
+            }
+
+
+            saveLocalSession(
+              googleProfile,
+              firebaseUser
+            );
 
 
             window.location.replace(
@@ -2857,6 +4027,12 @@
               error
             );
 
+
+            /*
+              Important:
+              Do not show raw Firebase errors such as
+              "auth/unauthorized-domain" without context.
+            */
 
             showStatus(
               getFirebaseError(error),
@@ -2880,32 +4056,34 @@
 
     /* =====================================================
        AUTH STATE
-       
-       Firebase Auth remains the source of truth.
-       
-       IMPORTANT:
-       Registration preview temporarily blocks only
-       automatic routing while the 5-second preview
-       is active.
     ====================================================== */
 
     onAuthStateChanged(
       auth,
       async function(user) {
 
+        authInitializationFinished =
+          true;
+
+
         if (!user) {
+
           return;
+
         }
 
 
         /*
-          NEW:
-          Do not interrupt the registration success
-          preview with automatic dashboard routing.
+          Registration success screen must remain visible
+          for the complete 5-second period.
         */
 
-        if (registrationPreviewActive) {
+        if (
+          registrationPreviewActive
+        ) {
+
           return;
+
         }
 
 
@@ -2917,51 +4095,194 @@
 
 
         /*
-          If already authenticated and this is index.html,
-          route the user automatically.
+          Only auto-route from index.html.
         */
 
         if (
-          currentPage === "index.html" ||
-          currentPage === ""
+          currentPage !==
+            "index.html" &&
+          currentPage !==
+            ""
         ) {
 
-          const email =
-            normalizeEmail(
-              user.email
+          return;
+
+        }
+
+
+        const email =
+          normalizeEmail(
+            user.email
+          );
+
+
+        /*
+          ADMIN
+        */
+
+        if (
+          email ===
+          ADMIN_EMAIL
+        ) {
+
+          const adminSession = {
+
+            uid:
+              user.uid,
+
+            authUid:
+              user.uid,
+
+            memberId:
+              "ADMIN",
+
+            name:
+              user.displayName ||
+              "JAVICASH Administrator",
+
+            email:
+              email,
+
+            role:
+              "admin",
+
+            isAdmin:
+              true,
+
+            photoURL:
+              user.photoURL ||
+              ""
+
+          };
+
+
+          localStorage.setItem(
+            "javicash_session",
+            JSON.stringify(
+              adminSession
+            )
+          );
+
+
+          window.location.replace(
+            "admin.html"
+          );
+
+          return;
+
+        }
+
+
+        /*
+          Regular member:
+          first attempt canonical UID profile.
+        */
+
+        try {
+
+          const canonicalSnapshot =
+            await get(
+              ref(
+                db,
+                `users/${user.uid}`
+              )
             );
 
 
-          if (email === ADMIN_EMAIL) {
+          if (
+            canonicalSnapshot.exists()
+          ) {
 
-            window.location.replace(
-              "admin.html"
-            );
+            const data =
+              canonicalSnapshot.val();
 
-            return;
+
+            if (
+              normalizeEmail(
+                data.email
+              ) === email
+            ) {
+
+              saveLocalSession(
+                data,
+                user
+              );
+
+
+              window.location.replace(
+                "dashboard.html"
+              );
+
+
+              return;
+
+            }
 
           }
 
 
           /*
-            Find member by authUid.
+            Compatibility fallback:
+            find profile by authUid.
           */
 
-          try {
+          const memberQuery =
+            query(
+              ref(
+                db,
+                "users"
+              ),
+              orderByChild(
+                "authUid"
+              ),
+              equalTo(
+                user.uid
+              )
+            );
 
-            const memberQuery =
-              query(
-                ref(db, "users"),
-                orderByChild("authUid"),
-                equalTo(user.uid)
+
+          const snapshot =
+            await get(
+              memberQuery
+            );
+
+
+          if (
+            snapshot.exists()
+          ) {
+
+            let foundProfile =
+              null;
+
+
+            snapshot.forEach(
+              child => {
+
+                const data =
+                  child.val();
+
+
+                if (
+                  data &&
+                  data.memberId
+                ) {
+
+                  foundProfile =
+                    data;
+
+                }
+
+              }
+            );
+
+
+            if (foundProfile) {
+
+              saveLocalSession(
+                foundProfile,
+                user
               );
 
-
-            const snapshot =
-              await get(memberQuery);
-
-
-            if (snapshot.exists()) {
 
               window.location.replace(
                 "dashboard.html"
@@ -2969,14 +4290,19 @@
 
             }
 
-          } catch (error) {
-
-            console.error(
-              "Auth routing error:",
-              error
-            );
-
           }
+
+        } catch (error) {
+
+          /*
+            Never repeatedly redirect or display a raw
+            permission error from the auth listener.
+          */
+
+          console.warn(
+            "Auth state database lookup unavailable:",
+            error
+          );
 
         }
 
@@ -2993,15 +4319,13 @@
 
         try {
 
-          /*
-            Cancel registration preview if logout
-            is clicked during the 5-second window.
-          */
-
-          registrationPreviewActive = false;
+          registrationPreviewActive =
+            false;
 
 
-          if (registrationRedirectTimer) {
+          if (
+            registrationRedirectTimer
+          ) {
 
             clearInterval(
               registrationRedirectTimer
@@ -3013,7 +4337,25 @@
           }
 
 
-          await signOut(auth);
+          clearInterval(
+            otpTimerInterval
+          );
+
+
+          currentOTP =
+            null;
+
+
+          tempUserData =
+            {};
+
+
+          await signOut(
+            auth
+          );
+
+
+          clearLocalSession();
 
 
           window.location.replace(
@@ -3028,24 +4370,103 @@
             error
           );
 
+
+          showStatus(
+            getFirebaseError(error),
+            "error"
+          );
+
         }
 
       };
 
 
     /* =====================================================
-       FIREBASE ERROR TRANSLATION
+       ERROR HELPERS
     ====================================================== */
 
-    function getFirebaseError(error) {
+    function isPermissionDenied(
+      error
+    ) {
 
       if (!error) {
-        return "An unknown error occurred.";
+        return false;
+      }
+
+
+      return (
+        error.code ===
+          "PERMISSION_DENIED" ||
+        error.code ===
+          "permission_denied" ||
+        error.code ===
+          "PERMISSION_DENIED:" ||
+        String(
+          error.message || ""
+        )
+          .toLowerCase()
+          .includes(
+            "permission denied"
+          )
+      );
+
+    }
+
+
+    function getFirebaseError(
+      error
+    ) {
+
+      if (!error) {
+
+        return (
+          "An unknown error occurred."
+        );
+
       }
 
 
       const code =
         error.code || "";
+
+
+      const rawMessage =
+        String(
+          error.message || ""
+        );
+
+
+      /*
+        Firebase Auth domain problem.
+      */
+
+      if (
+        code ===
+          "auth/unauthorized-domain"
+      ) {
+
+        return (
+          "This website domain is not authorized for Firebase Authentication. Add zubiremajun.github.io to Firebase Authentication → Settings → Authorized domains."
+        );
+
+      }
+
+
+      /*
+        Realtime Database permission problem.
+      */
+
+      if (
+        isPermissionDenied(
+          error
+        )
+      ) {
+
+        return (
+          "Firebase Database access was denied by Security Rules. Please update the Realtime Database Rules for the JAVICASH user/profile paths."
+        );
+
+      }
 
 
       const messages = {
@@ -3089,19 +4510,95 @@
         "auth/operation-not-allowed":
           "This authentication method is not enabled in Firebase.",
 
-        "permission_denied":
-          "Firebase denied this operation. Check your Database Rules."
+        "auth/operation-not-supported-in-this-environment":
+          "Firebase Authentication is not supported in this browser environment.",
+
+        "auth/invalid-api-key":
+          "Firebase configuration contains an invalid API key.",
+
+        "auth/internal-error":
+          "Firebase encountered an internal authentication error. Please try again.",
+
+        "auth/timeout":
+          "The authentication request timed out. Please try again."
 
       };
 
 
       return (
         messages[code] ||
-        error.message ||
+        rawMessage ||
         "Authentication failed. Please try again."
       );
 
     }
+
+
+    /* =====================================================
+       CLEANUP WHEN PAGE IS LEFT
+    ====================================================== */
+
+    window.addEventListener(
+      "beforeunload",
+      function() {
+
+        clearInterval(
+          otpTimerInterval
+        );
+
+        clearInterval(
+          registrationRedirectTimer
+        );
+
+      }
+    );
+
+
+    /* =====================================================
+       BASIC OTP INPUT SANITIZATION
+    ====================================================== */
+
+    const otpInput =
+      document.getElementById(
+        "reg-otp-input"
+      );
+
+
+    if (otpInput) {
+
+      otpInput.addEventListener(
+        "input",
+        function() {
+
+          this.value =
+            this.value
+              .replace(
+                /\D/g,
+                ""
+              )
+              .slice(
+                0,
+                6
+              );
+
+        }
+      );
+
+    }
+
+
+    /* =====================================================
+       INITIAL PAGE STATE
+    ====================================================== */
+
+    /*
+      Avoid displaying a stale registration preview after
+      a fresh page load.
+    */
+
+    registrationPreviewActive =
+      false;
+
 
   </script>
 
