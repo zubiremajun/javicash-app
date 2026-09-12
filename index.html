@@ -525,6 +525,32 @@
       </div>
 
 
+      <!-- =================================================
+           MOBILE NUMBER
+           Added directly underneath Email Address.
+           Existing UI classes/styles are preserved.
+      ================================================== -->
+
+      <div class="input-group">
+
+        <label>Mobile Number</label>
+
+        <input
+          type="tel"
+          id="reg-mobile"
+          class="input-field"
+          inputmode="tel"
+          autocomplete="tel"
+          placeholder="+8801XXXXXXXXX">
+
+        <div
+          class="error-msg"
+          id="err-reg-mobile">
+        </div>
+
+      </div>
+
+
       <div class="input-group">
 
         <label>Password</label>
@@ -1279,9 +1305,20 @@
     ====================================================== */
 
     /*
-      LOCAL persistence keeps the authenticated user
-      available after navigation to dashboard.html.
+      LOCAL persistence is intentional.
+
+      This means:
+      - Closing the browser does NOT log the member out.
+      - Switching apps does NOT log the member out.
+      - Reloading the page does NOT log the member out.
+      - Navigating to dashboard.html preserves Firebase Auth.
+      - Only an explicit signOut() destroys the Firebase session.
+
+      localStorage is used only for non-authoritative
+      profile/session display data. Firebase Auth remains
+      the authoritative authentication state.
     */
+
     const persistenceReady =
       setPersistence(
         auth,
@@ -1508,6 +1545,23 @@
 
 
     /* =====================================================
+       MOBILE NUMBER
+    ====================================================== */
+
+    function normalizeMobileNumber(
+      mobile
+    ) {
+
+      return String(
+        mobile || ""
+      )
+        .trim()
+        .replace(/\s+/g, "");
+
+    }
+
+
+    /* =====================================================
        LOCAL SESSION
     ====================================================== */
 
@@ -1532,6 +1586,11 @@
         email:
           userData.email ||
           firebaseUser.email ||
+          "",
+
+        mobileNumber:
+          userData.mobileNumber ||
+          userData.mobile ||
           "",
 
         memberId:
@@ -1599,11 +1658,6 @@
           ).toString();
 
 
-        /*
-          The dedicated memberIds index is the
-          authoritative uniqueness check.
-        */
-
         const idSnapshot =
           await get(
             ref(
@@ -1614,11 +1668,6 @@
 
 
         if (!idSnapshot.exists()) {
-
-          /*
-            Legacy compatibility:
-            also check users/{memberId}.
-          */
 
           const legacySnapshot =
             await get(
@@ -1790,15 +1839,6 @@
         normalizeEmail(email);
 
 
-      /*
-        CHECK 1:
-        Firebase Authentication.
-
-        Important:
-        Firebase may intentionally return []
-        when Email Enumeration Protection is enabled.
-      */
-
       try {
 
         const methods =
@@ -1822,11 +1862,6 @@
 
       } catch (error) {
 
-        /*
-          Do not make a legitimate registration fail
-          simply because this optional lookup is blocked.
-        */
-
         console.warn(
           "Firebase Auth email lookup unavailable:",
           error
@@ -1834,18 +1869,6 @@
 
       }
 
-
-      /*
-        CHECK 2:
-        JAVICASH email registry.
-
-        This is useful when Firebase email enumeration
-        protection is enabled.
-
-        If the database rules deny this unauthenticated
-        lookup, we cannot claim the email is unused.
-        The final createUser call remains authoritative.
-      */
 
       try {
 
@@ -1883,12 +1906,6 @@
               "permission_denied"
           )
         ) {
-
-          /*
-            Do NOT display raw "Permission denied".
-            Continue to OTP and let Firebase Auth
-            make the final duplicate-account decision.
-          */
 
           console.warn(
             "Email registry lookup denied by RTDB rules."
@@ -1953,6 +1970,21 @@
           );
 
 
+        /*
+          Mobile number is collected here and remains
+          in temporary memory only until OTP verification.
+        */
+
+        const mobileNumber =
+          normalizeMobileNumber(
+            document
+              .getElementById(
+                "reg-mobile"
+              )
+              .value
+          );
+
+
         const pass =
           document
             .getElementById(
@@ -1996,6 +2028,31 @@
             "reg-email",
             "err-reg-email",
             "Please enter a valid email address."
+          );
+
+          valid =
+            false;
+
+        }
+
+
+        /*
+          Accept international/mobile formats while
+          requiring a meaningful phone number.
+
+          Spaces are removed before storage.
+        */
+
+        if (
+          !/^\+?[0-9]{7,15}$/.test(
+            mobileNumber
+          )
+        ) {
+
+          showError(
+            "reg-mobile",
+            "err-reg-mobile",
+            "Please enter a valid mobile number."
           );
 
           valid =
@@ -2049,11 +2106,6 @@
           await persistenceReady;
 
 
-          /*
-            Do not allow registration using the
-            administrator email.
-          */
-
           if (
             email === ADMIN_EMAIL
           ) {
@@ -2070,7 +2122,7 @@
 
 
           /*
-            PRE-OTP CHECK
+            PRE-OTP EMAIL CHECK
           */
 
           const existence =
@@ -2093,8 +2145,10 @@
 
 
           /*
-            Password exists only temporarily in
-            memory and is never written to RTDB.
+            Password exists only temporarily in memory.
+            Mobile number is also temporary until OTP
+            verification and is never sent to Firebase Auth
+            as a password or stored as authentication data.
           */
 
           tempUserData = {
@@ -2104,6 +2158,9 @@
 
             email:
               email,
+
+            mobileNumber:
+              mobileNumber,
 
             pass:
               pass
@@ -2256,6 +2313,7 @@
       memberId,
       name,
       email,
+      mobileNumber,
       provider = "password"
     ) {
 
@@ -2294,6 +2352,9 @@
         email:
           email,
 
+        mobileNumber:
+          mobileNumber || "",
+
         provider:
           provider,
 
@@ -2319,9 +2380,6 @@
 
       /*
         Legacy/member-ID profile.
-
-        This keeps compatibility with the existing
-        JAVICASH dashboard/admin architecture.
       */
 
       const memberProfile = {
@@ -2340,6 +2398,9 @@
 
         email:
           email,
+
+        mobileNumber:
+          mobileNumber || "",
 
         provider:
           provider,
@@ -2377,9 +2438,6 @@
 
       /*
         Atomic multi-location write.
-
-        If rules reject either path, the complete
-        write fails instead of leaving half a profile.
       */
 
       const updates = {};
@@ -2677,8 +2735,7 @@
           /*
             FINAL AUTH CHECK.
 
-            This is authoritative if the client-side
-            pre-check could not inspect Firebase Auth.
+            Firebase Authentication remains authoritative.
           */
 
           let credential;
@@ -2735,8 +2792,7 @@
 
 
           /*
-            Save profile under canonical Firebase UID
-            and legacy member ID.
+            Save profile including mobile number.
           */
 
           const memberProfile =
@@ -2745,6 +2801,7 @@
               uniqueID,
               tempUserData.name,
               tempUserData.email,
+              tempUserData.mobileNumber,
               "password"
             );
 
@@ -2767,7 +2824,8 @@
 
 
           /*
-            Build final session.
+            Firebase Auth is now authenticated and
+            browserLocalPersistence keeps it active.
           */
 
           saveLocalSession(
@@ -2793,12 +2851,6 @@
             error
           );
 
-
-          /*
-            If Firebase Auth account was created but
-            profile write failed, keep the authenticated
-            state available and show a useful message.
-          */
 
           if (
             error &&
@@ -2974,11 +3026,6 @@
             ADMIN_EMAIL
           ) {
 
-            /*
-              Ensure local session contains
-              admin information.
-            */
-
             const adminSession = {
 
               uid:
@@ -3044,10 +3091,6 @@
           }
 
 
-          /*
-            Read legacy member profile.
-          */
-
           const userSnapshot =
             await get(
               ref(
@@ -3076,10 +3119,6 @@
             userSnapshot.val();
 
 
-          /*
-            Verify ownership.
-          */
-
           if (
             userData.authUid !==
             firebaseUser.uid
@@ -3096,10 +3135,6 @@
 
           }
 
-
-          /*
-            Verify email.
-          */
 
           if (
             normalizeEmail(
@@ -3162,11 +3197,6 @@
 
           } catch (profileError) {
 
-            /*
-              Do not block a valid login merely because
-              the compatibility profile cannot be read.
-            */
-
             console.warn(
               "Canonical profile sync warning:",
               profileError
@@ -3176,7 +3206,9 @@
 
 
           /*
-            Save active session for dashboard.
+            Firebase Auth persistence is already local,
+            so closing/reopening the browser will keep
+            this account authenticated until explicit logout.
           */
 
           saveLocalSession(
@@ -3278,10 +3310,6 @@
 
         try {
 
-          /*
-            Optional Member ID validation.
-          */
-
           if (memberId) {
 
             if (
@@ -3370,10 +3398,6 @@
           }
 
 
-          /*
-            Firebase sends the secure reset email.
-          */
-
           await sendPasswordResetEmail(
             auth,
             email
@@ -3424,12 +3448,6 @@
 
       };
 
-
-    /*
-      Legacy UI compatibility.
-      Firebase handles the secure reset process
-      through the reset email link.
-    */
 
     window.resendForgotOTP =
       function() {
@@ -3560,12 +3578,6 @@
               };
 
 
-              /*
-                Attempt to maintain admin profile.
-                Failure here does not prevent Firebase
-                Auth from working.
-              */
-
               try {
 
                 await update(
@@ -3638,14 +3650,6 @@
                   emailSnapshot.val();
 
 
-                /*
-                  Support both old:
-                  email_registry/email = memberId
-
-                  and new:
-                  email_registry/email = { memberId, authUid }
-                */
-
                 if (
                   typeof emailRegistryData ===
                   "string"
@@ -3675,11 +3679,6 @@
                 throw dbError;
 
               }
-
-              /*
-                Registry lookup unavailable.
-                Fall back to auth UID profile.
-              */
 
               console.warn(
                 "Google email registry lookup denied; using UID profile."
@@ -3783,10 +3782,6 @@
                 }
 
 
-                /*
-                  Repair/synchronize old profile.
-                */
-
                 const repairedProfile = {
 
                   ...memberData,
@@ -3820,6 +3815,11 @@
                   photoURL:
                     firebaseUser.photoURL ||
                     memberData.photoURL ||
+                    "",
+
+                  mobileNumber:
+                    memberData.mobileNumber ||
+                    memberData.mobile ||
                     "",
 
                   coins:
@@ -3901,6 +3901,9 @@
 
               email:
                 email,
+
+              mobileNumber:
+                "",
 
               photoURL:
                 firebaseUser.photoURL ||
@@ -3992,13 +3995,6 @@
 
             } catch (dbError) {
 
-              /*
-                If profile creation is denied after
-                Google authentication, sign out so the
-                account is not left in an inconsistent
-                state.
-              */
-
               await signOut(
                 auth
               );
@@ -4027,12 +4023,6 @@
               error
             );
 
-
-            /*
-              Important:
-              Do not show raw Firebase errors such as
-              "auth/unauthorized-domain" without context.
-            */
 
             showStatus(
               getFirebaseError(error),
@@ -4066,7 +4056,31 @@
           true;
 
 
+        /*
+          IMPORTANT:
+
+          The localStorage session is NOT used to
+          authenticate or restore a Firebase user.
+
+          Firebase Auth + browserLocalPersistence is
+          authoritative.
+
+          Therefore, after explicit signOut():
+          user === null
+          and the account cannot be auto-restored.
+        */
+
         if (!user) {
+
+          /*
+            Remove stale local profile information when
+            Firebase confirms that no authenticated user
+            exists.
+
+            This is especially important after manual logout.
+          */
+
+          clearLocalSession();
 
           return;
 
@@ -4096,6 +4110,10 @@
 
         /*
           Only auto-route from index.html.
+
+          This allows the Firebase local persistence
+          session to automatically return the member to
+          the dashboard when the index page is opened again.
         */
 
         if (
@@ -4294,11 +4312,6 @@
 
         } catch (error) {
 
-          /*
-            Never repeatedly redirect or display a raw
-            permission error from the auth listener.
-          */
-
           console.warn(
             "Auth state database lookup unavailable:",
             error
@@ -4318,6 +4331,10 @@
       async function() {
 
         try {
+
+          /*
+            Stop registration preview immediately.
+          */
 
           registrationPreviewActive =
             false;
@@ -4350,6 +4367,21 @@
             {};
 
 
+          /*
+            IMPORTANT:
+
+            Firebase signOut() destroys the actual
+            authenticated session.
+
+            Because browserLocalPersistence is enabled,
+            Firebase normally keeps sessions across browser
+            restarts. Calling signOut() is the explicit
+            exception that removes that persisted auth state.
+
+            localStorage is cleared as well so no stale
+            JAVICASH profile data remains locally.
+          */
+
           await signOut(
             auth
           );
@@ -4357,6 +4389,14 @@
 
           clearLocalSession();
 
+
+          /*
+            Return to the login/landing page.
+
+            Since Firebase Auth is now signed out,
+            onAuthStateChanged() receives null and cannot
+            automatically restore the previous account.
+          */
 
           window.location.replace(
             "index.html"
@@ -4436,10 +4476,6 @@
         );
 
 
-      /*
-        Firebase Auth domain problem.
-      */
-
       if (
         code ===
           "auth/unauthorized-domain"
@@ -4451,10 +4487,6 @@
 
       }
 
-
-      /*
-        Realtime Database permission problem.
-      */
 
       if (
         isPermissionDenied(
@@ -4588,13 +4620,58 @@
 
 
     /* =====================================================
-       INITIAL PAGE STATE
+       MOBILE INPUT NORMALIZATION
     ====================================================== */
 
-    /*
-      Avoid displaying a stale registration preview after
-      a fresh page load.
-    */
+    const mobileInput =
+      document.getElementById(
+        "reg-mobile"
+      );
+
+
+    if (mobileInput) {
+
+      mobileInput.addEventListener(
+        "input",
+        function() {
+
+          /*
+            Keep digits, spaces and one leading +.
+            This prevents accidental letters while still
+            allowing international phone numbers.
+          */
+
+          let value =
+            this.value;
+
+          value =
+            value.replace(
+              /[^\d+\s()-]/g,
+              ""
+            );
+
+          /*
+            Only allow + at the beginning.
+          */
+
+          value =
+            value.replace(
+              /(?!^)\+/g,
+              ""
+            );
+
+          this.value =
+            value;
+
+        }
+      );
+
+    }
+
+
+    /* =====================================================
+       INITIAL PAGE STATE
+    ====================================================== */
 
     registrationPreviewActive =
       false;
