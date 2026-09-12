@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -525,11 +524,7 @@
       </div>
 
 
-      <!-- =================================================
-           MOBILE NUMBER
-           Added directly underneath Email Address.
-           Existing UI classes/styles are preserved.
-      ================================================== -->
+      <!-- MOBILE NUMBER -->
 
       <div class="input-group">
 
@@ -1275,9 +1270,11 @@
 
 
     if (window.emailjs) {
+
       window.emailjs.init(
         EMAILJS_PUBLIC_KEY
       );
+
     }
 
 
@@ -1305,18 +1302,21 @@
     ====================================================== */
 
     /*
-      LOCAL persistence is intentional.
+      Firebase LOCAL persistence is the authoritative
+      session mechanism.
 
-      This means:
-      - Closing the browser does NOT log the member out.
-      - Switching apps does NOT log the member out.
-      - Reloading the page does NOT log the member out.
-      - Navigating to dashboard.html preserves Firebase Auth.
-      - Only an explicit signOut() destroys the Firebase session.
+      The Firebase Auth session survives:
 
-      localStorage is used only for non-authoritative
-      profile/session display data. Firebase Auth remains
-      the authoritative authentication state.
+      - Page reload
+      - Browser tab close
+      - Browser restart
+      - Mobile app switching
+      - Normal WebView/page recreation
+
+      It remains active until Firebase signOut() is called.
+
+      localStorage below is ONLY a local profile cache.
+      It is never used as an authentication credential.
     */
 
     const persistenceReady =
@@ -1347,12 +1347,17 @@
           view.classList.remove("active")
         );
 
+
       const target =
         document.getElementById(viewId);
 
+
       if (target) {
+
         target.classList.add("active");
+
       }
+
 
       clearErrorMessages();
 
@@ -1394,9 +1399,13 @@
       const error =
         document.getElementById(errorId);
 
+
       if (field) {
+
         field.classList.add("error");
+
       }
+
 
       if (error) {
 
@@ -1421,7 +1430,9 @@
           "status-box"
         );
 
+
       if (!box) return;
+
 
       box.textContent =
         message;
@@ -1439,7 +1450,9 @@
           "status-box"
         );
 
+
       if (!box) return;
+
 
       box.className =
         "status-box";
@@ -1457,6 +1470,7 @@
     ) {
 
       if (!button) return;
+
 
       if (loading) {
 
@@ -1492,7 +1506,9 @@
             fieldId
           );
 
+
         if (!field) return;
+
 
         if (
           field.type ===
@@ -1569,6 +1585,16 @@
       userData,
       firebaseUser
     ) {
+
+      if (
+        !firebaseUser ||
+        !firebaseUser.uid
+      ) {
+
+        return null;
+
+      }
+
 
       const session = {
 
@@ -1679,7 +1705,9 @@
 
 
           if (!legacySnapshot.exists()) {
+
             return newId;
+
           }
 
         }
@@ -1763,10 +1791,12 @@
         otpTimerInterval
       );
 
+
       const display =
         document.getElementById(
           displayId
         );
+
 
       const resend =
         document.getElementById(
@@ -1775,8 +1805,10 @@
 
 
       if (resend) {
+
         resend.disabled =
           true;
+
       }
 
 
@@ -1795,8 +1827,10 @@
 
 
         if (display) {
+
           display.textContent =
             remaining;
+
         }
 
 
@@ -1806,9 +1840,12 @@
             otpTimerInterval
           );
 
+
           if (resend) {
+
             resend.disabled =
               false;
+
           }
 
         }
@@ -1817,6 +1854,7 @@
 
 
       tick();
+
 
       otpTimerInterval =
         setInterval(
@@ -1877,6 +1915,7 @@
             normalized
           );
 
+
         const snapshot =
           await get(
             ref(
@@ -1911,12 +1950,14 @@
             "Email registry lookup denied by RTDB rules."
           );
 
+
           return {
             exists: false,
             source: "auth-fallback"
           };
 
         }
+
 
         console.warn(
           "Email registry lookup failed:",
@@ -1969,11 +2010,6 @@
               .value
           );
 
-
-        /*
-          Mobile number is collected here and remains
-          in temporary memory only until OTP verification.
-        */
 
         const mobileNumber =
           normalizeMobileNumber(
@@ -2037,10 +2073,14 @@
 
 
         /*
-          Accept international/mobile formats while
-          requiring a meaningful phone number.
+          Mandatory mobile validation.
 
-          Spaces are removed before storage.
+          Accepted:
+          +8801712345678
+          8801712345678
+          01712345678
+
+          Common spaces are normalized before storage.
         */
 
         if (
@@ -2090,7 +2130,9 @@
 
 
         if (!valid) {
+
           return;
+
         }
 
 
@@ -2107,7 +2149,8 @@
 
 
           if (
-            email === ADMIN_EMAIL
+            email ===
+            ADMIN_EMAIL
           ) {
 
             showError(
@@ -2145,10 +2188,11 @@
 
 
           /*
-            Password exists only temporarily in memory.
-            Mobile number is also temporary until OTP
-            verification and is never sent to Firebase Auth
-            as a password or stored as authentication data.
+            Sensitive password remains only in memory
+            until Firebase Authentication creates the user.
+
+            Mobile number remains temporary until OTP
+            verification and database profile creation.
           */
 
           tempUserData = {
@@ -2239,7 +2283,9 @@
         if (
           !tempUserData.email
         ) {
+
           return;
+
         }
 
 
@@ -2329,10 +2375,8 @@
 
 
       /*
-        Canonical Firebase UID profile.
-
-        Requirement:
-        /users/{uid}
+        Canonical profile:
+        /users/{firebase UID}
       */
 
       const canonicalProfile = {
@@ -2379,7 +2423,7 @@
 
 
       /*
-        Legacy/member-ID profile.
+        Member-ID profile.
       */
 
       const memberProfile = {
@@ -2533,15 +2577,18 @@
           "dash-uid"
         );
 
+
       const nameElement =
         document.getElementById(
           "dash-name"
         );
 
+
       const emailElement =
         document.getElementById(
           "dash-email"
         );
+
 
       const countdownElement =
         document.getElementById(
@@ -2637,8 +2684,10 @@
                 registrationRedirectTimer
               );
 
+
               registrationRedirectTimer =
                 null;
+
 
               registrationPreviewActive =
                 false;
@@ -2733,9 +2782,8 @@
 
 
           /*
-            FINAL AUTH CHECK.
-
-            Firebase Authentication remains authoritative.
+            Firebase Authentication creates the actual
+            account. Password is never written to RTDB.
           */
 
           let credential;
@@ -2784,7 +2832,7 @@
 
 
           /*
-            Unique public JAVICASH Member ID.
+            Generate unique six-digit public ID.
           */
 
           const uniqueID =
@@ -2792,7 +2840,7 @@
 
 
           /*
-            Save profile including mobile number.
+            Save user profile INCLUDING mobile number.
           */
 
           const memberProfile =
@@ -2807,25 +2855,28 @@
 
 
           /*
-            Clear sensitive temporary data.
+            Remove sensitive temporary password.
           */
 
           tempUserData.pass =
             null;
 
+
           tempUserData =
             {};
 
+
           currentOTP =
             null;
+
 
           otpExpiresAt =
             0;
 
 
           /*
-            Firebase Auth is now authenticated and
-            browserLocalPersistence keeps it active.
+            Firebase Auth is already authenticated.
+            browserLocalPersistence keeps the session alive.
           */
 
           saveLocalSession(
@@ -2987,7 +3038,9 @@
 
 
         if (!valid) {
+
           return;
+
         }
 
 
@@ -3065,6 +3118,7 @@
               "admin.html"
             );
 
+
             return;
 
           }
@@ -3085,6 +3139,7 @@
               "err-login-uid",
               "Member ID is required."
             );
+
 
             return;
 
@@ -3110,6 +3165,7 @@
               "Member ID not found."
             );
 
+
             return;
 
           }
@@ -3130,6 +3186,7 @@
               "This Member ID does not belong to the authenticated account.",
               "error"
             );
+
 
             return;
 
@@ -3152,6 +3209,7 @@
               "err-login-email",
               "Email does not match this Member ID."
             );
+
 
             return;
 
@@ -3206,9 +3264,8 @@
 
 
           /*
-            Firebase Auth persistence is already local,
-            so closing/reopening the browser will keep
-            this account authenticated until explicit logout.
+            Firebase Auth LOCAL persistence keeps the
+            authenticated state across browser/app restart.
           */
 
           saveLocalSession(
@@ -3296,6 +3353,7 @@
             "Enter a valid registered email."
           );
 
+
           return;
 
         }
@@ -3324,6 +3382,7 @@
                 "Member ID must contain 6 digits."
               );
 
+
               return;
 
             }
@@ -3348,6 +3407,7 @@
                   "Member ID not found."
                 );
 
+
                 return;
 
               }
@@ -3370,6 +3430,7 @@
                   "Email does not match this Member ID."
                 );
 
+
                 return;
 
               }
@@ -3387,9 +3448,11 @@
                   "error"
                 );
 
+
                 return;
 
               }
+
 
               throw dbError;
 
@@ -3610,6 +3673,7 @@
                 "admin.html"
               );
 
+
               return;
 
             }
@@ -3680,6 +3744,7 @@
 
               }
 
+
               console.warn(
                 "Google email registry lookup denied; using UID profile."
               );
@@ -3688,8 +3753,7 @@
 
 
             /*
-              If registry does not provide a member,
-              check canonical UID profile.
+              Canonical UID fallback.
             */
 
             if (!memberId) {
@@ -3774,6 +3838,7 @@
                 ) {
 
                   await signOut(auth);
+
 
                   throw new Error(
                     "This email is linked to a different member account."
@@ -3868,6 +3933,7 @@
                 window.location.replace(
                   "dashboard.html"
                 );
+
 
                 return;
 
@@ -4057,30 +4123,26 @@
 
 
         /*
-          IMPORTANT:
+          Firebase Auth is the ONLY source of truth.
 
-          The localStorage session is NOT used to
-          authenticate or restore a Firebase user.
-
-          Firebase Auth + browserLocalPersistence is
-          authoritative.
-
-          Therefore, after explicit signOut():
-          user === null
-          and the account cannot be auto-restored.
+          localStorage is never sufficient to authenticate
+          or restore an account.
         */
 
         if (!user) {
 
           /*
-            Remove stale local profile information when
-            Firebase confirms that no authenticated user
-            exists.
+            Critical explicit-logout protection:
 
-            This is especially important after manual logout.
+            If Firebase says there is no authenticated user,
+            remove any stale local session immediately.
+
+            This prevents an old cached profile from causing
+            automatic login after signOut().
           */
 
           clearLocalSession();
+
 
           return;
 
@@ -4089,7 +4151,7 @@
 
         /*
           Registration success screen must remain visible
-          for the complete 5-second period.
+          for its complete five-second period.
         */
 
         if (
@@ -4109,11 +4171,11 @@
 
 
         /*
-          Only auto-route from index.html.
+          Auto-routing is only performed from index.html.
 
-          This allows the Firebase local persistence
-          session to automatically return the member to
-          the dashboard when the index page is opened again.
+          Firebase LOCAL persistence automatically restores
+          the authenticated Firebase user after reopening
+          the application/page.
         */
 
         if (
@@ -4186,14 +4248,15 @@
             "admin.html"
           );
 
+
           return;
 
         }
 
 
         /*
-          Regular member:
-          first attempt canonical UID profile.
+          REGULAR MEMBER:
+          canonical UID profile first.
         */
 
         try {
@@ -4241,7 +4304,7 @@
 
           /*
             Compatibility fallback:
-            find profile by authUid.
+            locate profile using authUid.
           */
 
           const memberQuery =
@@ -4330,56 +4393,69 @@
     window.handleLogout =
       async function() {
 
+        /*
+          Clear local UI/session state FIRST.
+
+          This means the cached JAVICASH session is removed
+          immediately when the user explicitly chooses Logout.
+        */
+
+        registrationPreviewActive =
+          false;
+
+
+        if (
+          registrationRedirectTimer
+        ) {
+
+          clearInterval(
+            registrationRedirectTimer
+          );
+
+          registrationRedirectTimer =
+            null;
+
+        }
+
+
+        clearInterval(
+          otpTimerInterval
+        );
+
+
+        currentOTP =
+          null;
+
+
+        otpExpiresAt =
+          0;
+
+
+        tempUserData =
+          {};
+
+
+        /*
+          Remove local profile cache immediately.
+
+          It is never an authentication mechanism.
+        */
+
+        clearLocalSession();
+
+
         try {
 
           /*
-            Stop registration preview immediately.
-          */
+            Firebase signOut() removes the actual
+            authenticated Firebase session and therefore
+            disables LOCAL persistence for this user.
 
-          registrationPreviewActive =
-            false;
+            After this succeeds:
+              auth.currentUser === null
 
-
-          if (
-            registrationRedirectTimer
-          ) {
-
-            clearInterval(
-              registrationRedirectTimer
-            );
-
-            registrationRedirectTimer =
-              null;
-
-          }
-
-
-          clearInterval(
-            otpTimerInterval
-          );
-
-
-          currentOTP =
-            null;
-
-
-          tempUserData =
-            {};
-
-
-          /*
-            IMPORTANT:
-
-            Firebase signOut() destroys the actual
-            authenticated session.
-
-            Because browserLocalPersistence is enabled,
-            Firebase normally keeps sessions across browser
-            restarts. Calling signOut() is the explicit
-            exception that removes that persisted auth state.
-
-            localStorage is cleared as well so no stale
-            JAVICASH profile data remains locally.
+            Reopening index.html will therefore NOT
+            automatically authenticate this account.
           */
 
           await signOut(
@@ -4387,15 +4463,8 @@
           );
 
 
-          clearLocalSession();
-
-
           /*
-            Return to the login/landing page.
-
-            Since Firebase Auth is now signed out,
-            onAuthStateChanged() receives null and cannot
-            automatically restore the previous account.
+            Return to the public landing page.
           */
 
           window.location.replace(
@@ -4410,6 +4479,11 @@
             error
           );
 
+
+          /*
+            Local session has already been destroyed.
+            Firebase remains authoritative if signOut fails.
+          */
 
           showStatus(
             getFirebaseError(error),
@@ -4430,17 +4504,22 @@
     ) {
 
       if (!error) {
+
         return false;
+
       }
 
 
       return (
         error.code ===
           "PERMISSION_DENIED" ||
+
         error.code ===
           "permission_denied" ||
+
         error.code ===
           "PERMISSION_DENIED:" ||
+
         String(
           error.message || ""
         )
@@ -4578,6 +4657,7 @@
           otpTimerInterval
         );
 
+
         clearInterval(
           registrationRedirectTimer
         );
@@ -4587,7 +4667,7 @@
 
 
     /* =====================================================
-       BASIC OTP INPUT SANITIZATION
+       REGISTRATION OTP INPUT
     ====================================================== */
 
     const otpInput =
@@ -4636,19 +4716,23 @@
         function() {
 
           /*
-            Keep digits, spaces and one leading +.
-            This prevents accidental letters while still
-            allowing international phone numbers.
+            Permit digits, spaces, parentheses,
+            hyphens and a leading +.
+
+            This is input sanitization only.
+            Final validation happens during registration.
           */
 
           let value =
             this.value;
+
 
           value =
             value.replace(
               /[^\d+\s()-]/g,
               ""
             );
+
 
           /*
             Only allow + at the beginning.
@@ -4659,6 +4743,7 @@
               /(?!^)\+/g,
               ""
             );
+
 
           this.value =
             value;
