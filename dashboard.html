@@ -1534,7 +1534,6 @@ const auth =
 
 /* ============================================
    SESSION CHECK
-   FIREBASE AUTH IS THE AUTHORITATIVE SESSION
 ============================================ */
 
 const sessionData =
@@ -1556,16 +1555,6 @@ try{
   session=null;
 
 }
-
-
-/*
-  Dashboard is protected by BOTH:
-  1. Firebase Authentication
-  2. Existing JAVICASH local session
-
-  Firebase Authentication is the actual
-  authentication source.
-*/
 
 let authReady=false;
 let authenticatedUser=null;
@@ -1689,7 +1678,7 @@ function hideConnection(){
 
 
 /* ============================================
-   STRICT FIREBASE AUTH ROUTE PROTECTION
+   STRICT ROUTE PROTECTION & AUTH CHECK
 ============================================ */
 
 onAuthStateChanged(
@@ -1701,45 +1690,22 @@ onAuthStateChanged(
     authenticatedUser=
       firebaseUser || null;
 
-
     /*
-      No Firebase user means the person is
-      not authenticated.
-
-      Immediately leave dashboard.
+      ইফ ইউজারের Firebase Auth সেশন না থাকে,
+      তাহলে অবিলম্বে সেশন ক্লিয়ার করে index.html এ রিডাইরেক্ট হবে।
     */
 
     if(!firebaseUser){
 
       try{
+        localStorage.removeItem("javicash_session");
+      }catch(e){}
 
-        localStorage.removeItem(
-          "javicash_session"
-        );
-
-      }catch(error){
-
-        console.error(
-          "Session cleanup error:",
-          error
-        );
-
-      }
-
-      window.location.replace(
-        "index.html"
-      );
+      window.location.replace("index.html");
 
       return;
 
     }
-
-
-    /*
-      Firebase user exists.
-      Verify the existing JAVICASH session
-      belongs to the same actual Firebase UID.
-    */
 
     if(
       !session ||
@@ -1747,43 +1713,15 @@ onAuthStateChanged(
       session.uid !== firebaseUser.uid
     ){
 
-      /*
-        A Firebase login exists but the dashboard
-        session does not match the authenticated
-        Firebase account.
-
-        Do not allow dashboard access.
-      */
-
       signOut(auth)
-        .catch(
-          function(error){
-
-            console.error(
-              "Auth cleanup error:",
-              error
-            );
-
-          }
-        )
         .finally(
           function(){
 
             try{
+              localStorage.removeItem("javicash_session");
+            }catch(e){}
 
-              localStorage.removeItem(
-                "javicash_session"
-              );
-
-            }catch(error){
-
-              console.error(error);
-
-            }
-
-            window.location.replace(
-              "index.html"
-            );
+            window.location.replace("index.html");
 
           }
         );
@@ -1792,35 +1730,11 @@ onAuthStateChanged(
 
     }
 
-
-    /*
-      Authentication is valid.
-      Continue loading dashboard data.
-    */
-
-    session.uid=
-      firebaseUser.uid;
-
-    /*
-      Always use the actual Firebase
-      authenticated email.
-
-      This prevents an old/stale localStorage
-      email from being used for requests.
-    */
+    session.uid=firebaseUser.uid;
 
     if(firebaseUser.email){
-
-      session.email=
-        firebaseUser.email;
-
+      session.email=firebaseUser.email;
     }
-
-
-    /*
-      Keep local session synchronized.
-      UID remains exactly the same.
-    */
 
     try{
 
@@ -1831,13 +1745,9 @@ onAuthStateChanged(
 
     }catch(error){
 
-      console.error(
-        "Session sync error:",
-        error
-      );
+      console.error("Session sync error:", error);
 
     }
-
 
     initializeDashboard();
 
@@ -1894,16 +1804,10 @@ function initializeDashboard(){
           "";
 
         /*
-          IMPORTANT:
-          The displayed/member UID remains the
-          exact existing UID value.
-
-          Actual Firebase UID is taken directly
-          from authenticatedUser.uid.
+          ইউনিক আইডি (UID) অপরিবর্তিত রাখা হয়েছে।
         */
-
         const uid=
-          authenticatedUser.uid;
+          data.uid || data.uniqueId || authenticatedUser.uid;
 
         const balance=
           Number(
@@ -1937,18 +1841,10 @@ function initializeDashboard(){
         $("prof-email")
           .textContent=email;
 
-
-        /*
-          Keep local session information
-          synchronized with Firebase account.
-        */
-
-        session.uid=uid;
-
+        session.uid=authenticatedUser.uid;
+        session.displayUid=uid;
         session.email=email;
-
         session.name=name;
-
 
         try{
 
@@ -1966,7 +1862,6 @@ function initializeDashboard(){
 
         }
 
-
         if(data.profile_picture){
 
           $("profile-img")
@@ -1974,7 +1869,6 @@ function initializeDashboard(){
               data.profile_picture;
 
         }
-
 
         hideConnection();
 
@@ -2525,21 +2419,14 @@ window.uploadProfilePicture=
 
 
 /* ============================================
-   WITHDRAW
+   WITHDRAW SUBMISSION WITH EMAIL & UNIQUE ID
 ============================================ */
 
 window.submitWithdrawal=
   async function(){
 
-    /*
-      Always get the current Firebase user.
-      Never trust UID/email supplied by the page
-      or an old localStorage value.
-    */
-
     const currentUser=
       auth.currentUser;
-
 
     if(!currentUser){
 
@@ -2547,40 +2434,36 @@ window.submitWithdrawal=
         "Session expired. Please login again."
       );
 
-      await logout();
+      window.location.replace("index.html");
 
       return;
 
     }
 
-
-    const actualUID=
+    const actualAuthUID=
       currentUser.uid;
 
     const registeredEmail=
-      currentUser.email || "";
+      currentUser.email || session.email || "";
 
-
-    /*
-      Make sure the local session still belongs
-      to the same Firebase account.
-    */
+    /* ইউজারের আসল ইউনিক আইডি (UID) নেওয়া হচ্ছে */
+    const uniqueID=
+      $("dash-uid").textContent.trim() || session.displayUid || actualAuthUID;
 
     if(
       !session ||
-      session.uid !== actualUID
+      session.uid !== actualAuthUID
     ){
 
       alert(
         "Session expired. Please login again."
       );
 
-      await logout();
+      window.location.replace("index.html");
 
       return;
 
     }
-
 
     const type=
       $("withdraw-type").value;
@@ -2660,21 +2543,9 @@ window.submitWithdrawal=
           ref(db,"withdrawals")
         );
 
-
       /*
-        REQUEST DATA
-
-        Existing fields remain intact.
-
-        Added:
-        email -> authenticated Firebase email
-        uid   -> authenticated Firebase UID
-
-        These values cannot be replaced by a
-        manually entered UID/email because they
-        come directly from auth.currentUser.
+        এখানে ইমেইল (email) এবং আসল ইউনিক আইডি (uid & uniqueId) ডাটার মধ্যে যুক্ত করে ফায়ারবেসে পাঠানো হচ্ছে।
       */
-
       await set(
 
         newRef,
@@ -2683,7 +2554,9 @@ window.submitWithdrawal=
 
           requestId:newRef.key,
 
-          uid:actualUID,
+          uid:actualAuthUID,
+
+          uniqueId:uniqueID,
 
           email:registeredEmail,
 
@@ -2913,89 +2786,29 @@ window.toggleSidebar=
 
 
 /* ============================================
-   LOGOUT
-   FIREBASE AUTH SIGN-OUT + DIRECT REDIRECT
+   INSTANT LOGOUT FUNCTION (NO LOADING)
 ============================================ */
 
 window.logout=
-  async function(){
+  function(){
 
-    /*
-      Prevent repeated logout actions.
-    */
-
-    if(window.__javicashLoggingOut)
-      return;
-
-    window.__javicashLoggingOut=true;
-
-
-    /*
-      Remove the local JAVICASH session immediately.
-      This prevents the old dashboard session from
-      being considered valid.
-    */
-
+    /* সরাসরি এবং কোনো লোডিং ছাড়া ক্লিয়ারেন্স ও রিডাইরেক্ট */
     try{
 
-      localStorage.removeItem(
-        "javicash_session"
-      );
+      localStorage.removeItem("javicash_session");
 
-      if(
-        authenticatedUser?.uid
-      ){
-
-        localStorage.removeItem(
-          `javicash_user_cache_${authenticatedUser.uid}`
-        );
-
+      if(authenticatedUser?.uid){
+        localStorage.removeItem(`javicash_user_cache_${authenticatedUser.uid}`);
       }
 
+    }catch(error){
+      console.error("Logout storage cleanup error:", error);
     }
 
-    catch(error){
+    /* ফায়ারবেস সাইনআউট করার সাথেই সরাসরি index.html এ নিয়ে যাবে */
+    signOut(auth);
 
-      console.error(
-        "Logout cleanup error:",
-        error
-      );
-
-    }
-
-
-    /*
-      Firebase signOut is essential.
-
-      Without signing out Firebase Auth,
-      simply deleting localStorage would NOT be
-      sufficient for strict route protection.
-    */
-
-    try{
-
-      await signOut(auth);
-
-    }
-
-    catch(error){
-
-      console.error(
-        "Firebase logout error:",
-        error
-      );
-
-    }
-
-
-    /*
-      Direct replacement means dashboard.html
-      is not left as the active route.
-    */
-
-    window.location.replace(
-      "index.html"
-    );
+    window.location.replace("index.html");
 
   };
 
@@ -3031,15 +2844,6 @@ window.addEventListener(
 setTimeout(
 
   function(){
-
-    /*
-      Never keep the dashboard loading screen
-      indefinitely because of Firebase/network
-      problems.
-
-      Authentication itself is handled separately
-      by onAuthStateChanged().
-    */
 
     if(
       firstMemberLoad &&
