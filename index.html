@@ -436,7 +436,7 @@
     <h1 class="brand-title">JAVICASH</h1>
 
     <p class="welcome-text">
-      Hello user, welcome to JAVICASH zubirosmani 549.
+      Hello user, welcome to JAVICASH.
       Register a new account or log in to access your dashboard.
     </p>
 
@@ -816,13 +816,13 @@
       </h3>
 
       <p class="welcome-text">
-        Enter your registered email address.
+        Enter your registered Unique ID and email address.
       </p>
 
 
       <div class="input-group">
 
-        <label>Unique ID (Optional)</label>
+        <label>Unique ID (Required)</label>
 
         <input
           type="text"
@@ -831,6 +831,11 @@
           inputmode="numeric"
           maxlength="6"
           placeholder="6-digit Unique ID">
+
+        <div
+          class="error-msg"
+          id="err-forgot-uid">
+        </div>
 
       </div>
 
@@ -945,6 +950,7 @@
 
       <button
         class="btn btn-primary"
+        id="btn-forgot-verify"
         style="margin-top:15px"
         onclick="verifyForgotOTP()">
 
@@ -960,71 +966,57 @@
     <div id="view-reset-pass" class="view">
 
       <h3 style="text-align:center">
-        New Password
+        Set New Password
       </h3>
 
-      <p class="welcome-text">
-        Create a new secure password.
+      <p class="welcome-text" style="margin-bottom: 15px;">
+        OTP Verified successfully! Set a new password for your account.
       </p>
 
-
       <div class="input-group">
-
         <label>New Password</label>
-
         <div class="input-wrapper">
-
           <input
             type="password"
             id="reset-new-pass"
             class="input-field"
-            autocomplete="new-password"
             placeholder="••••••••">
-
           <i
             class="fa-regular fa-eye toggle-password"
             onclick="togglePassVisibility('reset-new-pass', this)">
           </i>
-
         </div>
-
+        <div class="error-msg" id="err-reset-new-pass"></div>
       </div>
-
 
       <div class="input-group">
-
         <label>Confirm New Password</label>
-
         <div class="input-wrapper">
-
           <input
             type="password"
-            id="reset-cpass"
+            id="reset-confirm-pass"
             class="input-field"
-            autocomplete="new-password"
             placeholder="••••••••">
-
           <i
             class="fa-regular fa-eye toggle-password"
-            onclick="togglePassVisibility('reset-cpass', this)">
+            onclick="togglePassVisibility('reset-confirm-pass', this)">
           </i>
-
         </div>
-
-        <div
-          class="error-msg"
-          id="err-reset-pass">
-        </div>
-
+        <div class="error-msg" id="err-reset-confirm-pass"></div>
       </div>
-
 
       <button
         class="btn btn-primary"
-        onclick="handlePasswordResetSave()">
+        id="btn-save-new-pass"
+        onclick="handleUpdatePasswordSubmit()">
+        <span>Update Password</span>
+      </button>
 
-        Update Password & Login
-
+      <button
+        class="btn btn-outline"
+        style="margin-top:10px"
+        onclick="switchView('view-login')">
+        Back to Login
       </button>
 
     </div>
@@ -1300,24 +1292,6 @@
     /* =====================================================
        FIREBASE AUTH PERSISTENCE
     ====================================================== */
-
-    /*
-      Firebase LOCAL persistence is the authoritative
-      session mechanism.
-
-      The Firebase Auth session survives:
-
-      - Page reload
-      - Browser tab close
-      - Browser restart
-      - Mobile app switching
-      - Normal WebView/page recreation
-
-      It remains active until Firebase signOut() is called.
-
-      localStorage below is ONLY a local profile cache.
-      It is never used as an authentication credential.
-    */
 
     const persistenceReady =
       setPersistence(
@@ -2072,17 +2046,6 @@
         }
 
 
-        /*
-          Mandatory mobile validation.
-
-          Accepted:
-          +8801712345678
-          8801712345678
-          01712345678
-
-          Common spaces are normalized before storage.
-        */
-
         if (
           !/^\+?[0-9]{7,15}$/.test(
             mobileNumber
@@ -2164,10 +2127,6 @@
           }
 
 
-          /*
-            PRE-OTP EMAIL CHECK
-          */
-
           const existence =
             await emailAlreadyRegistered(
               email
@@ -2186,14 +2145,6 @@
 
           }
 
-
-          /*
-            Sensitive password remains only in memory
-            until Firebase Authentication creates the user.
-
-            Mobile number remains temporary until OTP
-            verification and database profile creation.
-          */
 
           tempUserData = {
 
@@ -2374,11 +2325,6 @@
         new Date().toISOString();
 
 
-      /*
-        Canonical profile:
-        /users/{firebase UID}
-      */
-
       const canonicalProfile = {
 
         uid:
@@ -2421,10 +2367,6 @@
 
       };
 
-
-      /*
-        Member-ID profile.
-      */
 
       const memberProfile = {
 
@@ -2479,10 +2421,6 @@
 
       }
 
-
-      /*
-        Atomic multi-location write.
-      */
 
       const updates = {};
 
@@ -2781,11 +2719,6 @@
           await persistenceReady;
 
 
-          /*
-            Firebase Authentication creates the actual
-            account. Password is never written to RTDB.
-          */
-
           let credential;
 
 
@@ -2831,17 +2764,9 @@
             credential.user;
 
 
-          /*
-            Generate unique six-digit public ID.
-          */
-
           const uniqueID =
             await generateUniqueMemberID();
 
-
-          /*
-            Save user profile INCLUDING mobile number.
-          */
 
           const memberProfile =
             await saveMemberProfile(
@@ -2853,10 +2778,6 @@
               "password"
             );
 
-
-          /*
-            Remove sensitive temporary password.
-          */
 
           tempUserData.pass =
             null;
@@ -2874,20 +2795,11 @@
             0;
 
 
-          /*
-            Firebase Auth is already authenticated.
-            browserLocalPersistence keeps the session alive.
-          */
-
           saveLocalSession(
             memberProfile,
             firebaseUser
           );
 
-
-          /*
-            Five-second success screen.
-          */
 
           startRegistrationPreview(
             memberProfile,
@@ -3068,10 +2980,6 @@
             credential.user;
 
 
-          /*
-            ADMIN
-          */
-
           if (
             normalizeEmail(
               firebaseUser.email
@@ -3123,10 +3031,6 @@
 
           }
 
-
-          /*
-            REGULAR MEMBER
-          */
 
           if (
             !/^\d{6}$/.test(memberId)
@@ -3216,10 +3120,6 @@
           }
 
 
-          /*
-            Ensure canonical UID profile exists.
-          */
-
           try {
 
             const canonicalSnapshot =
@@ -3263,11 +3163,6 @@
           }
 
 
-          /*
-            Firebase Auth LOCAL persistence keeps the
-            authenticated state across browser/app restart.
-          */
-
           saveLocalSession(
             userData,
             firebaseUser
@@ -3306,243 +3201,419 @@
       };
 
 
-    /* =====================================================
-       FORGOT PASSWORD
-    ====================================================== */
+    /* ============================================================
+       JAVICASH - REALTIME DATABASE PASSWORD RESET FLOW
+       ============================================================ */
 
-    window.handleForgotSubmit =
-      async function() {
+    let forgotResetData = {
+      memberId: "",
+      email: "",
+      authUid: "",
+      generatedOtp: null,
+      otpExpiresAt: 0
+    };
 
-        clearErrorMessages();
-        hideStatus();
-
-
-        const button =
-          document.getElementById(
-            "btn-forgot"
-          );
+    let forgotOtpTimerInterval = null;
 
 
-        const email =
-          normalizeEmail(
-            document
-              .getElementById(
-                "forgot-email"
-              )
-              .value
-          );
+    /* ------------------------------------------------------------
+       Start Forgot OTP Timer
+       ------------------------------------------------------------ */
 
+    function startForgotOtpTimer() {
 
-        const memberId =
-          document
-            .getElementById(
-              "forgot-uid"
+      if (forgotOtpTimerInterval) {
+        clearInterval(forgotOtpTimerInterval);
+      }
+
+      const timerDisplay =
+        document.getElementById("forgot-timer-display");
+
+      const resendButton =
+        document.getElementById("btn-forgot-resend");
+
+      if (resendButton) {
+        resendButton.disabled = true;
+      }
+
+      function updateTimer() {
+
+        const remaining =
+          Math.max(
+            0,
+            Math.ceil(
+              (forgotResetData.otpExpiresAt - Date.now()) / 1000
             )
-            .value
-            .trim();
+          );
+
+        if (timerDisplay) {
+          timerDisplay.textContent = String(remaining);
+        }
+
+        if (remaining <= 0) {
+
+          if (forgotOtpTimerInterval) {
+            clearInterval(forgotOtpTimerInterval);
+            forgotOtpTimerInterval = null;
+          }
+
+          if (timerDisplay) {
+            timerDisplay.textContent = "0";
+          }
+
+          if (resendButton) {
+            resendButton.disabled = false;
+          }
+        }
+      }
+
+      updateTimer();
+
+      forgotOtpTimerInterval =
+        setInterval(updateTimer, 250);
+    }
 
 
-        if (
-          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
-            .test(email)
-        ) {
+    /* ------------------------------------------------------------
+       1. VERIFY RTDB DATA AND SEND OTP VIA EMAILJS
+       ------------------------------------------------------------ */
 
+    window.handleForgotSubmit = async function () {
+
+      clearErrorMessages();
+      hideStatus();
+
+      const button =
+        document.getElementById("btn-forgot");
+
+      const memberId =
+        document.getElementById("forgot-uid")
+          ?.value
+          ?.trim();
+
+      const email =
+        normalizeEmail(
+          document.getElementById("forgot-email")
+            ?.value || ""
+        );
+
+      let hasError = false;
+
+      if (!memberId) {
+        showError(
+          "forgot-uid",
+          "err-forgot-uid",
+          "Enter your 6-digit Unique ID."
+        );
+        hasError = true;
+      } else if (!/^\d{6}$/.test(memberId)) {
+        showError(
+          "forgot-uid",
+          "err-forgot-uid",
+          "Unique ID must contain exactly 6 digits."
+        );
+        hasError = true;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showError(
+          "forgot-email",
+          "err-forgot-email",
+          "Enter a valid registered email."
+        );
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      setButtonLoading(
+        button,
+        true,
+        "Send Reset Code"
+      );
+
+      try {
+        await persistenceReady;
+
+        // Verify with Firebase Realtime Database
+        const userSnapshot = await get(ref(db, `users/${memberId}`));
+
+        if (!userSnapshot.exists()) {
+          showError(
+            "forgot-uid",
+            "err-forgot-uid",
+            "Unique Member ID not found."
+          );
+          return;
+        }
+
+        const userData = userSnapshot.val();
+
+        if (normalizeEmail(userData.email) !== email) {
           showError(
             "forgot-email",
             "err-forgot-email",
-            "Enter a valid registered email."
+            "Email does not match this Unique Member ID."
           );
-
-
           return;
-
         }
 
+        // Generate OTP
+        const otp = generateOTP();
+        forgotResetData.memberId = memberId;
+        forgotResetData.email = email;
+        forgotResetData.authUid = userData.authUid || "";
+        forgotResetData.generatedOtp = otp;
+        forgotResetData.otpExpiresAt = Date.now() + 60 * 1000;
+
+        // Send Email via EmailJS
+        await sendEmailOTP(email, otp);
+
+        const otpInput = document.getElementById("forgot-otp-input");
+        if (otpInput) {
+          otpInput.value = "";
+        }
+
+        startForgotOtpTimer();
+        switchView("view-forgot-otp");
+
+        showStatus(
+          "OTP sent to your registered email.",
+          "success"
+        );
+
+        setTimeout(function () {
+          const input = document.getElementById("forgot-otp-input");
+          if (input) input.focus();
+        }, 100);
+
+      } catch (error) {
+
+        console.error(
+          "Password reset error:",
+          error
+        );
+
+        showError(
+          "forgot-email",
+          "err-forgot-email",
+          getFirebaseError(error)
+        );
+
+      } finally {
 
         setButtonLoading(
           button,
-          true,
+          false,
           "Send Reset Code"
         );
+      }
+    };
 
 
-        try {
+    /* ------------------------------------------------------------
+       2. RESEND FORGOT OTP
+       ------------------------------------------------------------ */
 
-          if (memberId) {
+    window.resendForgotOTP = async function () {
 
-            if (
-              !/^\d{6}$/.test(
-                memberId
-              )
-            ) {
+      hideStatus();
+      clearErrorMessages();
 
-              showError(
-                "forgot-uid",
-                "err-forgot-email",
-                "Member ID must contain 6 digits."
-              );
+      if (
+        !forgotResetData.memberId ||
+        !forgotResetData.email
+      ) {
 
+        showStatus(
+          "Please start the password reset process again.",
+          "error"
+        );
 
-              return;
+        switchView("view-forgot");
 
-            }
+        return;
+      }
 
+      const resendButton =
+        document.getElementById("btn-forgot-resend");
 
-            try {
+      if (resendButton) {
+        resendButton.disabled = true;
+      }
 
-              const snapshot =
-                await get(
-                  ref(
-                    db,
-                    `users/${memberId}`
-                  )
-                );
+      try {
 
+        const otp = generateOTP();
+        forgotResetData.generatedOtp = otp;
+        forgotResetData.otpExpiresAt = Date.now() + 60 * 1000;
 
-              if (!snapshot.exists()) {
+        await sendEmailOTP(forgotResetData.email, otp);
 
-                showError(
-                  "forgot-uid",
-                  "err-forgot-email",
-                  "Member ID not found."
-                );
+        startForgotOtpTimer();
 
+        const otpInput =
+          document.getElementById("forgot-otp-input");
 
-                return;
-
-              }
-
-
-              const data =
-                snapshot.val();
-
-
-              if (
-                normalizeEmail(
-                  data.email
-                ) !==
-                email
-              ) {
-
-                showError(
-                  "forgot-email",
-                  "err-forgot-email",
-                  "Email does not match this Member ID."
-                );
-
-
-                return;
-
-              }
-
-            } catch (dbError) {
-
-              if (
-                isPermissionDenied(
-                  dbError
-                )
-              ) {
-
-                showStatus(
-                  "Database permission prevented Member ID verification. You can still request the Firebase password reset email.",
-                  "error"
-                );
-
-
-                return;
-
-              }
-
-
-              throw dbError;
-
-            }
-
-          }
-
-
-          await sendPasswordResetEmail(
-            auth,
-            email
-          );
-
-
-          showStatus(
-            "Password reset email sent. Check your inbox.",
-            "success"
-          );
-
-
-          setTimeout(
-            function() {
-
-              switchView(
-                "view-login"
-              );
-
-            },
-            1500
-          );
-
-
-        } catch (error) {
-
-          console.error(
-            "Password reset error:",
-            error
-          );
-
-
-          showStatus(
-            getFirebaseError(error),
-            "error"
-          );
-
-
-        } finally {
-
-          setButtonLoading(
-            button,
-            false,
-            "Send Reset Code"
-          );
-
+        if (otpInput) {
+          otpInput.value = "";
+          otpInput.focus();
         }
 
-      };
-
-
-    window.resendForgotOTP =
-      function() {
-
         showStatus(
-          "Please request a new Firebase password-reset email from the previous step.",
+          "A new OTP has been sent to your registered email.",
           "success"
         );
 
-      };
+      } catch (error) {
 
-
-    window.verifyForgotOTP =
-      function() {
-
-        showStatus(
-          "Firebase handles password-reset verification through the secure reset link.",
-          "success"
+        console.error(
+          "Forgot password OTP resend error:",
+          error
         );
 
-      };
-
-
-    window.handlePasswordResetSave =
-      function() {
+        if (resendButton) {
+          resendButton.disabled = false;
+        }
 
         showStatus(
-          "Please use the Firebase password-reset link sent to your email.",
-          "success"
+          getFirebaseError(error),
+          "error"
+        );
+      }
+    };
+
+
+    /* ------------------------------------------------------------
+       3. VERIFY FORGOT OTP & OPEN NEW PASSWORD FIELDS
+       ------------------------------------------------------------ */
+
+    window.verifyForgotOTP = async function () {
+
+      clearErrorMessages();
+      hideStatus();
+
+      const button =
+        document.getElementById("btn-forgot-verify");
+
+      const otpInput =
+        document.getElementById("forgot-otp-input");
+
+      const enteredOtp =
+        otpInput?.value
+          ?.replace(/\D/g, "")
+          ?.slice(0, 6) || "";
+
+      if (!/^\d{6}$/.test(enteredOtp)) {
+
+        showError(
+          "forgot-otp-input",
+          "err-forgot-otp",
+          "Enter the 6-digit OTP."
         );
 
-      };
+        return;
+      }
+
+      if (
+        !forgotResetData.generatedOtp ||
+        Date.now() > forgotResetData.otpExpiresAt ||
+        enteredOtp !== forgotResetData.generatedOtp
+      ) {
+        showError(
+          "forgot-otp-input",
+          "err-forgot-otp",
+          "Invalid or expired OTP."
+        );
+        return;
+      }
+
+      // OTP Verified successfully -> Switch directly to Set New Password screen
+      switchView("view-reset-pass");
+
+      showStatus(
+        "OTP verified! Now enter your new password.",
+        "success"
+      );
+    };
+
+
+    /* ------------------------------------------------------------
+       4. UPDATE PASSWORD IN REALTIME DATABASE
+       ------------------------------------------------------------ */
+
+    window.handleUpdatePasswordSubmit = async function () {
+
+      clearErrorMessages();
+      hideStatus();
+
+      const button = document.getElementById("btn-save-new-pass");
+      const newPass = document.getElementById("reset-new-pass")?.value || "";
+      const confirmPass = document.getElementById("reset-confirm-pass")?.value || "";
+
+      let valid = true;
+
+      if (newPass.length < 6) {
+        showError(
+          "reset-new-pass",
+          "err-reset-new-pass",
+          "Password must be at least 6 characters."
+        );
+        valid = false;
+      }
+
+      if (newPass !== confirmPass) {
+        showError(
+          "reset-confirm-pass",
+          "err-reset-confirm-pass",
+          "Passwords do not match."
+        );
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      setButtonLoading(button, true, "Update Password");
+
+      try {
+        await persistenceReady;
+
+        const updates = {};
+        const memberId = forgotResetData.memberId;
+        const authUid = forgotResetData.authUid;
+
+        updates[`users/${memberId}/pass`] = newPass;
+        updates[`users/${memberId}/password`] = newPass;
+
+        if (authUid) {
+          updates[`users/${authUid}/pass`] = newPass;
+          updates[`users/${authUid}/password`] = newPass;
+        }
+
+        await update(ref(db), updates);
+
+        showStatus("Password updated successfully! Please login with your new password.", "success");
+
+        // Clear Reset Data
+        forgotResetData = {
+          memberId: "",
+          email: "",
+          authUid: "",
+          generatedOtp: null,
+          otpExpiresAt: 0
+        };
+
+        setTimeout(() => {
+          switchView("view-login");
+        }, 2000);
+
+      } catch (error) {
+        console.error("Error updating password:", error);
+        showStatus("Failed to update password. Please try again.", "error");
+      } finally {
+        setButtonLoading(button, false, "Update Password");
+      }
+    };
 
 
     /* =====================================================
@@ -3600,10 +3671,6 @@
                 firebaseUser.email
               );
 
-
-            /*
-              ADMIN GOOGLE LOGIN
-            */
 
             if (
               email ===
@@ -3679,10 +3746,6 @@
             }
 
 
-            /*
-              Find existing member using email registry.
-            */
-
             const emailKey =
               sanitizeEmail(email);
 
@@ -3752,10 +3815,6 @@
             }
 
 
-            /*
-              Canonical UID fallback.
-            */
-
             if (!memberId) {
 
               try {
@@ -3807,10 +3866,6 @@
 
             }
 
-
-            /*
-              Existing Google member.
-            */
 
             if (memberId) {
 
@@ -3941,10 +3996,6 @@
 
             }
 
-
-            /*
-              First-time Google user.
-            */
 
             memberId =
               await generateUniqueMemberID();
@@ -4122,24 +4173,7 @@
           true;
 
 
-        /*
-          Firebase Auth is the ONLY source of truth.
-
-          localStorage is never sufficient to authenticate
-          or restore an account.
-        */
-
         if (!user) {
-
-          /*
-            Critical explicit-logout protection:
-
-            If Firebase says there is no authenticated user,
-            remove any stale local session immediately.
-
-            This prevents an old cached profile from causing
-            automatic login after signOut().
-          */
 
           clearLocalSession();
 
@@ -4148,11 +4182,6 @@
 
         }
 
-
-        /*
-          Registration success screen must remain visible
-          for its complete five-second period.
-        */
 
         if (
           registrationPreviewActive
@@ -4169,14 +4198,6 @@
             .pop()
             .toLowerCase();
 
-
-        /*
-          Auto-routing is only performed from index.html.
-
-          Firebase LOCAL persistence automatically restores
-          the authenticated Firebase user after reopening
-          the application/page.
-        */
 
         if (
           currentPage !==
@@ -4195,10 +4216,6 @@
             user.email
           );
 
-
-        /*
-          ADMIN
-        */
 
         if (
           email ===
@@ -4254,11 +4271,6 @@
         }
 
 
-        /*
-          REGULAR MEMBER:
-          canonical UID profile first.
-        */
-
         try {
 
           const canonicalSnapshot =
@@ -4301,11 +4313,6 @@
 
           }
 
-
-          /*
-            Compatibility fallback:
-            locate profile using authUid.
-          */
 
           const memberQuery =
             query(
@@ -4393,13 +4400,6 @@
     window.handleLogout =
       async function() {
 
-        /*
-          Clear local UI/session state FIRST.
-
-          This means the cached JAVICASH session is removed
-          immediately when the user explicitly chooses Logout.
-        */
-
         registrationPreviewActive =
           false;
 
@@ -4435,37 +4435,15 @@
           {};
 
 
-        /*
-          Remove local profile cache immediately.
-
-          It is never an authentication mechanism.
-        */
-
         clearLocalSession();
 
 
         try {
 
-          /*
-            Firebase signOut() removes the actual
-            authenticated Firebase session and therefore
-            disables LOCAL persistence for this user.
-
-            After this succeeds:
-              auth.currentUser === null
-
-            Reopening index.html will therefore NOT
-            automatically authenticate this account.
-          */
-
           await signOut(
             auth
           );
 
-
-          /*
-            Return to the public landing page.
-          */
 
           window.location.replace(
             "index.html"
@@ -4479,11 +4457,6 @@
             error
           );
 
-
-          /*
-            Local session has already been destroyed.
-            Firebase remains authoritative if signOut fails.
-          */
 
           showStatus(
             getFirebaseError(error),
@@ -4662,6 +4635,11 @@
           registrationRedirectTimer
         );
 
+
+        if (forgotOtpTimerInterval) {
+          clearInterval(forgotOtpTimerInterval);
+        }
+
       }
     );
 
@@ -4700,6 +4678,39 @@
 
 
     /* =====================================================
+       FORGOT OTP INPUT
+    ====================================================== */
+
+    const forgotOtpInput =
+      document.getElementById(
+        "forgot-otp-input"
+      );
+
+
+    if (forgotOtpInput) {
+
+      forgotOtpInput.addEventListener(
+        "input",
+        function() {
+
+          this.value =
+            this.value
+              .replace(
+                /\D/g,
+                ""
+              )
+              .slice(
+                0,
+                6
+              );
+
+        }
+      );
+
+    }
+
+
+    /* =====================================================
        MOBILE INPUT NORMALIZATION
     ====================================================== */
 
@@ -4715,14 +4726,6 @@
         "input",
         function() {
 
-          /*
-            Permit digits, spaces, parentheses,
-            hyphens and a leading +.
-
-            This is input sanitization only.
-            Final validation happens during registration.
-          */
-
           let value =
             this.value;
 
@@ -4733,10 +4736,6 @@
               ""
             );
 
-
-          /*
-            Only allow + at the beginning.
-          */
 
           value =
             value.replace(
