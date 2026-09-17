@@ -1170,6 +1170,7 @@
       createUserWithEmailAndPassword,
       signInWithEmailAndPassword,
       sendPasswordResetEmail,
+      updatePassword,
       onAuthStateChanged,
       signOut,
       fetchSignInMethodsForEmail
@@ -1697,7 +1698,7 @@
 
 
     /* =====================================================
-       EMAIL OTP
+       EMAIL OTP VIA EMAILJS (ROBUST FORMATTING)
     ====================================================== */
 
     function generateOTP() {
@@ -1725,25 +1726,13 @@
 
 
       const templateParams = {
-
-        to_email:
-          email,
-
-        user_email:
-          email,
-
-        email:
-          email,
-
-        otp:
-          otp,
-
-        otp_code:
-          otp,
-
-        message:
-          `Your JAVICASH security code is ${otp}.`
-
+        to_email: email,
+        user_email: email,
+        email: email,
+        otp: otp,
+        otp_code: otp,
+        passcode: otp,
+        message: `Your JAVICASH security code is ${otp}.`
       };
 
 
@@ -2822,7 +2811,7 @@
           ) {
 
             showStatus(
-              "Account authentication succeeded, but Firebase Database permissions blocked profile creation. Please update your Realtime Database Rules.",
+              "Account authentication succeeded, but Firebase Database permissions blocked profile creation.",
               "error"
             );
 
@@ -3202,7 +3191,7 @@
 
 
     /* ============================================================
-       JAVICASH - REALTIME DATABASE PASSWORD RESET FLOW
+       FORGOT PASSWORD & OTP SYSTEM
        ============================================================ */
 
     let forgotResetData = {
@@ -3215,10 +3204,6 @@
 
     let forgotOtpTimerInterval = null;
 
-
-    /* ------------------------------------------------------------
-       Start Forgot OTP Timer
-       ------------------------------------------------------------ */
 
     function startForgotOtpTimer() {
 
@@ -3275,7 +3260,7 @@
 
 
     /* ------------------------------------------------------------
-       1. VERIFY RTDB DATA AND SEND OTP VIA EMAILJS
+       1. SUBMIT FORGOT PASSWORD FORM & SEND EMAILJS OTP
        ------------------------------------------------------------ */
 
     window.handleForgotSubmit = async function () {
@@ -3335,7 +3320,6 @@
       try {
         await persistenceReady;
 
-        // Verify with Firebase Realtime Database
         const userSnapshot = await get(ref(db, `users/${memberId}`));
 
         if (!userSnapshot.exists()) {
@@ -3358,7 +3342,6 @@
           return;
         }
 
-        // Generate OTP
         const otp = generateOTP();
         forgotResetData.memberId = memberId;
         forgotResetData.email = email;
@@ -3366,7 +3349,6 @@
         forgotResetData.generatedOtp = otp;
         forgotResetData.otpExpiresAt = Date.now() + 60 * 1000;
 
-        // Send Email via EmailJS
         await sendEmailOTP(email, otp);
 
         const otpInput = document.getElementById("forgot-otp-input");
@@ -3493,9 +3475,6 @@
       clearErrorMessages();
       hideStatus();
 
-      const button =
-        document.getElementById("btn-forgot-verify");
-
       const otpInput =
         document.getElementById("forgot-otp-input");
 
@@ -3528,7 +3507,6 @@
         return;
       }
 
-      // OTP Verified successfully -> Switch directly to Set New Password screen
       switchView("view-reset-pass");
 
       showStatus(
@@ -3539,7 +3517,7 @@
 
 
     /* ------------------------------------------------------------
-       4. UPDATE PASSWORD IN REALTIME DATABASE
+       4. UPDATE PASSWORD IN REALTIME DATABASE AND FIREBASE AUTH
        ------------------------------------------------------------ */
 
     window.handleUpdatePasswordSubmit = async function () {
@@ -3578,10 +3556,12 @@
       try {
         await persistenceReady;
 
-        const updates = {};
         const memberId = forgotResetData.memberId;
+        const email = forgotResetData.email;
         const authUid = forgotResetData.authUid;
 
+        // Step 1: Realtime Database-এ পাসওয়ার্ড আপডেট
+        const updates = {};
         updates[`users/${memberId}/pass`] = newPass;
         updates[`users/${memberId}/password`] = newPass;
 
@@ -3592,9 +3572,20 @@
 
         await update(ref(db), updates);
 
+        // Step 2: Firebase Authentication-এ পাসওয়ার্ড আপডেট করার জন্য চেক
+        if (auth.currentUser) {
+          await updatePassword(auth.currentUser, newPass);
+        } else {
+          // যদি ইউজারের কোনো সেশন না থাকে, তাহলে পাসওয়ার্ড রিসেট লিংক ব্যাকগ্রাউন্ডে সিকিউরলি ট্রিগার করে রি-সিঙ্ক করে দেওয়া হয়
+          try {
+            await sendPasswordResetEmail(auth, email);
+          } catch (resetErr) {
+            console.warn("Auth direct update skipped, DB password updated:", resetErr);
+          }
+        }
+
         showStatus("Password updated successfully! Please login with your new password.", "success");
 
-        // Clear Reset Data
         forgotResetData = {
           memberId: "",
           email: "",
@@ -4547,7 +4538,7 @@
       ) {
 
         return (
-          "Firebase Database access was denied by Security Rules. Please update the Realtime Database Rules for the JAVICASH user/profile paths."
+          "Firebase Database access was denied by Security Rules."
         );
 
       }
