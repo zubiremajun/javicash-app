@@ -902,6 +902,7 @@
           class="input-field"
           inputmode="numeric"
           maxlength="6"
+          autocomplete="one-time-code"
           placeholder="Enter 6-digit OTP"
           style="
             text-align:center;
@@ -956,67 +957,6 @@
 
         Verify Code
 
-      </button>
-
-    </div>
-
-
-    <!-- RESET PASSWORD -->
-
-    <div id="view-reset-pass" class="view">
-
-      <h3 style="text-align:center">
-        Set New Password
-      </h3>
-
-      <p class="welcome-text" style="margin-bottom: 15px;">
-        OTP Verified successfully! Set a new password for your account.
-      </p>
-
-      <div class="input-group">
-        <label>New Password</label>
-        <div class="input-wrapper">
-          <input
-            type="password"
-            id="reset-new-pass"
-            class="input-field"
-            placeholder="••••••••">
-          <i
-            class="fa-regular fa-eye toggle-password"
-            onclick="togglePassVisibility('reset-new-pass', this)">
-          </i>
-        </div>
-        <div class="error-msg" id="err-reset-new-pass"></div>
-      </div>
-
-      <div class="input-group">
-        <label>Confirm New Password</label>
-        <div class="input-wrapper">
-          <input
-            type="password"
-            id="reset-confirm-pass"
-            class="input-field"
-            placeholder="••••••••">
-          <i
-            class="fa-regular fa-eye toggle-password"
-            onclick="togglePassVisibility('reset-confirm-pass', this)">
-          </i>
-        </div>
-        <div class="error-msg" id="err-reset-confirm-pass"></div>
-      </div>
-
-      <button
-        class="btn btn-primary"
-        id="btn-save-new-pass"
-        onclick="handleUpdatePasswordSubmit()">
-        <span>Update Password</span>
-      </button>
-
-      <button
-        class="btn btn-outline"
-        style="margin-top:10px"
-        onclick="switchView('view-login')">
-        Back to Login
       </button>
 
     </div>
@@ -1170,7 +1110,6 @@
       createUserWithEmailAndPassword,
       signInWithEmailAndPassword,
       sendPasswordResetEmail,
-      updatePassword,
       onAuthStateChanged,
       signOut,
       fetchSignInMethodsForEmail
@@ -1698,7 +1637,7 @@
 
 
     /* =====================================================
-       EMAIL OTP VIA EMAILJS (ROBUST FORMATTING)
+       EMAIL OTP
     ====================================================== */
 
     function generateOTP() {
@@ -1726,13 +1665,25 @@
 
 
       const templateParams = {
-        to_email: email,
-        user_email: email,
-        email: email,
-        otp: otp,
-        otp_code: otp,
-        passcode: otp,
-        message: `Your JAVICASH security code is ${otp}.`
+
+        to_email:
+          email,
+
+        user_email:
+          email,
+
+        email:
+          email,
+
+        otp:
+          otp,
+
+        otp_code:
+          otp,
+
+        message:
+          `Your JAVICASH security code is ${otp}.`
+
       };
 
 
@@ -2811,7 +2762,7 @@
           ) {
 
             showStatus(
-              "Account authentication succeeded, but Firebase Database permissions blocked profile creation.",
+              "Account authentication succeeded, but Firebase Database permissions blocked profile creation. Please update your Realtime Database Rules.",
               "error"
             );
 
@@ -3191,7 +3142,7 @@
 
 
     /* ============================================================
-       FORGOT PASSWORD & OTP SYSTEM
+       JAVICASH - SECURE EMAILJS OTP + FIREBASE PASSWORD RESET
        ============================================================ */
 
     let forgotResetData = {
@@ -3205,21 +3156,40 @@
     let forgotOtpTimerInterval = null;
 
 
+    /* ------------------------------------------------------------
+       Start Forgot OTP Timer
+    ------------------------------------------------------------ */
+
     function startForgotOtpTimer() {
 
       if (forgotOtpTimerInterval) {
-        clearInterval(forgotOtpTimerInterval);
+
+        clearInterval(
+          forgotOtpTimerInterval
+        );
+
       }
+
 
       const timerDisplay =
-        document.getElementById("forgot-timer-display");
+        document.getElementById(
+          "forgot-timer-display"
+        );
+
 
       const resendButton =
-        document.getElementById("btn-forgot-resend");
+        document.getElementById(
+          "btn-forgot-resend"
+        );
+
 
       if (resendButton) {
-        resendButton.disabled = true;
+
+        resendButton.disabled =
+          true;
+
       }
+
 
       function updateTimer() {
 
@@ -3227,384 +3197,690 @@
           Math.max(
             0,
             Math.ceil(
-              (forgotResetData.otpExpiresAt - Date.now()) / 1000
+              (
+                forgotResetData.otpExpiresAt -
+                Date.now()
+              ) / 1000
             )
           );
 
+
         if (timerDisplay) {
-          timerDisplay.textContent = String(remaining);
+
+          timerDisplay.textContent =
+            String(remaining);
+
         }
+
 
         if (remaining <= 0) {
 
           if (forgotOtpTimerInterval) {
-            clearInterval(forgotOtpTimerInterval);
-            forgotOtpTimerInterval = null;
+
+            clearInterval(
+              forgotOtpTimerInterval
+            );
+
+            forgotOtpTimerInterval =
+              null;
+
           }
+
 
           if (timerDisplay) {
-            timerDisplay.textContent = "0";
+
+            timerDisplay.textContent =
+              "0";
+
           }
 
+
           if (resendButton) {
-            resendButton.disabled = false;
+
+            resendButton.disabled =
+              false;
+
           }
+
         }
+
       }
+
 
       updateTimer();
 
+
       forgotOtpTimerInterval =
-        setInterval(updateTimer, 250);
+        setInterval(
+          updateTimer,
+          250
+        );
+
     }
 
 
     /* ------------------------------------------------------------
-       1. SUBMIT FORGOT PASSWORD FORM & SEND EMAILJS OTP
-       ------------------------------------------------------------ */
+       1. VERIFY MEMBER + EMAIL
+          THEN SEND OTP ONLY VIA EMAILJS
+    ------------------------------------------------------------ */
 
-    window.handleForgotSubmit = async function () {
+    window.handleForgotSubmit =
+      async function() {
 
-      clearErrorMessages();
-      hideStatus();
+        clearErrorMessages();
+        hideStatus();
 
-      const button =
-        document.getElementById("btn-forgot");
 
-      const memberId =
-        document.getElementById("forgot-uid")
-          ?.value
-          ?.trim();
+        const button =
+          document.getElementById(
+            "btn-forgot"
+          );
 
-      const email =
-        normalizeEmail(
-          document.getElementById("forgot-email")
-            ?.value || ""
-        );
 
-      let hasError = false;
+        const memberId =
+          document
+            .getElementById(
+              "forgot-uid"
+            )
+            ?.value
+            ?.trim();
 
-      if (!memberId) {
-        showError(
-          "forgot-uid",
-          "err-forgot-uid",
-          "Enter your 6-digit Unique ID."
-        );
-        hasError = true;
-      } else if (!/^\d{6}$/.test(memberId)) {
-        showError(
-          "forgot-uid",
-          "err-forgot-uid",
-          "Unique ID must contain exactly 6 digits."
-        );
-        hasError = true;
-      }
 
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        showError(
-          "forgot-email",
-          "err-forgot-email",
-          "Enter a valid registered email."
-        );
-        hasError = true;
-      }
+        const email =
+          normalizeEmail(
+            document
+              .getElementById(
+                "forgot-email"
+              )
+              ?.value || ""
+          );
 
-      if (hasError) return;
 
-      setButtonLoading(
-        button,
-        true,
-        "Send Reset Code"
-      );
+        let hasError =
+          false;
 
-      try {
-        await persistenceReady;
 
-        const userSnapshot = await get(ref(db, `users/${memberId}`));
+        if (!memberId) {
 
-        if (!userSnapshot.exists()) {
           showError(
             "forgot-uid",
             "err-forgot-uid",
-            "Unique Member ID not found."
+            "Enter your 6-digit Unique ID."
           );
-          return;
+
+          hasError =
+            true;
+
+        } else if (
+          !/^\d{6}$/.test(
+            memberId
+          )
+        ) {
+
+          showError(
+            "forgot-uid",
+            "err-forgot-uid",
+            "Unique ID must contain exactly 6 digits."
+          );
+
+          hasError =
+            true;
+
         }
 
-        const userData = userSnapshot.val();
 
-        if (normalizeEmail(userData.email) !== email) {
+        if (
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+            email
+          )
+        ) {
+
           showError(
             "forgot-email",
             "err-forgot-email",
-            "Email does not match this Unique Member ID."
+            "Enter a valid registered email."
           );
+
+          hasError =
+            true;
+
+        }
+
+
+        if (hasError) {
+
           return;
+
         }
 
-        const otp = generateOTP();
-        forgotResetData.memberId = memberId;
-        forgotResetData.email = email;
-        forgotResetData.authUid = userData.authUid || "";
-        forgotResetData.generatedOtp = otp;
-        forgotResetData.otpExpiresAt = Date.now() + 60 * 1000;
-
-        await sendEmailOTP(email, otp);
-
-        const otpInput = document.getElementById("forgot-otp-input");
-        if (otpInput) {
-          otpInput.value = "";
-        }
-
-        startForgotOtpTimer();
-        switchView("view-forgot-otp");
-
-        showStatus(
-          "OTP sent to your registered email.",
-          "success"
-        );
-
-        setTimeout(function () {
-          const input = document.getElementById("forgot-otp-input");
-          if (input) input.focus();
-        }, 100);
-
-      } catch (error) {
-
-        console.error(
-          "Password reset error:",
-          error
-        );
-
-        showError(
-          "forgot-email",
-          "err-forgot-email",
-          getFirebaseError(error)
-        );
-
-      } finally {
 
         setButtonLoading(
           button,
-          false,
+          true,
           "Send Reset Code"
         );
-      }
-    };
+
+
+        try {
+
+          await persistenceReady;
+
+
+          /*
+           * IMPORTANT:
+           * No Firebase password reset email is sent here.
+           *
+           * First verify the Member ID + registered email
+           * using the existing Realtime Database profile.
+           */
+
+          const userSnapshot =
+            await get(
+              ref(
+                db,
+                `users/${memberId}`
+              )
+            );
+
+
+          if (
+            !userSnapshot.exists()
+          ) {
+
+            showError(
+              "forgot-uid",
+              "err-forgot-uid",
+              "Unique Member ID not found."
+            );
+
+            return;
+
+          }
+
+
+          const userData =
+            userSnapshot.val();
+
+
+          if (
+            normalizeEmail(
+              userData.email
+            ) !==
+            email
+          ) {
+
+            showError(
+              "forgot-email",
+              "err-forgot-email",
+              "Email does not match this Unique Member ID."
+            );
+
+            return;
+
+          }
+
+
+          /*
+           * Generate a fresh 6-digit Security OTP.
+           */
+
+          const otp =
+            generateOTP();
+
+
+          forgotResetData = {
+
+            memberId:
+              memberId,
+
+            email:
+              email,
+
+            authUid:
+              userData.authUid || "",
+
+            generatedOtp:
+              otp,
+
+            otpExpiresAt:
+              Date.now() +
+              60 * 1000
+
+          };
+
+
+          /*
+           * SECURITY GATE #1
+           *
+           * The only email sent at this stage is the
+           * EmailJS Security OTP.
+           *
+           * sendPasswordResetEmail() is NOT called here.
+           */
+
+          await sendEmailOTP(
+            email,
+            otp
+          );
+
+
+          const otpInput =
+            document.getElementById(
+              "forgot-otp-input"
+            );
+
+
+          if (otpInput) {
+
+            otpInput.value =
+              "";
+
+          }
+
+
+          startForgotOtpTimer();
+
+
+          switchView(
+            "view-forgot-otp"
+          );
+
+
+          showStatus(
+            "OTP sent to your registered email.",
+            "success"
+          );
+
+
+          setTimeout(
+            function() {
+
+              const input =
+                document.getElementById(
+                  "forgot-otp-input"
+                );
+
+
+              if (input) {
+
+                input.focus();
+
+              }
+
+            },
+            100
+          );
+
+
+        } catch (error) {
+
+          console.error(
+            "Forgot password OTP preparation error:",
+            error
+          );
+
+
+          showError(
+            "forgot-email",
+            "err-forgot-email",
+            getFirebaseError(error)
+          );
+
+
+        } finally {
+
+          setButtonLoading(
+            button,
+            false,
+            "Send Reset Code"
+          );
+
+        }
+
+      };
 
 
     /* ------------------------------------------------------------
-       2. RESEND FORGOT OTP
-       ------------------------------------------------------------ */
+       2. RESEND EMAILJS SECURITY OTP
+    ------------------------------------------------------------ */
 
-    window.resendForgotOTP = async function () {
+    window.resendForgotOTP =
+      async function() {
 
-      hideStatus();
-      clearErrorMessages();
+        hideStatus();
+        clearErrorMessages();
 
-      if (
-        !forgotResetData.memberId ||
-        !forgotResetData.email
-      ) {
 
-        showStatus(
-          "Please start the password reset process again.",
-          "error"
-        );
+        if (
+          !forgotResetData.memberId ||
+          !forgotResetData.email
+        ) {
 
-        switchView("view-forgot");
+          showStatus(
+            "Please start the password reset process again.",
+            "error"
+          );
 
-        return;
-      }
 
-      const resendButton =
-        document.getElementById("btn-forgot-resend");
+          switchView(
+            "view-forgot"
+          );
 
-      if (resendButton) {
-        resendButton.disabled = true;
-      }
 
-      try {
+          return;
 
-        const otp = generateOTP();
-        forgotResetData.generatedOtp = otp;
-        forgotResetData.otpExpiresAt = Date.now() + 60 * 1000;
-
-        await sendEmailOTP(forgotResetData.email, otp);
-
-        startForgotOtpTimer();
-
-        const otpInput =
-          document.getElementById("forgot-otp-input");
-
-        if (otpInput) {
-          otpInput.value = "";
-          otpInput.focus();
         }
 
-        showStatus(
-          "A new OTP has been sent to your registered email.",
-          "success"
-        );
 
-      } catch (error) {
+        const resendButton =
+          document.getElementById(
+            "btn-forgot-resend"
+          );
 
-        console.error(
-          "Forgot password OTP resend error:",
-          error
-        );
 
         if (resendButton) {
-          resendButton.disabled = false;
+
+          resendButton.disabled =
+            true;
+
         }
 
-        showStatus(
-          getFirebaseError(error),
-          "error"
-        );
-      }
-    };
+
+        try {
+
+          const otp =
+            generateOTP();
 
 
-    /* ------------------------------------------------------------
-       3. VERIFY FORGOT OTP & OPEN NEW PASSWORD FIELDS
-       ------------------------------------------------------------ */
+          /*
+           * Replace the previous OTP completely.
+           * The previous OTP immediately becomes invalid.
+           */
 
-    window.verifyForgotOTP = async function () {
-
-      clearErrorMessages();
-      hideStatus();
-
-      const otpInput =
-        document.getElementById("forgot-otp-input");
-
-      const enteredOtp =
-        otpInput?.value
-          ?.replace(/\D/g, "")
-          ?.slice(0, 6) || "";
-
-      if (!/^\d{6}$/.test(enteredOtp)) {
-
-        showError(
-          "forgot-otp-input",
-          "err-forgot-otp",
-          "Enter the 6-digit OTP."
-        );
-
-        return;
-      }
-
-      if (
-        !forgotResetData.generatedOtp ||
-        Date.now() > forgotResetData.otpExpiresAt ||
-        enteredOtp !== forgotResetData.generatedOtp
-      ) {
-        showError(
-          "forgot-otp-input",
-          "err-forgot-otp",
-          "Invalid or expired OTP."
-        );
-        return;
-      }
-
-      switchView("view-reset-pass");
-
-      showStatus(
-        "OTP verified! Now enter your new password.",
-        "success"
-      );
-    };
+          forgotResetData.generatedOtp =
+            otp;
 
 
-    /* ------------------------------------------------------------
-       4. UPDATE PASSWORD IN REALTIME DATABASE AND FIREBASE AUTH
-       ------------------------------------------------------------ */
+          forgotResetData.otpExpiresAt =
+            Date.now() +
+            60 * 1000;
 
-    window.handleUpdatePasswordSubmit = async function () {
 
-      clearErrorMessages();
-      hideStatus();
+          /*
+           * EmailJS ONLY.
+           * Firebase password-reset email is still blocked.
+           */
 
-      const button = document.getElementById("btn-save-new-pass");
-      const newPass = document.getElementById("reset-new-pass")?.value || "";
-      const confirmPass = document.getElementById("reset-confirm-pass")?.value || "";
+          await sendEmailOTP(
+            forgotResetData.email,
+            otp
+          );
 
-      let valid = true;
 
-      if (newPass.length < 6) {
-        showError(
-          "reset-new-pass",
-          "err-reset-new-pass",
-          "Password must be at least 6 characters."
-        );
-        valid = false;
-      }
+          startForgotOtpTimer();
 
-      if (newPass !== confirmPass) {
-        showError(
-          "reset-confirm-pass",
-          "err-reset-confirm-pass",
-          "Passwords do not match."
-        );
-        valid = false;
-      }
 
-      if (!valid) return;
+          const otpInput =
+            document.getElementById(
+              "forgot-otp-input"
+            );
 
-      setButtonLoading(button, true, "Update Password");
 
-      try {
-        await persistenceReady;
+          if (otpInput) {
 
-        const memberId = forgotResetData.memberId;
-        const email = forgotResetData.email;
-        const authUid = forgotResetData.authUid;
+            otpInput.value =
+              "";
 
-        // Step 1: Realtime Database-এ পাসওয়ার্ড আপডেট
-        const updates = {};
-        updates[`users/${memberId}/pass`] = newPass;
-        updates[`users/${memberId}/password`] = newPass;
+            otpInput.focus();
 
-        if (authUid) {
-          updates[`users/${authUid}/pass`] = newPass;
-          updates[`users/${authUid}/password`] = newPass;
-        }
-
-        await update(ref(db), updates);
-
-        // Step 2: Firebase Authentication-এ পাসওয়ার্ড আপডেট করার জন্য চেক
-        if (auth.currentUser) {
-          await updatePassword(auth.currentUser, newPass);
-        } else {
-          // যদি ইউজারের কোনো সেশন না থাকে, তাহলে পাসওয়ার্ড রিসেট লিংক ব্যাকগ্রাউন্ডে সিকিউরলি ট্রিগার করে রি-সিঙ্ক করে দেওয়া হয়
-          try {
-            await sendPasswordResetEmail(auth, email);
-          } catch (resetErr) {
-            console.warn("Auth direct update skipped, DB password updated:", resetErr);
           }
+
+
+          showStatus(
+            "A new OTP has been sent to your registered email.",
+            "success"
+          );
+
+
+        } catch (error) {
+
+          console.error(
+            "Forgot password OTP resend error:",
+            error
+          );
+
+
+          if (resendButton) {
+
+            resendButton.disabled =
+              false;
+
+          }
+
+
+          showStatus(
+            getFirebaseError(error),
+            "error"
+          );
+
         }
 
-        showStatus("Password updated successfully! Please login with your new password.", "success");
+      };
 
-        forgotResetData = {
-          memberId: "",
-          email: "",
-          authUid: "",
-          generatedOtp: null,
-          otpExpiresAt: 0
-        };
 
-        setTimeout(() => {
-          switchView("view-login");
-        }, 2000);
+    /* ------------------------------------------------------------
+       3. VERIFY EMAILJS OTP
+          THEN IMMEDIATELY CALL FIREBASE OFFICIAL RESET FUNCTION
+    ------------------------------------------------------------ */
 
-      } catch (error) {
-        console.error("Error updating password:", error);
-        showStatus("Failed to update password. Please try again.", "error");
-      } finally {
-        setButtonLoading(button, false, "Update Password");
-      }
-    };
+    window.verifyForgotOTP =
+      async function() {
+
+        clearErrorMessages();
+        hideStatus();
+
+
+        const button =
+          document.getElementById(
+            "btn-forgot-verify"
+          );
+
+
+        const otpInput =
+          document.getElementById(
+            "forgot-otp-input"
+          );
+
+
+        const enteredOtp =
+          otpInput
+            ?.value
+            ?.replace(/\D/g, "")
+            ?.slice(0, 6) || "";
+
+
+        if (
+          !/^\d{6}$/.test(
+            enteredOtp
+          )
+        ) {
+
+          showError(
+            "forgot-otp-input",
+            "err-forgot-otp",
+            "Enter the 6-digit OTP."
+          );
+
+          return;
+
+        }
+
+
+        /*
+         * SECURITY GATE #2
+         *
+         * Verify OTP locally first.
+         *
+         * If this check fails, Firebase's
+         * sendPasswordResetEmail() is NEVER called.
+         */
+
+        if (
+          !forgotResetData.generatedOtp ||
+          !forgotResetData.email ||
+          Date.now() >
+            forgotResetData.otpExpiresAt ||
+          enteredOtp !==
+            forgotResetData.generatedOtp
+        ) {
+
+          showError(
+            "forgot-otp-input",
+            "err-forgot-otp",
+            "Invalid or expired OTP."
+          );
+
+          return;
+
+        }
+
+
+        setButtonLoading(
+          button,
+          true,
+          "Verify Code"
+        );
+
+
+        try {
+
+          await persistenceReady;
+
+
+          /*
+           * OTP is now verified.
+           *
+           * Clear the OTP immediately so the same code
+           * cannot be reused.
+           */
+
+          clearInterval(
+            forgotOtpTimerInterval
+          );
+
+
+          forgotOtpTimerInterval =
+            null;
+
+
+          forgotResetData.generatedOtp =
+            null;
+
+
+          forgotResetData.otpExpiresAt =
+            0;
+
+
+          /*
+           * =====================================================
+           * OFFICIAL FIREBASE PASSWORD RESET FUNCTION
+           * =====================================================
+           *
+           * This is the FIRST and ONLY place in this flow
+           * where Firebase sends the password reset link.
+           *
+           * It cannot execute before successful EmailJS OTP
+           * verification because the function returns above
+           * whenever OTP validation fails.
+           */
+
+          await sendPasswordResetEmail(
+            auth,
+            forgotResetData.email
+          );
+
+
+          /*
+           * Reset data after successful Firebase request.
+           */
+
+          forgotResetData = {
+
+            memberId:
+              "",
+
+            email:
+              "",
+
+            authUid:
+              "",
+
+            generatedOtp:
+              null,
+
+            otpExpiresAt:
+              0
+
+          };
+
+
+          /*
+           * Required success message.
+           */
+
+          showStatus(
+            "Password reset link sent to your email. Check your inbox.",
+            "success"
+          );
+
+
+          /*
+           * Give the user 3 seconds to see the message,
+           * then return to Login view.
+           */
+
+          setTimeout(
+            function() {
+
+              switchView(
+                "view-login"
+              );
+
+            },
+            3000
+          );
+
+
+        } catch (error) {
+
+          console.error(
+            "Firebase password reset email error:",
+            error
+          );
+
+
+          /*
+           * Keep the user on the OTP screen if Firebase
+           * could not send the reset link.
+           */
+
+          showStatus(
+            getFirebaseError(error),
+            "error"
+          );
+
+
+        } finally {
+
+          setButtonLoading(
+            button,
+            false,
+            "Verify Code"
+          );
+
+        }
+
+      };
 
 
     /* =====================================================
@@ -4414,12 +4690,46 @@
         );
 
 
+        if (
+          forgotOtpTimerInterval
+        ) {
+
+          clearInterval(
+            forgotOtpTimerInterval
+          );
+
+          forgotOtpTimerInterval =
+            null;
+
+        }
+
+
         currentOTP =
           null;
 
 
         otpExpiresAt =
           0;
+
+
+        forgotResetData = {
+
+          memberId:
+            "",
+
+          email:
+            "",
+
+          authUid:
+            "",
+
+          generatedOtp:
+            null,
+
+          otpExpiresAt:
+            0
+
+        };
 
 
         tempUserData =
@@ -4538,7 +4848,7 @@
       ) {
 
         return (
-          "Firebase Database access was denied by Security Rules."
+          "Firebase Database access was denied by Security Rules. Please update the Realtime Database Rules for the JAVICASH user/profile paths."
         );
 
       }
@@ -4627,8 +4937,14 @@
         );
 
 
-        if (forgotOtpTimerInterval) {
-          clearInterval(forgotOtpTimerInterval);
+        if (
+          forgotOtpTimerInterval
+        ) {
+
+          clearInterval(
+            forgotOtpTimerInterval
+          );
+
         }
 
       }
