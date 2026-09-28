@@ -1173,7 +1173,140 @@ onValue(
 let gameIsOpen = false;
 
 
-function hideGame(){
+let gameReady = false;
+
+let gameClosing = false;
+
+
+/* The game tells us when it is loaded and able to save coins. */
+
+window.addEventListener("message", function(event){
+
+  const frame = $("gameFrame");
+
+  if(event.source !== frame.contentWindow)
+    return;
+
+  const data = event.data;
+
+  if(data && data.type === "JAVICASH_GAME_READY")
+    gameReady = true;
+
+});
+
+
+/* Asks the game to add its collected coins to this member's balance. */
+
+function askGameToSave(){
+
+  return new Promise(function(resolve){
+
+    const frame = $("gameFrame");
+
+    let finished = false;
+
+    let timer = null;
+
+    function finish(result){
+
+      if(finished)
+        return;
+
+      finished = true;
+
+      clearTimeout(timer);
+
+      window.removeEventListener("message", onMessage);
+
+      resolve(result || null);
+
+    }
+
+    function onMessage(event){
+
+      if(event.source !== frame.contentWindow)
+        return;
+
+      const data = event.data;
+
+      if(data && data.type === "JAVICASH_FLUSH_DONE")
+        finish(data);
+
+    }
+
+    window.addEventListener("message", onMessage);
+
+    timer = setTimeout(function(){
+      finish(null);
+    }, 9000);
+
+    try{
+
+      frame.contentWindow.postMessage(
+        { type:"JAVICASH_FLUSH_REQUEST" },
+        "*"
+      );
+
+    }catch(error){
+
+      finish(null);
+
+    }
+
+  });
+
+}
+
+
+function wait(ms){
+
+  return new Promise(function(resolve){
+    setTimeout(resolve, ms);
+  });
+
+}
+
+
+async function hideGame(){
+
+  if(gameClosing)
+    return;
+
+  gameClosing = true;
+
+  const loading = $("gameFrameLoading");
+
+  /* Back button: save the coins first, then close the game. */
+
+  if(gameReady){
+
+    loading.textContent = "Saving your coins...";
+
+    loading.style.display = "flex";
+
+    const result = await askGameToSave();
+
+    if(result && result.ok && result.credited > 0){
+
+      loading.textContent =
+        "✓ " + result.credited + " coins added to your balance";
+
+      await wait(1300);
+
+    }
+
+    else if(result && !result.ok){
+
+      loading.textContent =
+        "Coins could not be saved now (" +
+        (result.detail || result.reason || "error") +
+        "). They are kept for next time.";
+
+      await wait(2800);
+
+    }
+
+  }
 
   const frame = $("gameFrame");
 
@@ -1186,6 +1319,12 @@ function hideGame(){
   document.body.style.overflow = "";
 
   gameIsOpen = false;
+
+  gameClosing = false;
+
+  gameReady = false;
+
+  loading.textContent = "Loading game...";
 
 }
 
@@ -1206,6 +1345,10 @@ window.openGame = function(url, title){
   gameIsOpen = true;
 
   $("gameModalTitle").textContent = title || "Game";
+
+  $("gameFrameLoading").textContent = "Loading game...";
+
+  gameReady = false;
 
   $("gameFrameLoading").style.display = "flex";
 
