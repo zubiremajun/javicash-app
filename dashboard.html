@@ -5,657 +5,460 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0f0c20">
 <title>JAVICASH - Member Dashboard</title>
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
 :root{
-  --bg:#0f0c20;
-  --card:rgba(255,255,255,.055);
-  --border:rgba(255,255,255,.10);
-  --primary:#6c5ce7;
-  --primary-hover:#5b4bc4;
-  --text:#fff;
-  --muted:#aaa6bd;
-  --success:#2ed573;
-  --warning:#ffa502;
-  --danger:#ff4757;
+  --bg:#0f0c20; --bg2:#17132d; --card:rgba(255,255,255,.055);
+  --border:rgba(255,255,255,.10); --primary:#6c5ce7; --primary2:#8b7cf6;
+  --text:#fff; --muted:#a9a6bd; --success:#2ed573; --warning:#ffa502;
+  --danger:#ff4757; --shadow:0 18px 50px rgba(0,0,0,.25);
 }
-
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Roboto,Arial,sans-serif;}
-
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
 body{
-  background:
-    radial-gradient(circle at 20% 0%,rgba(108,92,231,.16),transparent 32%),
-    radial-gradient(circle at 90% 20%,rgba(46,213,115,.07),transparent 25%),
-    var(--bg);
-  color:var(--text);
-  min-height:100vh;
+  background:radial-gradient(circle at 20% 0%,rgba(108,92,231,.16),transparent 32%),
+             radial-gradient(circle at 90% 20%,rgba(46,213,115,.07),transparent 25%),var(--bg);
+  color:var(--text);font-family:Segoe UI,Roboto,Arial,sans-serif;min-height:100vh;
 }
-
-/* ================= LOADING SCREEN ================= */
-
-#loadingScreen{position:fixed;inset:0;z-index:99999;background:#090711;display:flex;justify-content:center;align-items:center;text-align:center;transition:opacity .35s ease;}
-.loading-box{padding:30px;}
-.loading-dots{display:flex;justify-content:center;gap:9px;margin-bottom:18px;}
-.loading-dot{width:12px;height:12px;border-radius:50%;background:#8b7cf6;animation:loadingBounce 1.1s infinite ease-in-out;}
-.loading-dot:nth-child(2){animation-delay:.15s;}
-.loading-dot:nth-child(3){animation-delay:.30s;}
-@keyframes loadingBounce{
-  0%,70%,100%{transform:translateY(0);opacity:.45;}
-  35%{transform:translateY(-10px);opacity:1;}
-}
-#loadingTitle{font-size:17px;font-weight:700;}
-#loadingMessage{color:var(--muted);font-size:12px;margin-top:5px;}
-
-/* ================= CONNECTION ================= */
-
-#connectionStatus{
-  display:none;position:fixed;top:75px;left:50%;transform:translateX(-50%);z-index:9999;
-  background:#2b1d24;color:#ff9aa4;border:1px solid rgba(255,71,87,.3);
-  padding:9px 15px;border-radius:30px;font-size:12px;
-}
-
-/* ================= TOP BAR ================= */
-
+button,input,select{font:inherit}
+button{border:0}
 .topbar{
-  position:fixed;top:0;left:0;right:0;height:64px;z-index:1000;
+  height:64px;position:fixed;top:0;left:0;right:0;z-index:1000;
   display:flex;align-items:center;justify-content:space-between;padding:0 22px;
-  background:rgba(10,8,22,.82);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);
+  background:rgba(10,8,22,.78);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);
 }
-.logo{display:flex;align-items:center;gap:10px;color:#8b7cf6;font-size:20px;font-weight:800;}
-.logo img{width:35px;height:35px;border-radius:50%;object-fit:cover;}
-.menu-toggle{display:none;background:none;color:#fff;font-size:23px;cursor:pointer;border:0;}
-
-/* ================= SIDEBAR ================= */
-
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:.3px;color:var(--primary2)}
+.brand img{width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid var(--border)}
+.menu-toggle{display:none;color:#fff;font-size:22px;cursor:pointer;background:none}
+.app{padding-top:64px}
 .sidebar{
   position:fixed;left:0;top:64px;bottom:0;width:250px;z-index:900;
-  background:rgba(13,10,27,.97);border-right:1px solid var(--border);padding:18px 12px;transition:.25s ease;
+  background:rgba(13,10,27,.96);border-right:1px solid var(--border);
+  padding:18px 12px;transition:.25s ease;
 }
-.menu-title{color:#68647d;font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:8px 12px 12px;}
-.menu-item{
-  list-style:none;display:flex;align-items:center;gap:13px;padding:13px 15px;margin-bottom:5px;
-  border-radius:12px;color:var(--muted);cursor:pointer;transition:.18s;
+.nav-title{font-size:11px;text-transform:uppercase;color:#68647d;padding:8px 12px 12px;letter-spacing:1px}
+.nav-item{
+  list-style:none;display:flex;align-items:center;gap:13px;padding:13px 15px;
+  border-radius:12px;color:var(--muted);cursor:pointer;margin-bottom:5px;transition:.18s;
 }
-.menu-item i{width:20px;text-align:center;}
-.menu-item:hover,.menu-item.active{background:var(--primary);color:#fff;box-shadow:0 8px 25px rgba(108,92,231,.22);}
-.logout-item{margin-top:28px;color:#ff7180!important;}
-.logout-item:hover{background:rgba(255,71,87,.15)!important;color:#ff7180!important;box-shadow:none!important;}
-
-/* ===== AI SUPPORT MENU ITEM (NEW - only affects the new item) ===== */
-.ai-support-item{margin-top:14px;}
-.ai-support-item .ai-support-text{display:flex;flex-direction:column;min-width:0;line-height:1.25;}
-.ai-support-item .ai-support-title{font-size:14px;font-weight:600;}
-.ai-support-item .ai-support-sub{font-size:10.5px;opacity:.75;margin-top:2px;}
-.ai-support-item.loading{pointer-events:none;opacity:.7;}
-
-/* ================= MAIN ================= */
-
-.main{margin-left:250px;padding:88px 24px 30px;max-width:1500px;}
-.tab{display:none;animation:fadeIn .2s ease;}
-.tab.active{display:block;}
-@keyframes fadeIn{
-  from{opacity:.3;transform:translateY(5px);}
-  to{opacity:1;transform:none;}
-}
-.page-title{margin-bottom:20px;}
-.page-title h1{font-size:27px;}
-.page-title p{color:var(--muted);font-size:13px;margin-top:5px;}
-
-/* ================= CARDS ================= */
-
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px;}
+.nav-item i{width:20px;text-align:center}
+.nav-item:hover,.nav-item.active{background:var(--primary);color:#fff;box-shadow:0 8px 25px rgba(108,92,231,.22)}
+.nav-logout{margin-top:28px!important;color:#ff7180!important}
+.main{margin-left:250px;padding:24px;max-width:1500px}
+.tab{display:none;animation:fade .2s ease}.tab.active{display:block}
+@keyframes fade{from{opacity:.35;transform:translateY(4px)}to{opacity:1;transform:none}}
+.page-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:12px}
+.page-head h1{font-size:26px}.page-head p{color:var(--muted);font-size:13px;margin-top:4px}
 .card{
-  background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:18px;
-  backdrop-filter:blur(12px);box-shadow:0 18px 50px rgba(0,0,0,.22);
+  background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;
+  backdrop-filter:blur(12px);box-shadow:var(--shadow);margin-bottom:18px;
 }
-.label{color:var(--muted);font-size:13px;}
-.balance{color:var(--success);font-size:38px;font-weight:800;margin:8px 0 15px;}
-.uid{font-size:25px;font-weight:750;margin-top:8px;}
-.small{color:var(--muted);font-size:12px;margin-top:5px;}
-.active-status{color:var(--success);font-weight:700;margin-top:12px;}
-
-/* ================= BUTTON ================= */
-
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}
+.balance-card{position:relative;overflow:hidden}
+.balance-card:after{content:"";position:absolute;width:170px;height:170px;border-radius:50%;right:-70px;top:-70px;background:rgba(108,92,231,.20)}
+.label{color:var(--muted);font-size:13px}.balance{font-size:38px;font-weight:800;margin:8px 0 15px;color:var(--success)}
 .btn{
-  width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;
-  border-radius:11px;border:none;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;
-  transition:.18s;text-decoration:none;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px 16px;
+  border-radius:11px;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;transition:.18s;
 }
-.btn:hover{background:var(--primary-hover);transform:translateY(-1px);}
-.btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
-
-/* ================= PROFILE ================= */
-
-.profile{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
-.avatar-box{position:relative;width:82px;height:82px;}
-.avatar{width:82px;height:82px;border-radius:50%;object-fit:cover;border:3px solid var(--primary);}
-.camera{
-  position:absolute;right:-2px;bottom:-2px;width:29px;height:29px;display:grid;place-items:center;
-  background:var(--primary);border-radius:50%;cursor:pointer;
-}
-
-/* ================= FORMS ================= */
-
-.form-group{margin-bottom:14px;}
-.form-group label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px;}
+.btn:hover{background:#5b4bc4;transform:translateY(-1px)}
+.btn.secondary{background:rgba(255,255,255,.07);border:1px solid var(--border)}
+.btn.danger{background:rgba(255,71,87,.12);color:#ff7180;border:1px solid rgba(255,71,87,.2)}
+.stat{font-size:25px;font-weight:750;margin-top:7px}
+.status{color:var(--success);font-weight:700}
+.form-group{margin-bottom:14px}.form-group label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
 .control{
   width:100%;padding:12px;border-radius:10px;background:rgba(0,0,0,.28);
-  border:1px solid var(--border);color:#fff;outline:none;
+  border:1px solid var(--border);outline:none;color:#fff;
 }
-.control:focus{border-color:var(--primary);}
-.control:disabled{opacity:.6;}
-
-/* ================= PAYMENT ================= */
-
-.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:15px;}
+.control:focus{border-color:var(--primary)}
+.control:disabled{opacity:.6}
+.profile{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.avatar{width:82px;height:82px;border-radius:50%;object-fit:cover;border:3px solid var(--primary)}
+.avatar-box{position:relative;width:82px;height:82px}.camera{
+  position:absolute;right:-2px;bottom:-2px;width:29px;height:29px;border-radius:50%;
+  background:var(--primary);display:grid;place-items:center;cursor:pointer
+}
+.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:15px}
 .method{
   padding:13px 5px;text-align:center;border:1px solid var(--border);border-radius:11px;
-  background:rgba(0,0,0,.2);cursor:pointer;font-size:13px;
+  background:rgba(0,0,0,.2);cursor:pointer;font-size:13px
 }
-.method.selected{border-color:var(--primary);background:rgba(108,92,231,.23);}
-
-/* ================= FEED ================= */
-
-.feed-title{font-weight:750;}
-.feed-text{color:var(--muted);font-size:13px;line-height:1.55;margin-top:6px;}
-.feed img,.feed video{width:100%;max-height:360px;object-fit:cover;border-radius:11px;margin-top:10px;}
-
-/* ================= HISTORY ================= */
-
-.history-row{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--border);}
-.history-row:last-child{border-bottom:0;}
-.pending{color:var(--warning);}
-.approved{color:var(--success);}
-.rejected{color:var(--danger);}
-.empty{text-align:center;padding:20px;color:var(--muted);}
-
-/* ================= GAMES ================= */
-
-.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:15px;}
-.game{background:rgba(0,0,0,.18);border:1px solid var(--border);border-radius:15px;padding:11px;}
-.game img{width:100%;height:125px;object-fit:cover;border-radius:10px;}
-.game h4{margin:9px 2px;}
-
-/* ===== GAMES: PLAY STORE STYLE ===== */
-.store-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
-.store-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:16px 10px 12px;border-radius:18px;background:rgba(0,0,0,.18);border:1px solid var(--border);cursor:pointer;transition:.18s;}
-.store-card:hover{transform:translateY(-2px);border-color:var(--primary);}
-.store-card:active{transform:scale(.97);}
-.store-icon{width:84px;height:84px;border-radius:20px;object-fit:cover;background:#1a1533;box-shadow:0 8px 22px rgba(0,0,0,.35);}
-.store-name{font-size:14px;font-weight:700;line-height:1.25;word-break:break-word;}
-.store-sub{font-size:11px;color:var(--muted);}
-.store-play{margin-top:2px;padding:7px 22px;border:0;border-radius:20px;background:var(--success);color:#04170c;font-weight:800;font-size:13px;cursor:pointer;}
-
-/* ================= NOTICE ================= */
-
-.notice{
-  padding:13px;border-radius:12px;background:rgba(108,92,231,.10);
-  border:1px solid rgba(108,92,231,.2);color:#d8d4ff;font-size:13px;
+.method.selected{border-color:var(--primary);background:rgba(108,92,231,.23)}
+.feed img,.feed video{width:100%;max-height:360px;object-fit:cover;border-radius:11px;margin-top:10px}
+.feed-title{font-weight:750}.feed-text{color:var(--muted);font-size:13px;line-height:1.55;margin-top:6px}
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:15px}
+.game{background:rgba(0,0,0,.18);border:1px solid var(--border);border-radius:15px;padding:11px}
+.game img{width:100%;height:125px;object-fit:cover;border-radius:10px}.game h4{margin:9px 2px}
+.history-row{
+  display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--border);
 }
-
-/* ================= MOBILE NAV ================= */
-
-.mobile-nav{display:none;}
-
-/*
-  Only adds safe-area space on devices that have
-  a bottom system navigation area.
-  Existing mobile navigation design is unchanged.
-*/
-
-@supports(padding-bottom:env(safe-area-inset-bottom)){
-  .mobile-nav{padding-bottom:env(safe-area-inset-bottom);height:calc(66px + env(safe-area-inset-bottom));}
-  .main{padding-bottom:calc(90px + env(safe-area-inset-bottom));}
+.history-row:last-child{border-bottom:0}.small{font-size:12px;color:var(--muted);margin-top:4px}
+.badge{font-size:11px;font-weight:700}.pending{color:var(--warning)}.approved{color:var(--success)}.rejected{color:var(--danger)}
+.empty{padding:20px;text-align:center;color:var(--muted)}
+.notice{padding:13px;border-radius:12px;background:rgba(108,92,231,.10);border:1px solid rgba(108,92,231,.2);color:#d8d4ff;font-size:13px}
+.connection{
+  position:fixed;left:50%;top:78px;transform:translateX(-50%);z-index:1200;
+  display:none;padding:9px 15px;border-radius:20px;background:#2b1d24;border:1px solid rgba(255,71,87,.3);
+  color:#ff9aa4;font-size:12px
 }
+.mobile-nav{display:none}
 
-/* ================= MOBILE ================= */
+#loading{
+  position:fixed;inset:0;z-index:3000;background:rgba(9,7,18,.97);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  transition:opacity .3s ease
+}
+.loader-card{text-align:center;padding:28px 34px}
+.dots{display:flex;gap:8px;justify-content:center;margin:0 0 16px}
+.dot{width:11px;height:11px;border-radius:50%;background:var(--primary2);animation:bounce 1.05s infinite ease-in-out}
+.dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.30s}
+@keyframes bounce{0%,70%,100%{transform:translateY(0);opacity:.45}35%{transform:translateY(-9px);opacity:1}}
+#loadingText{color:#fff;font-weight:700}#loadingSub{color:var(--muted);font-size:12px;margin-top:5px}
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.11),rgba(255,255,255,.05));background-size:200% 100%;animation:shimmer 1.3s infinite;border-radius:8px;height:18px}
+@keyframes shimmer{to{background-position:-200% 0}}
 
 @media(max-width:768px){
-  .topbar{padding:0 15px;}
-  .menu-toggle{display:block;}
-  .sidebar{transform:translateX(-105%);width:235px;box-shadow:15px 0 40px rgba(0,0,0,.35);}
-  .sidebar.open{transform:translateX(0);}
-  .main{margin-left:0;padding:84px 14px 90px;}
-  .page-title h1{font-size:22px;}
-  .grid{grid-template-columns:1fr;}
-  .card{padding:16px;}
-  .method-grid{grid-template-columns:repeat(3,1fr);}
+  .topbar{padding:0 15px}.menu-toggle{display:block}
+  .sidebar{transform:translateX(-105%);width:235px;box-shadow:15px 0 40px rgba(0,0,0,.35)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:18px 14px 90px}.page-head h1{font-size:22px}
   .mobile-nav{
-    display:flex;position:fixed;left:0;right:0;bottom:0;height:66px;z-index:1100;
-    background:rgba(10,8,22,.95);border-top:1px solid var(--border);backdrop-filter:blur(16px);
+    display:flex;position:fixed;left:0;right:0;bottom:0;height:65px;z-index:1100;
+    background:rgba(10,8,22,.94);border-top:1px solid var(--border);backdrop-filter:blur(16px);
+    padding-bottom:env(safe-area-inset-bottom)
   }
-  .mobile-nav button{flex:1;border:0;background:none;color:var(--muted);font-size:10px;cursor:pointer;}
-  .mobile-nav i{display:block;font-size:18px;margin-bottom:4px;}
-  .mobile-nav button.active{color:#fff;}
-  @supports(padding-bottom:env(safe-area-inset-bottom)){
-    .mobile-nav{padding-bottom:env(safe-area-inset-bottom);height:calc(66px + env(safe-area-inset-bottom));}
-  }
-}
-
-/* ================= IN-APP GAME PLAYER (NEW - does not affect existing UI) ================= */
-
-.game-modal{display:none;position:fixed;inset:0;z-index:100000;background:#050b14;flex-direction:column;}
-.game-modal.open{display:flex;}
-.game-modal-bar{
-  display:flex;align-items:center;gap:12px;padding:10px 12px;
-  padding-top:calc(10px + env(safe-area-inset-top,0px));
-  background:rgba(10,8,22,.98);border-bottom:1px solid var(--border);
-}
-.game-modal-close{border:0;background:var(--primary);color:#fff;font-weight:700;padding:9px 14px;border-radius:10px;cursor:pointer;}
-#gameModalTitle{font-weight:700;}
-#gameFrame{flex:1;width:100%;border:0;background:#050b14;}
-#gameFrameLoading{
-  position:absolute;left:0;right:0;bottom:0;top:64px;display:flex;align-items:center;justify-content:center;
-  color:var(--muted);font-size:13px;pointer-events:none;
+  .mobile-nav button{flex:1;background:none;color:var(--muted);font-size:10px;cursor:pointer}
+  .mobile-nav i{display:block;font-size:18px;margin-bottom:4px}.mobile-nav button.active{color:#fff}
+  .grid{grid-template-columns:1fr}.method-grid{grid-template-columns:repeat(3,1fr)}
+  .card{padding:16px}.history-row{font-size:13px}
 }
 </style>
 </head>
 
 <body>
 
-<!-- ================= LOADING ================= -->
-
-<div id="loadingScreen">
-  <div class="loading-box">
-    <div class="loading-dots">
-      <span class="loading-dot"></span>
-      <span class="loading-dot"></span>
-      <span class="loading-dot"></span>
-    </div>
-    <div id="loadingTitle">Connecting to JAVICASH...</div>
-    <div id="loadingMessage">Loading your member data</div>
+<div id="loading">
+  <div class="loader-card">
+    <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <div id="loadingText">Connecting to JAVICASH...</div>
+    <div id="loadingSub">Loading your member data</div>
   </div>
 </div>
 
-<div id="connectionStatus">
-  <i class="fa-solid fa-wifi"></i>
-  Connection problem — Firebase is retrying...
+<div id="connection" class="connection">
+  <i class="fa-solid fa-wifi"></i> Connection problem — retrying...
 </div>
-
-<!-- ================= TOP BAR ================= -->
 
 <header class="topbar">
-  <div class="logo">
-    <img src="https://lh3.googleusercontent.com/d/1-HtKoZn4P0ztzUW0V-QP3mBU0SyGYnSn" alt="JAVICASH">
+  <div class="brand">
+    <img id="brandImg" src="https://lh3.googleusercontent.com/d/1-HtKoZn4P0ztzUW0V-QP3mBU0SyGYnSn" alt="JAVICASH">
     JAVICASH
   </div>
-  <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Open menu">
+  <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Menu">
     <i class="fa-solid fa-bars"></i>
   </button>
 </header>
 
-<!-- ================= SIDEBAR ================= -->
+<div class="app">
 
-<aside class="sidebar" id="sidebar">
+  <aside class="sidebar" id="sidebar">
+    <div class="nav-title">Member Menu</div>
+    <ul>
+      <li class="nav-item active" data-tab="home" onclick="switchTab('home',this)">
+        <i class="fa-solid fa-house"></i>Home
+      </li>
+      <li class="nav-item" data-tab="profile" onclick="switchTab('profile',this)">
+        <i class="fa-solid fa-user"></i>Profile
+      </li>
+      <li class="nav-item" data-tab="withdraw" onclick="switchTab('withdraw',this)">
+        <i class="fa-solid fa-hand-holding-dollar"></i>Withdraw
+      </li>
+      <li class="nav-item" data-tab="announcements" onclick="switchTab('announcements',this)">
+        <i class="fa-solid fa-bell"></i>Announcements
+      </li>
+      <li class="nav-item" data-tab="games" onclick="switchTab('games',this)">
+        <i class="fa-solid fa-gamepad"></i>Games 🎮
+      </li>
+      <li class="nav-item nav-logout" onclick="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i>Logout
+      </li>
+    </ul>
+  </aside>
 
-  <div class="menu-title">Member Menu</div>
+  <main class="main">
 
-  <ul>
+    <!-- HOME -->
+    <section id="tab-home" class="tab active">
+      <div class="page-head">
+        <div>
+          <h1>Welcome, <span id="homeName">Member</span> 👋</h1>
+          <p>Your JAVICASH member dashboard</p>
+        </div>
+      </div>
 
-    <li class="menu-item active" data-tab="home" onclick="switchTab('home',this)">
-      <i class="fa-solid fa-house"></i>
-      Home
-    </li>
+      <div class="grid">
 
-    <li class="menu-item" data-tab="profile" onclick="switchTab('profile',this)">
-      <i class="fa-solid fa-user"></i>
-      Profile
-    </li>
+        <div class="card balance-card">
+          <div class="label">Current Coins / Balance</div>
+          <div id="user-balance" class="balance">0.00 Coins</div>
+          <button class="btn" onclick="goWithdraw()">
+            <i class="fa-solid fa-wallet"></i> Withdraw Now
+          </button>
+        </div>
 
-    <li class="menu-item" data-tab="withdraw" onclick="switchTab('withdraw',this)">
-      <i class="fa-solid fa-hand-holding-dollar"></i>
-      Withdraw
-    </li>
-
-    <li class="menu-item" data-tab="announcements" onclick="switchTab('announcements',this)">
-      <i class="fa-solid fa-bell"></i>
-      Announcements
-    </li>
-
-    <li class="menu-item" data-tab="games" onclick="switchTab('games',this)">
-      <i class="fa-solid fa-gamepad"></i>
-      Games 🎮
-    </li>
-
-    <!-- ================= AI SUPPORT (NEW) ================= -->
-
-    <li class="menu-item ai-support-item" id="aiSupportItem" onclick="openAiSupport()">
-      <i class="fa-solid fa-robot"></i>
-      <span class="ai-support-text">
-        <span class="ai-support-title">JaviCash 24/7 AI Support</span>
-        <span class="ai-support-sub" id="aiSupportSub">Instant Automated &amp; Live Assistance</span>
-      </span>
-    </li>
-
-    <!-- ================= LOGOUT ================= -->
-
-    <li class="menu-item logout-item" onclick="logout()">
-      <i class="fa-solid fa-right-from-bracket"></i>
-      Logout
-    </li>
-
-  </ul>
-
-</aside>
-
-<!-- ================= MAIN ================= -->
-
-<main class="main">
-
-<!-- ================= HOME ================= -->
-
-<section id="tab-home" class="tab active">
-
-  <div class="page-title">
-    <h1>
-      Welcome,
-      <span id="homeName">Member</span>
-      👋
-    </h1>
-    <p>Your JAVICASH member dashboard</p>
-  </div>
-
-  <div class="grid">
-
-    <div class="card">
-      <div class="label">Current Coins / Balance</div>
-      <div id="user-balance" class="balance">0.00 Coins</div>
-      <button class="btn" onclick="goWithdraw()">
-        <i class="fa-solid fa-wallet"></i>
-        Withdraw Now
-      </button>
-    </div>
-
-    <div class="card">
-      <div class="label">Account Information</div>
-      <div id="dash-uid" class="uid">-</div>
-      <div class="small">Unique Member ID</div>
-      <div class="active-status">● Active Member</div>
-    </div>
-
-  </div>
-
-  <h3 style="margin:25px 0 12px">Admin Feed & Updates</h3>
-
-  <div id="content-feed">
-    <div class="card">
-      <div class="empty">Loading updates...</div>
-    </div>
-  </div>
-
-</section>
-
-<!-- ================= PROFILE ================= -->
-
-<section id="tab-profile" class="tab">
-
-  <div class="page-title">
-    <h1>My Profile</h1>
-    <p>Your member information</p>
-  </div>
-
-  <div class="card" style="max-width:560px;margin:auto">
-
-    <div class="profile">
-
-      <div class="avatar-box">
-
-        <img
-          id="profile-img"
-          class="avatar"
-          src="https://lh3.googleusercontent.com/d/1-HtKoZn4P0ztzUW0V-QP3mBU0SyGYnSn"
-          alt="Profile"
-        >
-
-        <label class="camera" for="avatar-input">
-          <i class="fa-solid fa-camera"></i>
-        </label>
-
-        <input
-          id="avatar-input"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          hidden
-          onchange="uploadProfilePicture(event)"
-        >
+        <div class="card">
+          <div class="label">Account Information</div>
+          <div class="stat" id="dash-uid">-</div>
+          <div class="small">Unique Member ID</div>
+          <div style="margin-top:12px">
+            Status: <span class="status">● Active Member</span>
+          </div>
+        </div>
 
       </div>
 
-      <div>
-        <h2 id="prof-name">Loading...</h2>
-        <p id="prof-email" class="small">Loading...</p>
+      <h3 style="margin:25px 0 12px">Admin Feed & Updates</h3>
+      <div id="content-feed">
+        <div class="card"><div class="skeleton"></div></div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="tab-profile" class="tab">
+      <div class="page-head">
+        <div>
+          <h1>My Profile</h1>
+          <p>Your member information</p>
+        </div>
       </div>
 
-    </div>
+      <div class="card" style="max-width:560px;margin:auto">
 
-    <div style="margin-top:22px">
+        <div class="profile">
+          <div class="avatar-box">
+            <img
+              id="profile-img"
+              class="avatar"
+              src="https://lh3.googleusercontent.com/d/1-HtKoZn4P0ztzUW0V-QP3mBU0SyGYnSn"
+              alt="Profile"
+            >
 
-      <div class="form-group">
-        <label>Unique Member ID (Locked)</label>
-        <input id="prof-uid" class="control" disabled>
+            <label class="camera" for="avatar-input">
+              <i class="fa-solid fa-camera"></i>
+            </label>
+
+            <input
+              id="avatar-input"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              hidden
+              onchange="uploadProfilePicture(event)"
+            >
+          </div>
+
+          <div>
+            <h2 id="prof-name">Loading...</h2>
+            <p id="prof-email" class="small">Loading...</p>
+          </div>
+        </div>
+
+        <div style="margin-top:22px">
+
+          <div class="form-group">
+            <label>Unique Member ID (Locked)</label>
+            <input id="prof-uid" class="control" disabled>
+          </div>
+
+          <div class="form-group">
+            <label>Full Name (Locked)</label>
+            <input id="prof-fullname" class="control" disabled>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- WITHDRAW -->
+    <section id="tab-withdraw" class="tab">
+
+      <div class="page-head">
+        <div>
+          <h1>Withdraw</h1>
+          <p>Submit and track your withdrawal request</p>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label>Full Name (Locked)</label>
-        <input id="prof-fullname" class="control" disabled>
+      <div class="card" style="max-width:520px;margin:auto">
+
+        <div class="notice" style="margin-bottom:15px">
+          <i class="fa-solid fa-coins"></i>
+          Available: <b id="withdraw-balance">0.00 Coins</b>
+        </div>
+
+        <h3>Submit Withdraw Request</h3>
+
+        <p class="small" style="margin:5px 0 16px">
+          Select payment method and enter your details.
+        </p>
+
+        <div class="method-grid">
+
+          <div class="method selected" onclick="selectMethod('bKash',this)">
+            <i class="fa-solid fa-mobile-screen"></i><br>bKash
+          </div>
+
+          <div class="method" onclick="selectMethod('Nagad',this)">
+            <i class="fa-solid fa-mobile-screen"></i><br>Nagad
+          </div>
+
+          <div class="method" onclick="selectMethod('Rocket',this)">
+            <i class="fa-solid fa-mobile-screen"></i><br>Rocket
+          </div>
+
+        </div>
+
+        <div class="form-group">
+          <label>Account Type</label>
+          <select id="withdraw-type" class="control">
+            <option>Personal</option>
+            <option>Agent</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Payment Number</label>
+          <input
+            id="withdraw-number"
+            class="control"
+            inputmode="numeric"
+            maxlength="15"
+            placeholder="017XXXXXXXX"
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Withdraw Amount (Coins)</label>
+          <input
+            id="withdraw-amount"
+            class="control"
+            type="number"
+            min="100"
+            step="0.01"
+            placeholder="Minimum 100"
+          >
+        </div>
+
+        <button id="withdraw-btn" class="btn" onclick="submitWithdrawal()">
+          <i class="fa-solid fa-paper-plane"></i> Confirm Request
+        </button>
+
       </div>
 
-    </div>
-
-  </div>
-
-</section>
-
-<!-- ================= WITHDRAW ================= -->
-
-<section id="tab-withdraw" class="tab">
-
-  <div class="page-title">
-    <h1>Withdraw</h1>
-    <p>Submit and track your withdrawal request</p>
-  </div>
-
-  <div class="card" style="max-width:520px;margin:auto">
-
-    <div class="notice" style="margin-bottom:15px">
-      <i class="fa-solid fa-coins"></i>
-      Available:
-      <b id="withdraw-balance">0.00 Coins</b>
-    </div>
-
-    <h3>Submit Withdraw Request</h3>
-
-    <p class="small" style="margin:5px 0 16px">
-      Select payment method and enter your details.
-    </p>
-
-    <div class="method-grid">
-
-      <div class="method selected" onclick="selectMethod('bKash',this)">
-        <i class="fa-solid fa-mobile-screen"></i>
-        <br>
-        bKash
+      <div class="card" style="max-width:700px;margin:20px auto 0">
+        <h3>My Withdrawal History</h3>
+        <div id="withdraw-history">
+          <div class="empty">Loading history...</div>
+        </div>
       </div>
 
-      <div class="method" onclick="selectMethod('Nagad',this)">
-        <i class="fa-solid fa-mobile-screen"></i>
-        <br>
-        Nagad
+    </section>
+
+    <!-- ANNOUNCEMENTS -->
+    <section id="tab-announcements" class="tab">
+
+      <div class="page-head">
+        <div>
+          <h1>Announcements</h1>
+          <p>Latest system notices and updates</p>
+        </div>
       </div>
 
-      <div class="method" onclick="selectMethod('Rocket',this)">
-        <i class="fa-solid fa-mobile-screen"></i>
-        <br>
-        Rocket
+      <div class="card">
+        <div id="announcement-list">
+          <div class="empty">Loading announcements...</div>
+        </div>
       </div>
 
-    </div>
+    </section>
 
-    <div class="form-group">
-      <label>Account Type</label>
-      <select id="withdraw-type" class="control">
-        <option value="Personal">Personal</option>
-        <option value="Agent">Agent</option>
-      </select>
-    </div>
+    <!-- GAMES -->
+    <section id="tab-games" class="tab">
 
-    <div class="form-group">
-      <label>Payment Number</label>
-      <input
-        id="withdraw-number"
-        class="control"
-        inputmode="numeric"
-        maxlength="15"
-        placeholder="017XXXXXXXX"
-      >
-    </div>
+      <div class="page-head">
+        <div>
+          <h1>Games 🎮</h1>
+          <p>Play available games</p>
+        </div>
+      </div>
 
-    <div class="form-group">
-      <label>Withdraw Amount (Coins)</label>
-      <input
-        id="withdraw-amount"
-        class="control"
-        type="number"
-        min="1000000"
-        step="0.01"
-        placeholder="Minimum 1,000,000"
-      >
-    </div>
+      <div class="card">
+        <div id="games-container" class="games">
+          <div class="empty">Loading games...</div>
+        </div>
+      </div>
 
-    <button id="withdraw-btn" class="btn" onclick="submitWithdrawal()">
-      <i class="fa-solid fa-paper-plane"></i>
-      Confirm Request
-    </button>
+    </section>
 
-  </div>
-
-  <div class="card" style="max-width:700px;margin:20px auto 0">
-    <h3>My Withdrawal History</h3>
-    <div id="withdraw-history">
-      <div class="empty">Loading history...</div>
-    </div>
-  </div>
-
-</section>
-
-<!-- ================= ANNOUNCEMENTS ================= -->
-
-<section id="tab-announcements" class="tab">
-
-  <div class="page-title">
-    <h1>Announcements</h1>
-    <p>Latest system notices and updates</p>
-  </div>
-
-  <div class="card">
-    <div id="announcement-list">
-      <div class="empty">Loading announcements...</div>
-    </div>
-  </div>
-
-</section>
-
-<!-- ================= GAMES ================= -->
-
-<section id="tab-games" class="tab">
-
-  <div class="page-title">
-    <h1>Games 🎮</h1>
-    <p>Play available games</p>
-  </div>
-
-  <div class="card">
-    <div id="games-container" class="games">
-      <div class="empty">Loading games...</div>
-    </div>
-  </div>
-
-</section>
-
-</main>
-
-<!-- ================= MOBILE NAV ================= -->
+  </main>
+</div>
 
 <nav class="mobile-nav">
-
   <button data-tab="home" class="active" onclick="switchTab('home',this)">
-    <i class="fa-solid fa-house"></i>
-    Home
+    <i class="fa-solid fa-house"></i>Home
   </button>
 
   <button data-tab="profile" onclick="switchTab('profile',this)">
-    <i class="fa-solid fa-user"></i>
-    Profile
+    <i class="fa-solid fa-user"></i>Profile
   </button>
 
   <button data-tab="withdraw" onclick="switchTab('withdraw',this)">
-    <i class="fa-solid fa-wallet"></i>
-    Withdraw
+    <i class="fa-solid fa-wallet"></i>Withdraw
   </button>
 
   <button data-tab="announcements" onclick="switchTab('announcements',this)">
-    <i class="fa-solid fa-bell"></i>
-    Notice
+    <i class="fa-solid fa-bell"></i>Notice
   </button>
 
   <button data-tab="games" onclick="switchTab('games',this)">
-    <i class="fa-solid fa-gamepad"></i>
-    Games
+    <i class="fa-solid fa-gamepad"></i>Games
   </button>
-
 </nav>
-
-<!-- ================= IN-APP GAME PLAYER (NEW) ================= -->
-
-<div id="gameModal" class="game-modal">
-  <div class="game-modal-bar">
-    <button type="button" class="game-modal-close" onclick="closeGame()">
-      <i class="fa-solid fa-xmark"></i> Close
-    </button>
-    <span id="gameModalTitle">Game</span>
-  </div>
-  <iframe
-    id="gameFrame"
-    title="Game"
-    allow="autoplay; fullscreen"
-    sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals"
-  ></iframe>
-  <div id="gameFrameLoading">Loading game...</div>
-</div>
-
-<!-- ================= FIREBASE ================= -->
 
 <script type="module">
 
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+/* =========================================================
+   JAVICASH FIREBASE
+   ========================================================= */
+
+import { initializeApp } from
+  "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from
+  "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 import {
   getDatabase,
   ref,
   onValue,
-  get,
   push,
   set,
   update,
   query,
   orderByChild,
   equalTo
-}
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-/* ================= FIREBASE AUTH ================= */
-
-import { getAuth, signOut }
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+} from
+  "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 
-/* ============================================
+/* =========================================================
    FIREBASE CONFIG
-============================================ */
+   ========================================================= */
 
 const firebaseConfig = {
   apiKey: "AIzaSyCwCrQBaYWr6Nr8jdZeeGGyQbjsFW-7LLQ",
@@ -667,212 +470,369 @@ const firebaseConfig = {
   databaseURL: "https://javicash-13a23-default-rtdb.firebaseio.com"
 };
 
+
+/* =========================================================
+   INITIALIZE FIREBASE
+   ========================================================= */
+
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-
-/* ============================================
-   FIREBASE AUTH
-============================================ */
 
 const auth = getAuth(app);
 
+const db = getDatabase(app);
 
-/* ============================================
-   SESSION CHECK
-============================================ */
+
+/* =========================================================
+   LOCAL JAVICASH SESSION
+   ========================================================= */
 
 const sessionData = localStorage.getItem("javicash_session");
 
 let session = null;
 
-try{
+try {
   session = sessionData ? JSON.parse(sessionData) : null;
-}catch(error){
+} catch(error) {
+  console.error("Session JSON error:", error);
   session = null;
 }
 
 
-/*
-  If member is not logged in,
-  send directly to index.html.
-*/
+/* =========================================================
+   SESSION CHECK
+   ========================================================= */
 
 if(!session || !session.uid){
 
-  window.location.replace("index.html");
+  window.location.href = "login.html";
 
   throw new Error("No active JAVICASH member session.");
 
 }
 
 
-/* ============================================
-   GLOBAL VARIABLES
-============================================ */
+/* =========================================================
+   IMPORTANT FIREBASE AUTH CHECK
+   =========================================================
+   Database Rules require:
+   auth != null
 
-let selectedPaymentMethod = "bKash";
+   Therefore we MUST wait until Firebase Authentication
+   has restored the logged-in member before reading RTDB.
+   ========================================================= */
 
-let firstMemberLoad = true;
+const firebaseUser = await new Promise((resolve) => {
 
+  let unsubscribe = null;
 
-/* ============================================
-   HELPER
-============================================ */
+  unsubscribe = onAuthStateChanged(auth, (user) => {
 
-const $ = id => document.getElementById(id);
-
-
-function money(value){
-
-  const number = Number(value);
-
-  if(!Number.isFinite(number))
-    return "0.00";
-
-  return number.toFixed(2);
-
-}
-
-
-function escapeHTML(value){
-
-  return String(value ?? "").replace(
-    /[&<>"']/g,
-    function(char){
-
-      return {
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        '"':"&quot;",
-        "'":"&#039;"
-      }[char];
-
+    if(unsubscribe){
+      unsubscribe();
     }
+
+    resolve(user);
+
+  });
+
+});
+
+
+/* =========================================================
+   AUTHENTICATION VALIDATION
+   ========================================================= */
+
+if(!firebaseUser){
+
+  localStorage.removeItem("javicash_session");
+
+  window.location.href = "login.html";
+
+  throw new Error(
+    "Firebase Authentication user is not signed in."
   );
 
 }
 
 
-/* ============================================
-   LOADING
-============================================ */
+/* =========================================================
+   FIREBASE UID MUST MATCH LOCAL SESSION UID
+   ========================================================= */
 
-function loadingMessage(title, message){
+if(firebaseUser.uid !== session.uid){
 
-  $("loadingTitle").textContent = title;
+  console.error("Auth UID mismatch.", {
+    firebaseUID: firebaseUser.uid,
+    sessionUID: session.uid
+  });
 
-  $("loadingMessage").textContent = message;
+  localStorage.removeItem("javicash_session");
 
-}
+  await signOut(auth).catch(() => {});
 
+  window.location.href = "login.html";
 
-function finishLoading(){
-
-  if(!firstMemberLoad)
-    return;
-
-  firstMemberLoad = false;
-
-  const screen = $("loadingScreen");
-
-  screen.style.opacity = "0";
-
-  setTimeout(function(){
-
-    if(screen)
-      screen.remove();
-
-  }, 350);
+  throw new Error(
+    "Firebase UID does not match JAVICASH session."
+  );
 
 }
 
 
-function showConnection(){
-  $("connectionStatus").style.display = "block";
+/* =========================================================
+   GLOBAL STATE
+   ========================================================= */
+
+let selectedPaymentMethod = "bKash";
+
+let firstUserLoad = true;
+
+let currentMemberData = null;
+
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+const $ = id => document.getElementById(id);
+
+
+const escapeHTML = value =>
+  String(value ?? "").replace(/[&<>\"']/g, c => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  }[c]));
+
+
+function money(value){
+
+  const n = Number(value);
+
+  return Number.isFinite(n)
+    ? n.toFixed(2)
+    : "0.00";
+
 }
 
 
-function hideConnection(){
-  $("connectionStatus").style.display = "none";
+function setLoadingText(text, sub = "Please wait..."){
+
+  if($("loadingText")){
+    $("loadingText").textContent = text;
+  }
+
+  if($("loadingSub")){
+    $("loadingSub").textContent = sub;
+  }
+
 }
 
 
-/* ============================================
+function finishInitialLoading(){
+
+  if(!firstUserLoad) return;
+
+  firstUserLoad = false;
+
+  const overlay = $("loading");
+
+  if(!overlay) return;
+
+  overlay.style.opacity = "0";
+
+  setTimeout(() => {
+
+    if(overlay && overlay.parentNode){
+      overlay.remove();
+    }
+
+  },320);
+
+}
+
+
+function connection(show){
+
+  if(!$("connection")) return;
+
+  $("connection").style.display =
+    show ? "block" : "none";
+
+}
+
+
+/* =========================================================
    MEMBER DATA
-============================================ */
+   =========================================================
+   IMPORTANT:
+   Firebase path remains:
+   users/{Firebase Auth UID}
 
-const userRef = ref(db, `users/${session.uid}`);
+   But displayed Unique Member ID comes from:
+   users/{uid}/uniqueId
+
+   NOT from Firebase Auth UID.
+   ========================================================= */
+
+const userRef =
+  ref(db, `users/${firebaseUser.uid}`);
 
 
 onValue(
-
   userRef,
 
-  function(snapshot){
+  snapshot => {
 
     if(snapshot.exists()){
 
       const data = snapshot.val() || {};
 
-      const name = data.name || session.name || "Member";
+      currentMemberData = data;
 
-      const email = data.email || session.email || "";
 
-      const uid = data.uid || session.uid;
+      /* -------------------------------
+         MEMBER NAME
+         ------------------------------- */
 
-      const balance = Number(data.balance || 0);
+      const name =
+        data.name ||
+        data.userName ||
+        session.name ||
+        "Member";
 
+
+      /* -------------------------------
+         MEMBER EMAIL
+         ------------------------------- */
+
+      const email =
+        data.email ||
+        session.email ||
+        firebaseUser.email ||
+        "";
+
+
+      /* -------------------------------
+         REAL JAVICASH UNIQUE MEMBER ID
+         -------------------------------
+         This is the important fix.
+         ------------------------------- */
+
+      const uniqueMemberId =
+        data.uniqueId ||
+        session.uniqueId ||
+        data.memberId ||
+        data.memberID ||
+        "-";
+
+
+      /* -------------------------------
+         BALANCE
+         ------------------------------- */
+
+      const balance =
+        Number(data.balance ?? data.coins ?? 0);
+
+
+      /* -------------------------------
+         UPDATE HOME
+         ------------------------------- */
 
       $("homeName").textContent = name;
 
-      $("user-balance").textContent = money(balance) + " Coins";
+      $("user-balance").textContent =
+        money(balance) + " Coins";
 
-      $("withdraw-balance").textContent = money(balance) + " Coins";
+      $("withdraw-balance").textContent =
+        money(balance) + " Coins";
 
-      $("dash-uid").textContent = uid;
 
-      $("prof-uid").value = uid;
+      /* -------------------------------
+         UPDATE REAL UNIQUE MEMBER ID
+         ------------------------------- */
 
-      $("prof-name").textContent = name;
+      $("dash-uid").textContent =
+        uniqueMemberId;
 
-      $("prof-fullname").value = name;
 
-      $("prof-email").textContent = email;
+      /* -------------------------------
+         UPDATE PROFILE
+         ------------------------------- */
 
+      $("prof-uid").value =
+        uniqueMemberId;
+
+      $("prof-name").textContent =
+        name;
+
+      $("prof-fullname").value =
+        name;
+
+      $("prof-email").textContent =
+        email;
+
+
+      /* -------------------------------
+         PROFILE IMAGE
+         ------------------------------- */
 
       if(data.profile_picture){
-        $("profile-img").src = data.profile_picture;
+
+        $("profile-img").src =
+          data.profile_picture;
+
+      }
+      else if(data.profilePhoto){
+
+        $("profile-img").src =
+          data.profilePhoto;
+
       }
 
 
-      hideConnection();
+      /* -------------------------------
+         SUCCESS
+         ------------------------------- */
 
-      finishLoading();
+      connection(false);
+
+      finishInitialLoading();
 
     }
-
     else{
 
-      loadingMessage(
+      console.warn(
+        "No users/{uid} record found:",
+        firebaseUser.uid
+      );
+
+      setLoadingText(
         "Member data not found",
         "Checking your account..."
       );
 
-      setTimeout(finishLoading, 1200);
+      setTimeout(
+        finishInitialLoading,
+        1500
+      );
 
     }
 
   },
 
-  function(error){
+  error => {
 
-    console.error("Member Firebase error:", error);
+    console.error(
+      "Member data error:",
+      error
+    );
 
-    showConnection();
+    connection(true);
 
-    loadingMessage(
+    setLoadingText(
       "Connection is slow",
       "Firebase is retrying automatically..."
     );
@@ -882,19 +842,21 @@ onValue(
 );
 
 
-/* ============================================
+/* =========================================================
    ADMIN CONTENT
-============================================ */
+   ========================================================= */
 
 onValue(
 
   ref(db,"contents"),
 
-  function(snapshot){
+  snapshot => {
 
-    const feed = $("content-feed");
+    const feed =
+      $("content-feed");
 
-    const notices = $("announcement-list");
+    const notices =
+      $("announcement-list");
 
 
     if(!snapshot.exists()){
@@ -914,7 +876,10 @@ onValue(
     }
 
 
-    const items = Object.entries(snapshot.val() || {}).reverse();
+    const items =
+      Object.entries(
+        snapshot.val() || {}
+      ).reverse();
 
 
     let feedHTML = "";
@@ -922,43 +887,53 @@ onValue(
     let noticeHTML = "";
 
 
-    items.forEach(function([key,item]){
+    items.forEach(([key,item]) => {
 
-      const title = escapeHTML(item.title || "Announcement");
+      const title =
+        escapeHTML(
+          item.title || "Announcement"
+        );
 
-      const text = escapeHTML(item.text || "");
+      const text =
+        escapeHTML(
+          item.text || ""
+        );
 
 
       let media = "";
 
 
-      if(item.type === "image" && item.url){
+      if(
+        item.type === "image" &&
+        item.url
+      ){
 
         media =
           `<img
-            src="${escapeHTML(item.url)}"
-            alt="Admin update"
-            loading="lazy"
-          >`;
+             src="${escapeHTML(item.url)}"
+             alt="Admin update"
+             loading="lazy"
+           >`;
 
       }
 
-
-      if(item.type === "video" && item.url){
+      else if(
+        item.type === "video" &&
+        item.url
+      ){
 
         media =
           `<video
-            src="${escapeHTML(item.url)}"
-            controls
-            preload="metadata"
-          ></video>`;
+             src="${escapeHTML(item.url)}"
+             controls
+             preload="metadata"
+           ></video>`;
 
       }
 
 
       feedHTML +=
         `<div class="card feed">
-
           <div class="feed-title">
             ${title}
           </div>
@@ -968,24 +943,15 @@ onValue(
           </div>
 
           ${media}
-
         </div>`;
 
 
       noticeHTML +=
-        `<div
-          style="
-            padding:14px 0;
-            border-bottom:1px solid var(--border)
-          "
-        >
-
+        `<div style="padding:14px 0;border-bottom:1px solid var(--border)">
           <b>${title}</b>
-
           <div class="feed-text">
             ${text}
           </div>
-
         </div>`;
 
     });
@@ -993,7 +959,7 @@ onValue(
 
     feed.innerHTML =
       feedHTML ||
-      `<div class="empty">
+      `<div class="card empty">
         No updates available.
       </div>`;
 
@@ -1006,88 +972,38 @@ onValue(
 
   },
 
-  function(error){
+  error => {
 
-    console.error("Contents error:", error);
+    console.error(
+      "Contents error:",
+      error
+    );
 
   }
 
 );
 
 
-/* ============================================
-   GAMES  (FIXED)
-   ------------------------------------------
-   BUG THAT WAS HERE:
-   The code read `game.link` and `game.image`, but
-   your database stores `gameUrl` and `iconUrl`.
-   So the link became "#" and "Play Game" simply
-   re-opened this same dashboard (loading screen
-   again), and the image fell back to a dead
-   placeholder service.
-
-   NOW:
-   - reads gameUrl / iconUrl (still accepts old
-     link / image names as a fallback)
-   - Play Game opens the game INSIDE the app in a
-     full-screen player (no new tab, no redirect)
-   - broken icons get a safe fallback picture
-============================================ */
-
-const GAME_FALLBACK_ICON =
-  "data:image/svg+xml;utf8," +
-  encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240">' +
-    '<rect width="400" height="240" fill="#12263b"/>' +
-    '<text x="200" y="145" font-size="80" text-anchor="middle">🎮</text></svg>'
-  );
-
-
-/* Pulls a clean https URL even if it was saved as [url](url) */
-
-function cleanUrl(value){
-
-  const match =
-    String(value || "").match(/https?:\/\/[^\s)\]"'<>]+/);
-
-  return match ? match[0] : "";
-
-}
-
-
-window.gameImgFallback = function(img){
-
-  img.onerror = null;
-
-  img.src = GAME_FALLBACK_ICON;
-
-};
-
+/* =========================================================
+   GAMES
+   ========================================================= */
 
 onValue(
 
   ref(db,"games"),
 
-  function(snapshot){
+  snapshot => {
 
-    const box = $("games-container");
-
-    box.className = "store-list";
-
-
-    function showEmpty(text){
-
-      box.innerHTML =
-        `<div class="empty" style="grid-column:1 / -1">
-          ${text}
-        </div>`;
-
-    }
+    const box =
+      $("games-container");
 
 
     if(!snapshot.exists()){
 
-      showEmpty("No games uploaded yet.");
+      box.innerHTML =
+        `<div class="empty">
+          No games uploaded yet.
+        </div>`;
 
       return;
 
@@ -1095,346 +1011,94 @@ onValue(
 
 
     const games =
-      Object.entries(snapshot.val() || {})
-        .filter(function([key,game]){
-          return (
-            game &&
-            game.isActive !== false &&
-            cleanUrl(game.gameUrl || game.link)
+      Object.entries(
+        snapshot.val() || {}
+      ).reverse();
+
+
+    box.innerHTML =
+      games.map(([key,game]) => {
+
+        const title =
+          escapeHTML(
+            game.title ||
+            "Untitled Game"
           );
-        })
-        .reverse();
 
 
-    if(!games.length){
-
-      showEmpty("No games available right now.");
-
-      return;
-
-    }
+        const image =
+          escapeHTML(
+            game.image ||
+            "https://via.placeholder.com/400x240?text=Game"
+          );
 
 
-    box.innerHTML = games.map(function([key,game]){
-
-      const title = escapeHTML(game.title || "Untitled Game");
-
-      const image = escapeHTML(cleanUrl(game.iconUrl || game.image));
-
-      const link = escapeHTML(cleanUrl(game.gameUrl || game.link));
+        const link =
+          escapeHTML(
+            game.link || "#"
+          );
 
 
-      const imgTag = image
-        ? `<img
-            class="store-icon"
-            src="${image}"
-            alt="${title}"
-            loading="lazy"
-            referrerpolicy="no-referrer"
-            onerror="gameImgFallback(this)"
-          >`
-        : `<img class="store-icon" src="${GAME_FALLBACK_ICON}" alt="${title}">`;
+        return `
+          <div class="game">
 
+            <img
+              src="${image}"
+              alt="${title}"
+              loading="lazy"
+            >
 
-      return `
-        <div
-          class="store-card"
-          role="button"
-          tabindex="0"
-          data-url="${link}"
-          data-title="${title}"
-        >
+            <h4>${title}</h4>
 
-          ${imgTag}
+            <a
+              href="${link}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn"
+              style="padding:9px;font-size:13px"
+            >
+              <i class="fa-solid fa-play"></i>
+              Play Game
+            </a>
 
-          <div class="store-name">${title}</div>
+          </div>
+        `;
 
-          <div class="store-sub">Free • Tap to play</div>
-
-          <button type="button" class="store-play">Play</button>
-
-        </div>
-      `;
-
-    }).join("");
-
-
-    box.querySelectorAll(".store-card").forEach(function(card){
-
-      function play(){
-        openGame(card.dataset.url, card.dataset.title);
-      }
-
-      card.addEventListener("click", play);
-
-      card.addEventListener("keydown", function(event){
-        if(event.key === "Enter") play();
-      });
-
-    });
+      }).join("");
 
   },
 
-  function(error){
+  error => {
 
-    console.error("Games error:", error);
+    console.error(
+      "Games error:",
+      error
+    );
 
   }
 
 );
 
 
-/* ============================================
-   IN-APP GAME PLAYER
-============================================ */
-
-let gameIsOpen = false;
-
-
-let gameReady = false;
-
-let gameClosing = false;
-
-
-/* The game tells us when it is loaded and able to save coins. */
-
-window.addEventListener("message", function(event){
-
-  const frame = $("gameFrame");
-
-  if(event.source !== frame.contentWindow)
-    return;
-
-  const data = event.data;
-
-  if(data && data.type === "JAVICASH_GAME_READY")
-    gameReady = true;
-
-});
-
-
-/* Asks the game to add its collected coins to this member's balance. */
-
-function askGameToSave(){
-
-  return new Promise(function(resolve){
-
-    const frame = $("gameFrame");
-
-    let finished = false;
-
-    let timer = null;
-
-    function finish(result){
-
-      if(finished)
-        return;
-
-      finished = true;
-
-      clearTimeout(timer);
-
-      window.removeEventListener("message", onMessage);
-
-      resolve(result || null);
-
-    }
-
-    function onMessage(event){
-
-      if(event.source !== frame.contentWindow)
-        return;
-
-      const data = event.data;
-
-      if(data && data.type === "JAVICASH_FLUSH_DONE")
-        finish(data);
-
-    }
-
-    window.addEventListener("message", onMessage);
-
-    timer = setTimeout(function(){
-      finish(null);
-    }, 9000);
-
-    try{
-
-      frame.contentWindow.postMessage(
-        { type:"JAVICASH_FLUSH_REQUEST" },
-        "*"
-      );
-
-    }catch(error){
-
-      finish(null);
-
-    }
-
-  });
-
-}
-
-
-function wait(ms){
-
-  return new Promise(function(resolve){
-    setTimeout(resolve, ms);
-  });
-
-}
-
-
-async function hideGame(){
-
-  if(gameClosing)
-    return;
-
-  gameClosing = true;
-
-  const loading = $("gameFrameLoading");
-
-  /* Back button: save the coins first, then close the game. */
-
-  if(gameReady){
-
-    loading.textContent = "Saving your coins...";
-
-    loading.style.display = "flex";
-
-    const result = await askGameToSave();
-
-    if(result && result.ok && result.credited > 0){
-
-      loading.textContent =
-        "✓ " + result.credited + " coins added to your balance";
-
-      await wait(1300);
-
-    }
-
-    else if(result && !result.ok){
-
-      loading.textContent =
-        "Coins could not be saved now (" +
-        (result.detail || result.reason || "error") +
-        "). They are kept for next time.";
-
-      await wait(2800);
-
-    }
-
-  }
-
-  const frame = $("gameFrame");
-
-  frame.onload = null;
-
-  frame.src = "about:blank";
-
-  $("gameModal").classList.remove("open");
-
-  document.body.style.overflow = "";
-
-  gameIsOpen = false;
-
-  gameClosing = false;
-
-  gameReady = false;
-
-  loading.textContent = "Loading game...";
-
-}
-
-
-window.openGame = function(url, title){
-
-  if(!/^https:\/\//i.test(url || "")){
-
-    alert("Game link is not available.");
-
-    return;
-
-  }
-
-  if(gameIsOpen)
-    return;
-
-  gameIsOpen = true;
-
-  $("gameModalTitle").textContent = title || "Game";
-
-  $("gameFrameLoading").textContent = "Loading game...";
-
-  gameReady = false;
-
-  $("gameFrameLoading").style.display = "flex";
-
-  const frame = $("gameFrame");
-
-  frame.onload = function(){
-    $("gameFrameLoading").style.display = "none";
-  };
-
-  frame.src = url;
-
-  $("gameModal").classList.add("open");
-
-  document.body.style.overflow = "hidden";
-
-  /* So the phone Back button closes the game, not the dashboard */
-
-  try{
-    history.pushState({javicashGame:true}, "");
-  }catch(error){}
-
-};
-
-
-window.closeGame = function(){
-
-  if(
-    gameIsOpen &&
-    history.state &&
-    history.state.javicashGame
-  ){
-    history.back();
-  }
-
-  else{
-    hideGame();
-  }
-
-};
-
-
-window.addEventListener("popstate", function(){
-
-  if(gameIsOpen)
-    hideGame();
-
-});
-
-
-/* ============================================
+/* =========================================================
    WITHDRAWAL HISTORY
-============================================ */
+   ========================================================= */
 
-const myWithdrawalsQuery =
-  query(
-    ref(db,"withdrawals"),
-    orderByChild("uid"),
-    equalTo(session.uid)
-  );
+const myWithdrawalsQuery = query(
+  ref(db,"withdrawals"),
+  orderByChild("uid"),
+  equalTo(firebaseUser.uid)
+);
 
 
 onValue(
 
   myWithdrawalsQuery,
 
-  function(snapshot){
+  snapshot => {
 
-    const box = $("withdraw-history");
+    const box =
+      $("withdraw-history");
 
 
     if(!snapshot.exists()){
@@ -1450,92 +1114,91 @@ onValue(
 
 
     const rows =
-      Object.values(snapshot.val() || {}).sort(
+      Object.values(
+        snapshot.val() || {}
+      ).sort(
         (a,b) =>
           Number(b.timestamp || 0) -
           Number(a.timestamp || 0)
       );
 
 
-    box.innerHTML = rows.map(function(req){
+    box.innerHTML =
+      rows.map(req => {
 
-      const status = String(req.status || "Pending");
-
-
-      let statusClass = "pending";
-
-
-      if(status === "Approved")
-        statusClass = "approved";
+        const status =
+          String(
+            req.status || "Pending"
+          );
 
 
-      if(status === "Rejected")
-        statusClass = "rejected";
+        const cls =
+          status === "Approved"
+            ? "approved"
+            : status === "Rejected"
+              ? "rejected"
+              : "pending";
 
 
-      const date =
-        req.timestamp
-        ? new Date(req.timestamp).toLocaleString()
-        : "-";
+        const date =
+          req.timestamp
+            ? new Date(
+                req.timestamp
+              ).toLocaleString()
+            : "-";
 
 
-      return `
-        <div class="history-row">
+        return `
+          <div class="history-row">
 
-          <div>
+            <div>
 
-            <b>
-              ${escapeHTML(req.method || "-")}
-              (${escapeHTML(req.accountType || "-")})
-            </b>
+              <b>
+                ${escapeHTML(
+                  req.method || "-"
+                )}
+                (${escapeHTML(
+                  req.accountType || "-"
+                )})
+              </b>
 
-            <div class="small">
-              ${escapeHTML(req.number || "-")}
+              <div class="small">
+                ${escapeHTML(
+                  req.number || "-"
+                )}
+              </div>
+
+              <div class="small">
+                ${escapeHTML(date)}
+              </div>
+
             </div>
 
-            <div class="small">
-              ${escapeHTML(date)}
-            </div>
+            <div style="text-align:right;white-space:nowrap">
 
-          </div>
+              <b>
+                ${money(req.amount)} Coins
+              </b>
 
-          <div
-            style="
-              text-align:right;
-              white-space:nowrap
-            "
-          >
-
-            <b>
-              ${money(req.amount)}
-              Coins
-            </b>
-
-            <div
-              class="${statusClass}"
-              style="
-                font-size:11px;
-                font-weight:700;
-                margin-top:4px
-              "
-            >
-
-              ${escapeHTML(status)}
+              <div class="badge ${cls}">
+                ${escapeHTML(status)}
+              </div>
 
             </div>
 
           </div>
+        `;
 
-        </div>
-      `;
-
-    }).join("");
+      }).join("");
 
   },
 
-  function(error){
+  error => {
 
-    console.error("Withdrawal history error:", error);
+    console.error(
+      "Withdrawal history error:",
+      error
+    );
 
     $("withdraw-history").innerHTML =
       `<div class="empty">
@@ -1547,22 +1210,33 @@ onValue(
 );
 
 
-/* ============================================
-   PROFILE PICTURE
-============================================ */
+/* =========================================================
+   PROFILE IMAGE
+   ========================================================= */
 
-window.uploadProfilePicture = function(event){
+window.uploadProfilePicture =
+async function(event){
 
-  const file = event.target.files?.[0];
+  const file =
+    event.target.files?.[0];
 
 
-  if(!file || !session?.uid)
+  if(
+    !file ||
+    !firebaseUser?.uid
+  ){
     return;
+  }
 
 
-  if(file.size > 1.5 * 1024 * 1024){
+  if(
+    file.size >
+    1.5 * 1024 * 1024
+  ){
 
-    alert("Please select an image smaller than 1.5 MB.");
+    alert(
+      "Please select an image smaller than 1.5 MB."
+    );
 
     event.target.value = "";
 
@@ -1571,34 +1245,50 @@ window.uploadProfilePicture = function(event){
   }
 
 
-  const reader = new FileReader();
+  const reader =
+    new FileReader();
 
 
-  reader.onload = async function(event){
+  reader.onload =
+  async e => {
 
-    const image = event.target.result;
+    const dataURL =
+      e.target.result;
 
 
-    $("profile-img").src = image;
+    $("profile-img").src =
+      dataURL;
 
 
     try{
 
       await update(
-        ref(db, `users/${session.uid}`),
-        { profile_picture: image }
+        ref(
+          db,
+          `users/${firebaseUser.uid}`
+        ),
+        {
+          profile_picture:
+            dataURL
+        }
       );
 
 
-      alert("Profile picture updated successfully.");
+      alert(
+        "Profile picture updated successfully."
+      );
 
     }
+    catch(err){
 
-    catch(error){
+      console.error(
+        "Profile picture update error:",
+        err
+      );
 
-      console.error(error);
-
-      alert("Could not update profile picture.");
+      alert(
+        "Could not update profile picture. Please try again."
+      );
 
     }
 
@@ -1610,35 +1300,52 @@ window.uploadProfilePicture = function(event){
 };
 
 
-/* ============================================
-   WITHDRAW
-   MINIMUM = 1,000,000 COINS
-============================================ */
+/* =========================================================
+   WITHDRAWAL REQUEST
+   ========================================================= */
 
-const MIN_WITHDRAW_AMOUNT = 1000000;
+window.submitWithdrawal =
+async function(){
 
-
-window.submitWithdrawal = async function(){
-
-  const type = $("withdraw-type").value;
-
-  const number = $("withdraw-number").value.trim();
-
-  const amount = Number($("withdraw-amount").value);
+  const type =
+    $("withdraw-type").value;
 
 
-  if(!/^01[3-9]\d{8}$/.test(number)){
+  const number =
+    $("withdraw-number").value.trim();
 
-    alert("Please enter a valid Bangladesh mobile number, e.g. 017XXXXXXXX.");
+
+  const amount =
+    Number(
+      $("withdraw-amount").value
+    );
+
+
+  const btn =
+    $("withdraw-btn");
+
+
+  if(
+    !/^01[3-9]\d{8}$/.test(number)
+  ){
+
+    alert(
+      "Please enter a valid Bangladesh mobile number, e.g. 017XXXXXXXX."
+    );
 
     return;
 
   }
 
 
-  if(!Number.isFinite(amount) || amount < MIN_WITHDRAW_AMOUNT){
+  if(
+    !Number.isFinite(amount) ||
+    amount < 100
+  ){
 
-    alert("Minimum withdrawal amount is 1,000,000 Coins.");
+    alert(
+      "Minimum withdrawal amount is 100 Coins."
+    );
 
     return;
 
@@ -1647,93 +1354,124 @@ window.submitWithdrawal = async function(){
 
   const currentBalance =
     Number(
-      $("user-balance").textContent.replace(/[^\d.-]/g,"")
+      $("user-balance")
+        .textContent
+        .replace(/[^\d.-]/g,"")
     ) || 0;
 
 
   if(amount > currentBalance){
 
-    alert("Insufficient balance.");
+    alert(
+      "Insufficient balance."
+    );
 
     return;
 
   }
 
 
-  if(!session?.uid){
+  if(!firebaseUser?.uid){
 
-    alert("Session expired. Please login again.");
+    alert(
+      "Session expired. Please login again."
+    );
 
-    logout();
+    await logout();
 
     return;
 
   }
 
 
-  const button = $("withdraw-btn");
+  btn.disabled = true;
 
+  btn.style.opacity = ".65";
 
-  button.disabled = true;
-
-  button.innerHTML =
+  btn.innerHTML =
     `<i class="fa-solid fa-spinner fa-spin"></i>
      Submitting...`;
 
 
   try{
 
-    const newRef = push(ref(db,"withdrawals"));
+    const newRef =
+      push(
+        ref(db,"withdrawals")
+      );
 
 
-    await set(newRef, {
+    await set(
+      newRef,
+      {
 
-      requestId: newRef.key,
+        requestId:
+          newRef.key,
 
-      uid: session.uid,
+        uid:
+          firebaseUser.uid,
 
-      userName:
-        session.name ||
-        $("prof-name").textContent ||
-        "Member",
+        userName:
+          currentMemberData?.name ||
+          currentMemberData?.userName ||
+          session.name ||
+          $("prof-name").textContent ||
+          "Member",
 
-      method: selectedPaymentMethod,
+        method:
+          selectedPaymentMethod,
 
-      accountType: type,
+        accountType:
+          type,
 
-      number: number,
+        number:
+          number,
 
-      amount: amount,
+        amount:
+          amount,
 
-      status: "Pending",
+        status:
+          "Pending",
 
-      timestamp: Date.now()
+        timestamp:
+          Date.now()
 
-    });
-
-
-    $("withdraw-number").value = "";
-
-    $("withdraw-amount").value = "";
+      }
+    );
 
 
-    alert("Withdrawal request submitted successfully!");
+    $("withdraw-number").value =
+      "";
+
+    $("withdraw-amount").value =
+      "";
+
+
+    alert(
+      "Withdrawal request submitted successfully!"
+    );
 
   }
+  catch(err){
 
-  catch(error){
+    console.error(
+      "Withdrawal submit error:",
+      err
+    );
 
-    console.error(error);
 
-    alert("Request failed. Please check your internet connection and try again.");
+    alert(
+      "Request failed. Please check your internet connection and try again."
+    );
 
   }
-
   finally{
 
-    button.disabled = false;
+    btn.disabled = false;
 
-    button.innerHTML =
+    btn.style.opacity = "1";
+
+    btn.innerHTML =
       `<i class="fa-solid fa-paper-plane"></i>
        Confirm Request`;
 
@@ -1742,332 +1480,251 @@ window.submitWithdrawal = async function(){
 };
 
 
-/* ============================================
+/* =========================================================
    PAYMENT METHOD
-============================================ */
+   ========================================================= */
 
-window.selectMethod = function(method, element){
+window.selectMethod =
+function(method,el){
 
-  selectedPaymentMethod = method;
-
-
-  document.querySelectorAll(".method").forEach(function(item){
-    item.classList.remove("selected");
-  });
+  selectedPaymentMethod =
+    method;
 
 
-  element.classList.add("selected");
+  document
+    .querySelectorAll(".method")
+    .forEach(
+      x =>
+        x.classList.remove(
+          "selected"
+        )
+    );
+
+
+  el.classList.add(
+    "selected"
+  );
 
 };
 
 
-/* ============================================
+/* =========================================================
    TAB SWITCH
-============================================ */
+   ========================================================= */
 
-window.switchTab = function(tab, clicked){
+window.switchTab =
+function(tab,clicked){
 
-  document.querySelectorAll(".tab").forEach(function(item){
-    item.classList.remove("active");
-  });
-
-
-  document.querySelectorAll(".menu-item").forEach(function(item){
-    item.classList.remove("active");
-  });
-
-
-  document.querySelectorAll(".mobile-nav button").forEach(function(item){
-    item.classList.remove("active");
-  });
+  document
+    .querySelectorAll(".tab")
+    .forEach(
+      x =>
+        x.classList.remove(
+          "active"
+        )
+    );
 
 
-  $("tab-" + tab).classList.add("active");
+  document
+    .querySelectorAll(".nav-item")
+    .forEach(
+      x =>
+        x.classList.remove(
+          "active"
+        )
+    );
 
 
-  document.querySelectorAll(`[data-tab="${tab}"]`).forEach(function(item){
-    item.classList.add("active");
-  });
+  document
+    .querySelectorAll(
+      ".mobile-nav button"
+    )
+    .forEach(
+      x =>
+        x.classList.remove(
+          "active"
+        )
+    );
+
+
+  const target =
+    $("tab-" + tab);
+
+
+  if(target){
+
+    target.classList.add(
+      "active"
+    );
+
+  }
+
+
+  document
+    .querySelectorAll(
+      `[data-tab="${tab}"]`
+    )
+    .forEach(
+      x =>
+        x.classList.add(
+          "active"
+        )
+    );
 
 
   if(clicked){
-    clicked.classList.add("active");
+
+    clicked.classList.add(
+      "active"
+    );
+
   }
 
 
-  $("sidebar").classList.remove("open");
+  $("sidebar")
+    .classList.remove(
+      "open"
+    );
 
 
   window.scrollTo({
-    top: 0,
-    behavior: "smooth"
+    top:0,
+    behavior:"smooth"
   });
 
 };
 
 
-/* ============================================
-   GO WITHDRAW
-============================================ */
+/* =========================================================
+   GO TO WITHDRAW
+   ========================================================= */
 
-window.goWithdraw = function(){
+window.goWithdraw =
+function(){
 
   const item =
-    document.querySelector('.menu-item[data-tab="withdraw"]');
+    document.querySelector(
+      '.nav-item[data-tab="withdraw"]'
+    );
 
 
-  switchTab("withdraw", item);
+  switchTab(
+    "withdraw",
+    item
+  );
 
 };
 
 
-/* ============================================
+/* =========================================================
    SIDEBAR
-============================================ */
+   ========================================================= */
 
-window.toggleSidebar = function(){
+window.toggleSidebar =
+function(){
 
-  $("sidebar").classList.toggle("open");
+  $("sidebar")
+    .classList.toggle(
+      "open"
+    );
 
 };
 
 
-/* ============================================
-   AI SUPPORT (NEW)
-   ------------------------------------------
-   Reads the chat URL from Firebase Realtime
-   Database at:  app_config/ai_chat_url
-   then opens it with window.location.href.
+/* =========================================================
+   LOGOUT
+   =========================================================
+   IMPORTANT:
+   Now both local session AND Firebase Auth
+   are signed out.
+   ========================================================= */
 
-   Fallbacks:
-   - shows "Connecting..." while loading
-   - ignores extra taps while loading
-   - 10 second timeout if the network is slow
-   - friendly message if offline, missing,
-     invalid, or if the database read fails
-============================================ */
-
-const AI_SUPPORT_DEFAULT_SUB = "Instant Automated & Live Assistance";
-
-let aiSupportLoading = false;
-
-
-function aiSupportSetState(isLoading, text){
-
-  const item = $("aiSupportItem");
-
-  const sub = $("aiSupportSub");
-
-  if(item)
-    item.classList.toggle("loading", isLoading);
-
-  if(sub)
-    sub.textContent = text || AI_SUPPORT_DEFAULT_SUB;
-
-}
-
-
-window.openAiSupport = async function(){
-
-  /* Ignore taps while the URL is already being fetched */
-
-  if(aiSupportLoading)
-    return;
-
-  aiSupportLoading = true;
-
-  aiSupportSetState(true, "Connecting to AI Support...");
-
-  let timer = null;
+window.logout =
+async function(){
 
   try{
 
-    if(navigator.onLine === false)
-      throw new Error("offline");
+    localStorage.removeItem(
+      "javicash_session"
+    );
 
-    const timeout = new Promise(function(resolve, reject){
-      timer = setTimeout(function(){
-        reject(new Error("timeout"));
-      }, 10000);
-    });
-
-    const snapshot =
-      await Promise.race([
-        get(ref(db, "app_config/ai_chat_url")),
-        timeout
-      ]);
-
-    clearTimeout(timer);
-
-    const url =
-      snapshot.exists()
-      ? cleanUrl(snapshot.val())
-      : "";
-
-    if(!/^https?:\/\//i.test(url))
-      throw new Error("missing-or-invalid-url");
-
-    $("sidebar").classList.remove("open");
-
-    window.location.href = url;
+    await signOut(auth);
 
   }
-
   catch(error){
 
-    clearTimeout(timer);
+    console.error(
+      "Firebase logout error:",
+      error
+    );
 
-    console.error("AI Support error:", error);
-
-    alert(
-      "JaviCash AI Support is not available right now.\n" +
-      "Please check your internet connection and try again in a moment."
+    localStorage.removeItem(
+      "javicash_session"
     );
 
   }
-
   finally{
 
-    aiSupportLoading = false;
-
-    aiSupportSetState(false);
+    window.location.href =
+      "login.html";
 
   }
 
 };
 
 
-/* ============================================
-   LOGOUT
-   FIREBASE SIGN OUT + SESSION CLEAR
-   MANUAL LOGIN REQUIRED AFTER LOGOUT
-============================================ */
+/* =========================================================
+   NETWORK STATE
+   ========================================================= */
 
-let logoutStarted = false;
-
-
-window.logout = function(){
-
-  /*
-    Prevent multiple clicks.
-  */
-
-  if(logoutStarted)
-    return;
-
-  logoutStarted = true;
+window.addEventListener(
+  "online",
+  () => connection(false)
+);
 
 
-  /*
-    IMPORTANT:
-    This marker tells index.html that the user
-    explicitly pressed Logout.
-
-    index.html MUST check this marker before
-    restoring any old automatic-login session.
-  */
-
-  try{
-
-    localStorage.setItem("javicash_manual_logout", "1");
-
-    /*
-      Remove the local JAVICASH session
-      immediately.
-    */
-
-    localStorage.removeItem("javicash_session");
+window.addEventListener(
+  "offline",
+  () => connection(true)
+);
 
 
-    if(session?.uid){
+/* =========================================================
+   INITIAL LOADING SAFETY
+   ========================================================= */
 
-      localStorage.removeItem(`javicash_user_cache_${session.uid}`);
+setTimeout(() => {
 
-    }
+  if(firstUserLoad){
 
-  }
-
-  catch(error){
-
-    console.error("Logout local cleanup error:", error);
-
-  }
-
-
-  /*
-    Sign out Firebase Authentication.
-
-    We intentionally DO NOT wait for this promise
-    before redirecting because the local logout
-    state above already blocks index.html from
-    auto-restoring the old dashboard session.
-  */
-
-  try{
-
-    signOut(auth).catch(function(error){
-
-      console.error("Firebase signOut error:", error);
-
-    });
-
-  }
-
-  catch(error){
-
-    console.error("Firebase signOut start error:", error);
-
-  }
-
-
-  /*
-    Immediate redirect.
-    replace() also prevents the dashboard from
-    being restored through normal browser history.
-  */
-
-  window.location.replace("index.html");
-
-};
-
-
-/* ============================================
-   NETWORK STATUS
-============================================ */
-
-window.addEventListener("online", function(){
-  hideConnection();
-});
-
-
-window.addEventListener("offline", function(){
-  showConnection();
-});
-
-
-/* ============================================
-   SLOW NETWORK SAFETY
-============================================ */
-
-setTimeout(function(){
-
-  if(firstMemberLoad){
-
-    loadingMessage(
+    setLoadingText(
       "Still connecting...",
-      "Your network is slow. Firebase will continue syncing."
+      "Your connection is slow. Firebase will continue syncing."
     );
 
 
-    setTimeout(function(){
-
-      finishLoading();
-
-    }, 4000);
+    setTimeout(
+      finishInitialLoading,
+      4000
+    );
 
   }
 
-}, 10000);
+},10000);
+
+
+/* =========================================================
+   AUTH DEBUG
+   ========================================================= */
+
+console.log(
+  "JAVICASH Firebase Auth:",
+  firebaseUser.uid
+);
+
+console.log(
+  "JAVICASH dashboard ready."
+);
 
 </script>
 
