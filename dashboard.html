@@ -84,6 +84,13 @@ body{
 .logout-item{margin-top:28px;color:#ff7180!important;}
 .logout-item:hover{background:rgba(255,71,87,.15)!important;color:#ff7180!important;box-shadow:none!important;}
 
+/* ===== AI SUPPORT MENU ITEM (NEW - only affects the new item) ===== */
+.ai-support-item{margin-top:14px;}
+.ai-support-item .ai-support-text{display:flex;flex-direction:column;min-width:0;line-height:1.25;}
+.ai-support-item .ai-support-title{font-size:14px;font-weight:600;}
+.ai-support-item .ai-support-sub{font-size:10.5px;opacity:.75;margin-top:2px;}
+.ai-support-item.loading{pointer-events:none;opacity:.7;}
+
 /* ================= MAIN ================= */
 
 .main{margin-left:250px;padding:88px 24px 30px;max-width:1500px;}
@@ -311,6 +318,16 @@ body{
     <li class="menu-item" data-tab="games" onclick="switchTab('games',this)">
       <i class="fa-solid fa-gamepad"></i>
       Games 🎮
+    </li>
+
+    <!-- ================= AI SUPPORT (NEW) ================= -->
+
+    <li class="menu-item ai-support-item" id="aiSupportItem" onclick="openAiSupport()">
+      <i class="fa-solid fa-robot"></i>
+      <span class="ai-support-text">
+        <span class="ai-support-title">JaviCash 24/7 AI Support</span>
+        <span class="ai-support-sub" id="aiSupportSub">Instant Automated &amp; Live Assistance</span>
+      </span>
     </li>
 
     <!-- ================= LOGOUT ================= -->
@@ -620,6 +637,7 @@ import {
   getDatabase,
   ref,
   onValue,
+  get,
   push,
   set,
   update,
@@ -1810,6 +1828,111 @@ window.goWithdraw = function(){
 window.toggleSidebar = function(){
 
   $("sidebar").classList.toggle("open");
+
+};
+
+
+/* ============================================
+   AI SUPPORT (NEW)
+   ------------------------------------------
+   Reads the chat URL from Firebase Realtime
+   Database at:  app_config/ai_chat_url
+   then opens it with window.location.href.
+
+   Fallbacks:
+   - shows "Connecting..." while loading
+   - ignores extra taps while loading
+   - 10 second timeout if the network is slow
+   - friendly message if offline, missing,
+     invalid, or if the database read fails
+============================================ */
+
+const AI_SUPPORT_DEFAULT_SUB = "Instant Automated & Live Assistance";
+
+let aiSupportLoading = false;
+
+
+function aiSupportSetState(isLoading, text){
+
+  const item = $("aiSupportItem");
+
+  const sub = $("aiSupportSub");
+
+  if(item)
+    item.classList.toggle("loading", isLoading);
+
+  if(sub)
+    sub.textContent = text || AI_SUPPORT_DEFAULT_SUB;
+
+}
+
+
+window.openAiSupport = async function(){
+
+  /* Ignore taps while the URL is already being fetched */
+
+  if(aiSupportLoading)
+    return;
+
+  aiSupportLoading = true;
+
+  aiSupportSetState(true, "Connecting to AI Support...");
+
+  let timer = null;
+
+  try{
+
+    if(navigator.onLine === false)
+      throw new Error("offline");
+
+    const timeout = new Promise(function(resolve, reject){
+      timer = setTimeout(function(){
+        reject(new Error("timeout"));
+      }, 10000);
+    });
+
+    const snapshot =
+      await Promise.race([
+        get(ref(db, "app_config/ai_chat_url")),
+        timeout
+      ]);
+
+    clearTimeout(timer);
+
+    const url =
+      snapshot.exists()
+      ? cleanUrl(snapshot.val())
+      : "";
+
+    if(!/^https?:\/\//i.test(url))
+      throw new Error("missing-or-invalid-url");
+
+    $("sidebar").classList.remove("open");
+
+    window.location.href = url;
+
+  }
+
+  catch(error){
+
+    clearTimeout(timer);
+
+    console.error("AI Support error:", error);
+
+    alert(
+      "JaviCash AI Support is not available right now.\n" +
+      "Please check your internet connection and try again in a moment."
+    );
+
+  }
+
+  finally{
+
+    aiSupportLoading = false;
+
+    aiSupportSetState(false);
+
+  }
 
 };
 
