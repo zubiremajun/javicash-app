@@ -1510,18 +1510,65 @@
       }
 
 
+      /*
+       * IMPORTANT:
+       *
+       * session.uid MUST always be the
+       * Firebase Authentication UID.
+       *
+       * The 6-digit JAVICASH Member ID
+       * is stored separately.
+       */
+
+      const memberId =
+        userData.memberId ||
+        userData.uniqueId ||
+        userData.memberID ||
+        (
+          userData.uid &&
+          /^\d{6}$/.test(
+            String(userData.uid)
+          )
+            ? String(userData.uid)
+            : ""
+        );
+
+
       const session = {
 
+        /*
+         * Firebase Authentication UID
+         */
         uid:
-          userData.memberId ||
-          userData.uid ||
-          "",
+          firebaseUser.uid,
 
+        /*
+         * Same Firebase Authentication UID
+         * kept explicitly for compatibility.
+         */
         authUid:
           firebaseUser.uid,
 
+        /*
+         * JAVICASH 6-digit Member ID
+         */
+        memberId:
+          memberId || "",
+
+        /*
+         * Compatibility aliases for Dashboard
+         */
+        uniqueId:
+          memberId || "",
+
+        memberID:
+          memberId || "",
+
         name:
-          userData.name || "",
+          userData.name ||
+          userData.userName ||
+          firebaseUser.displayName ||
+          "",
 
         email:
           userData.email ||
@@ -1531,11 +1578,6 @@
         mobileNumber:
           userData.mobileNumber ||
           userData.mobile ||
-          "",
-
-        memberId:
-          userData.memberId ||
-          userData.uid ||
           "",
 
         role:
@@ -1551,10 +1593,14 @@
           "",
 
         balance:
-          Number(userData.balance || 0),
+          Number(
+            userData.balance || 0
+          ),
 
         coins:
-          Number(userData.coins || 0)
+          Number(
+            userData.coins || 0
+          )
 
       };
 
@@ -3773,6 +3819,14 @@
             null;
 
 
+          /*
+           * Keep the verified email available for
+           * Firebase password reset.
+           */
+          const verifiedResetEmail =
+            forgotResetData.email;
+
+
           forgotResetData.generatedOtp =
             null;
 
@@ -3788,15 +3842,11 @@
            *
            * This is the FIRST and ONLY place in this flow
            * where Firebase sends the password reset link.
-           *
-           * It cannot execute before successful EmailJS OTP
-           * verification because the function returns above
-           * whenever OTP validation fails.
            */
 
           await sendPasswordResetEmail(
             auth,
-            forgotResetData.email
+            verifiedResetEmail
           );
 
 
