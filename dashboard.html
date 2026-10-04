@@ -502,9 +502,9 @@ body{
         id="withdraw-amount"
         class="control"
         type="number"
-        min="1000000"
+        min="100"
         step="0.01"
-        placeholder="Minimum 1,000,000"
+        placeholder="Minimum 100"
       >
     </div>
 
@@ -1565,7 +1565,7 @@ window.uploadProfilePicture = function(event){
 
 /* ============================================
    WITHDRAW
-   MINIMUM = 1,000,000 COINS
+   MINIMUM = 100 COINS
 ============================================ */
 
 const MIN_WITHDRAW_AMOUNT = 1000000;
@@ -1591,7 +1591,7 @@ window.submitWithdrawal = async function(){
 
   if(!Number.isFinite(amount) || amount < MIN_WITHDRAW_AMOUNT){
 
-    alert("Minimum withdrawal amount is 1,000,000 Coins.");
+    alert("Minimum withdrawal amount is 100 Coins.");
 
     return;
 
