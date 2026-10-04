@@ -941,6 +941,57 @@ if (/^[A-Za-z0-9_-]+$/.test(t)) {
         }).join("");
 
         $("member-result").style.display = "block";
+       /* ---- BALANCE EDITOR ---- */
+        const oldBox = $("balance-editor");
+        if (oldBox) oldBox.remove();
+
+        const box = document.createElement("div");
+        box.id = "balance-editor";
+        box.className = "card";
+        box.style.marginTop = "16px";
+        const startBal = Number(found.data && found.data.balance) || 0;
+        box.innerHTML = `
+          <div class="card-title"><h3><i class="fa-solid fa-coins"></i> Edit Balance</h3></div>
+          <p style="color:var(--muted);font-size:12px;margin-bottom:10px;">
+            Current balance: <b id="be-current" style="color:white;">${startBal}</b> Coins
+          </p>
+          <div class="form-group">
+            <label class="form-label">Amount (Coins)</label>
+            <input class="input" id="be-amount" type="number" min="0" step="any" placeholder="Example: 300">
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-danger" id="be-minus"><i class="fa-solid fa-minus"></i> Deduct</button>
+            <button class="btn btn-success" id="be-plus"><i class="fa-solid fa-plus"></i> Add</button>
+            <button class="btn btn-primary" id="be-set"><i class="fa-solid fa-pen"></i> Set exact</button>
+          </div>`;
+        $("member-result").appendChild(box);
+
+        async function changeBalance(mode) {
+          const raw = $("be-amount").value;
+          const amt = Number(raw);
+          if (raw === "" || !Number.isFinite(amt) || amt < 0) {
+            showToast("Enter a valid amount.", "error");
+            return;
+          }
+          try {
+            const snap = await get(ref(db, "users/" + found.uid + "/balance"));
+            const cur = Number(snap.val()) || 0;
+            const next = mode === "plus" ? cur + amt : mode === "minus" ? cur - amt : amt;
+            if (next < 0) { showToast("Balance cannot go below 0.", "error"); return; }
+            if (!confirm("Balance: " + cur + "  →  " + next + "\nConfirm?")) return;
+            await update(ref(db, "users/" + found.uid), { balance: next });
+            $("be-current").textContent = next;
+            $("be-amount").value = "";
+            showToast("Balance updated to " + next + " Coins.", "success");
+          } catch (err) {
+            console.error(err);
+            showToast("Balance update failed: " + err.message, "error");
+          }
+        }
+
+        $("be-minus").onclick = () => changeBalance("minus");
+        $("be-plus").onclick = () => changeBalance("plus");
+        $("be-set").onclick = () => changeBalance("set"); 
       } catch (error) {
         console.error(error);
         showToast("Member search failed: " + error.message, "error");
