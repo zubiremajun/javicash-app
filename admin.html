@@ -951,7 +951,7 @@
     /* ---------- WITHDRAWALS ---------- */
 
     function listenToWithdrawals() {
-      const q = query(ref(db, "withdrawal_requests"), orderByChild("createdAt"), limitToLast(200));
+      const q = query(ref(db, "withdrawals"), orderByChild("timestamp"), limitToLast(200));
       const unsub = onValue(q, snapshot => {
         withdrawalData = {};
         let pending = 0;
@@ -974,7 +974,7 @@
     function renderWithdrawals() {
       const container = $("withdrawal-list");
       const entries = Object.entries(withdrawalData).sort(([, a], [, b]) =>
-        toMs(b.createdAt || b.timestamp) - toMs(a.createdAt || a.timestamp));
+        toMs(b.timestamp || b.createdAt) - toMs(a.timestamp || a.createdAt));
 
       if (!entries.length) {
         container.innerHTML = `<p style="color:var(--muted);font-size:13px;">No withdrawal requests found.</p>`;
@@ -988,20 +988,21 @@
         return `
           <div class="request">
             <div class="request-top">
-              <div class="request-id">ID: ${escapeHTML(r.uniqueId || r.uid || id)}</div>
+              <div class="request-id">ID: ${escapeHTML(r.uid || r.uniqueId || id)}</div>
               <span class="status ${cls}">${escapeHTML(status)}</span>
             </div>
             <div class="request-grid">
-              <div class="request-info">Member<b>${escapeHTML(r.name || "N/A")}</b></div>
+              <div class="request-info">Member<b>${escapeHTML(r.userName || r.name || "N/A")}</b></div>
               <div class="request-info">Method<b>${escapeHTML(r.method || "N/A")}</b></div>
-              <div class="request-info">Number<b>${escapeHTML(r.phone_number || r.accountNumber || "N/A")}</b></div>
-              <div class="request-info">Account<b>${escapeHTML(r.account_type || "Personal")}</b></div>
-              <div class="request-info">Amount<b>${escapeHTML(r.amount || "0")}</b></div>
-              <div class="request-info">Requested<b>${escapeHTML(formatDate(r.createdAt || r.timestamp))}</b></div>
+              <div class="request-info">Number<b>${escapeHTML(r.number || r.phone_number || "N/A")}</b></div>
+              <div class="request-info">Account<b>${escapeHTML(r.accountType || r.account_type || "Personal")}</b></div>
+              <div class="request-info">Amount<b>${escapeHTML(r.amount || "0")} Coins</b></div>
+              <div class="request-info">Requested<b>${escapeHTML(formatDate(r.timestamp || r.createdAt))}</b></div>
             </div>
             ${n === "pending" ? `<div class="request-actions">
               <button class="btn btn-primary" data-manage="${escapeHTML(id)}"><i class="fa-solid fa-gear"></i> Manage Request</button>
             </div>` : ""}
+            ${r.rejectionReason ? `<div class="request-info" style="margin-top:10px;">Reason<b>${escapeHTML(r.rejectionReason)}</b></div>` : ""}
           </div>`;
       }).join("");
     }
@@ -1019,12 +1020,12 @@
 
       const f = (label, val) => `<div class="member-field"><small>${label}</small><strong>${escapeHTML(val)}</strong></div>`;
       $("modal-request-details").innerHTML = `<div class="member-grid">
-        ${f("Unique ID", r.uniqueId || r.uid || "N/A")}
-        ${f("Name", r.name || "N/A")}
+        ${f("Unique ID", r.uid || r.uniqueId || "N/A")}
+        ${f("Name", r.userName || r.name || "N/A")}
         ${f("Payment Method", r.method || "N/A")}
-        ${f("Account Number", r.phone_number || r.accountNumber || "N/A")}
-        ${f("Account Type", r.account_type || "Personal")}
-        ${f("Amount", r.amount || "0")}
+        ${f("Account Number", r.number || r.phone_number || "N/A")}
+        ${f("Account Type", r.accountType || r.account_type || "Personal")}
+        ${f("Amount", (r.amount || "0") + " Coins")}
       </div>`;
       $("withdraw-modal").classList.add("show");
     }
@@ -1037,12 +1038,12 @@
 
     $("approve-request").addEventListener("click", async () => {
       if (!selectedRequestId || !withdrawalData[selectedRequestId]) return;
-      if (!confirm("Have you manually completed the payment? Mark this request as Completed?")) return;
+      if (!confirm("Have you manually completed the payment? Mark this request as Approved?")) return;
       try {
-        await update(ref(db, "withdrawal_requests/" + selectedRequestId), {
-          status: "Completed", updatedAt: Date.now(), processedBy: currentUser.uid
+        await update(ref(db, "withdrawals/" + selectedRequestId), {
+          status: "Approved", updatedAt: Date.now(), processedBy: currentUser.uid
         });
-        showToast("Withdrawal marked as Completed.", "success");
+        showToast("Withdrawal marked as Approved.", "success");
         closeModal();
       } catch (error) {
         console.error(error);
@@ -1055,7 +1056,7 @@
       const reason = $("rejection-reason").value.trim();
       if (!reason) { showToast("Enter a rejection reason.", "error"); return; }
       try {
-        await update(ref(db, "withdrawal_requests/" + selectedRequestId), {
+        await update(ref(db, "withdrawals/" + selectedRequestId), {
           status: "Rejected", rejectionReason: reason, updatedAt: Date.now(), processedBy: currentUser.uid
         });
         showToast("Withdrawal request rejected.", "success");
