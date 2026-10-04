@@ -865,138 +865,109 @@ onValue(
 
 
 /* ============================================
-   ADMIN CONTENT
+   ADMIN CONTENT + GLOBAL NOTIFICATION (FIXED)
 ============================================ */
 
-onValue(
+let contentsData = null;
+let globalNotice = null;
 
-  ref(db,"contents"),
+function renderContent(){
 
-  function(snapshot){
+  const feed = $("content-feed");
+  const notices = $("announcement-list");
 
-    const feed = $("content-feed");
+  let feedHTML = "";
+  let noticeHTML = "";
 
-    const notices = $("announcement-list");
+  /* Global notification (from admin panel) - always on top */
+  if(globalNotice && (globalNotice.title || globalNotice.message)){
 
+    const gTitle = escapeHTML(globalNotice.title || "Announcement");
+    const gText = escapeHTML(globalNotice.message || "");
+    const gDate = globalNotice.updated_at
+      ? escapeHTML(new Date(Number(globalNotice.updated_at)).toLocaleString())
+      : "";
 
-    if(!snapshot.exists()){
+    feedHTML +=
+      `<div class="card feed">
+        <div class="feed-title">📢 ${gTitle}</div>
+        <div class="feed-text">${gText}</div>
+        <div class="small">${gDate}</div>
+      </div>`;
 
-      feed.innerHTML =
-        `<div class="card empty">
-          No admin updates available.
-        </div>`;
+    noticeHTML +=
+      `<div style="padding:14px 0;border-bottom:1px solid var(--border)">
+        <b>📢 ${gTitle}</b>
+        <div class="feed-text">${gText}</div>
+        <div class="small">${gDate}</div>
+      </div>`;
+  }
 
-      notices.innerHTML =
-        `<div class="empty">
-          No announcements available.
-        </div>`;
+  /* Old admin contents (image / video / text) */
+  if(contentsData){
 
-      return;
-
-    }
-
-
-    const items = Object.entries(snapshot.val() || {}).reverse();
-
-
-    let feedHTML = "";
-
-    let noticeHTML = "";
-
-
-    items.forEach(function([key,item]){
+    Object.entries(contentsData).reverse().forEach(function([key,item]){
 
       const title = escapeHTML(item.title || "Announcement");
-
       const text = escapeHTML(item.text || "");
-
 
       let media = "";
 
-
       if(item.type === "image" && item.url){
-
-        media =
-          `<img
-            src="${escapeHTML(item.url)}"
-            alt="Admin update"
-            loading="lazy"
-          >`;
-
+        media = `<img src="${escapeHTML(item.url)}" alt="Admin update" loading="lazy">`;
       }
-
 
       if(item.type === "video" && item.url){
-
-        media =
-          `<video
-            src="${escapeHTML(item.url)}"
-            controls
-            preload="metadata"
-          ></video>`;
-
+        media = `<video src="${escapeHTML(item.url)}" controls preload="metadata"></video>`;
       }
-
 
       feedHTML +=
         `<div class="card feed">
-
-          <div class="feed-title">
-            ${title}
-          </div>
-
-          <div class="feed-text">
-            ${text}
-          </div>
-
+          <div class="feed-title">${title}</div>
+          <div class="feed-text">${text}</div>
           ${media}
-
         </div>`;
-
 
       noticeHTML +=
-        `<div
-          style="
-            padding:14px 0;
-            border-bottom:1px solid var(--border)
-          "
-        >
-
+        `<div style="padding:14px 0;border-bottom:1px solid var(--border)">
           <b>${title}</b>
-
-          <div class="feed-text">
-            ${text}
-          </div>
-
+          <div class="feed-text">${text}</div>
         </div>`;
-
     });
-
-
-    feed.innerHTML =
-      feedHTML ||
-      `<div class="empty">
-        No updates available.
-      </div>`;
-
-
-    notices.innerHTML =
-      noticeHTML ||
-      `<div class="empty">
-        No announcements available.
-      </div>`;
-
-  },
-
-  function(error){
-
-    console.error("Contents error:", error);
-
   }
 
+  feed.innerHTML =
+    feedHTML ||
+    `<div class="card empty">No admin updates available.</div>`;
+
+  notices.innerHTML =
+    noticeHTML ||
+    `<div class="empty">No announcements available.</div>`;
+}
+
+
+onValue(
+  ref(db,"contents"),
+  function(snapshot){
+    contentsData = snapshot.exists() ? (snapshot.val() || {}) : null;
+    renderContent();
+  },
+  function(error){
+    console.error("Contents error:", error);
+  }
 );
 
 
+onValue(
+  ref(db,"global_announcement"),
+  function(snapshot){
+    globalNotice = snapshot.exists() ? snapshot.val() : null;
+    renderContent();
+  },
+  function(error){
+    console.error("Global announcement error:", error);
+  }
+);
 /* ============================================
    GAMES  (FIXED)
    ------------------------------------------
