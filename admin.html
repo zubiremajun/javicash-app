@@ -964,7 +964,8 @@ if (/^[A-Za-z0-9_-]+$/.test(t)) {
             <button class="btn btn-success" id="be-plus"><i class="fa-solid fa-plus"></i> Add</button>
             <button class="btn btn-primary" id="be-set"><i class="fa-solid fa-pen"></i> Set exact</button>
           </div>`;
-        $("member-result").appendChild(box);
+        $("member-grid").before(box);
+
 
         async function changeBalance(mode) {
           const raw = $("be-amount").value;
