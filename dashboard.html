@@ -276,6 +276,15 @@ body{
 #toast.show{opacity:1;transform:translate(-50%,0);}
 #toast.error{background:#3a1820;color:#ff9aa4;border:1px solid rgba(255,71,87,.4);}
 #toast.success{background:#12301f;color:#7dffb0;border:1px solid rgba(46,213,115,.4);}
+  /* ===== CHECKOUT EXTRA POLISH ===== */
+.checkout-head h3{font-size:19px;display:flex;align-items:center;gap:8px;}
+.checkout-head h3 i{color:#8b7cf6;}
+.co-section{display:flex;align-items:center;gap:8px;margin:18px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:#d8d4ff;text-transform:uppercase;letter-spacing:.6px;}
+.co-section i{color:#8b7cf6;}
+.checkout-box .control{padding:13px 14px;font-size:14px;transition:.18s;}
+.checkout-box .control:focus{border-color:#8b7cf6;box-shadow:0 0 0 3px rgba(108,92,231,.22);}
+.checkout-box .control::placeholder{color:#6f6b85;}
+.checkout-box .btn{margin-top:6px;padding:14px;font-size:15px;background:linear-gradient(135deg,#6c5ce7,#8b7cf6);box-shadow:0 10px 25px rgba(108,92,231,.3);}
 </style>
 </head>
 
@@ -658,72 +667,7 @@ body{
   ></iframe>
   <div id="gameFrameLoading">Loading game...</div>
 </div>
-  <!-- ================= TOAST ================= -->
-<div id="toast"></div>
 
-<!-- ================= CHECKOUT MODAL ================= -->
-<div id="checkoutModal" class="checkout-modal">
-  <div class="checkout-box">
-
-    <div class="checkout-head">
-      <h3>🛒 Checkout / অর্ডার ফর্ম</h3>
-      <button type="button" class="checkout-close" onclick="closeCheckout()">✕</button>
-    </div>
-
-    <div class="order-summary">
-      <img id="co-img" src="" alt="">
-      <div>
-        <div class="os-title" id="co-title">-</div>
-        <div class="os-coin" id="co-coin">-</div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Division (বিভাগ)</label>
-      <select id="co-division" class="control">
-        <option value="">-- বিভাগ বাছাই করুন --</option>
-        <option>ঢাকা</option>
-        <option>চট্টগ্রাম</option>
-        <option>রাজশাহী</option>
-        <option>খুলনা</option>
-        <option>বরিশাল</option>
-        <option>সিলেট</option>
-        <option>রংপুর</option>
-        <option>ময়মনসিংহ</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>District / City (জেলা)</label>
-      <input id="co-district" class="control" placeholder="যেমন: কুমিল্লা">
-    </div>
-
-    <div class="form-group">
-      <label>Upazila / Thana (উপজিলা / থানা)</label>
-      <input id="co-upazila" class="control" placeholder="যেমন: দেবিদ্বার">
-    </div>
-
-    <div class="form-group">
-      <label>Village / Area / Street Address (গ্রাম / এলাকার নাম)</label>
-      <input id="co-village" class="control" placeholder="গ্রাম / এলাকা / রাস্তা / বাড়ি নং">
-    </div>
-
-    <div class="form-group">
-      <label>Primary Mobile Number (মোবাইল নম্বর)</label>
-      <input id="co-phone" class="control" inputmode="numeric" maxlength="11" placeholder="017XXXXXXXX">
-    </div>
-
-    <div class="form-group">
-      <label>Alternate / Recovery Mobile Number (জরুরি / বিকল্প মোবাইল নম্বর)</label>
-      <input id="co-phone2" class="control" inputmode="numeric" maxlength="11" placeholder="018XXXXXXXX">
-    </div>
-
-    <button id="co-confirm" class="btn" onclick="confirmOrder()">
-      <i class="fa-solid fa-check"></i> Confirm Order
-    </button>
-
-  </div>
-</div>
 
 <!-- ================= FIREBASE ================= -->
 
@@ -747,7 +691,69 @@ import {
   }
 
 from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<!-- ================= TOAST ================= -->
+<div id="toast"></div>
 
+<!-- ================= CHECKOUT MODAL ================= -->
+<div id="checkoutModal" class="checkout-modal">
+  <div class="checkout-box">
+
+    <div class="checkout-head">
+      <div>
+        <h3><i class="fa-solid fa-bag-shopping"></i> Checkout</h3>
+        <div class="small">Enter your delivery details</div>
+      </div>
+      <button type="button" class="checkout-close" onclick="closeCheckout()">✕</button>
+    </div>
+
+    <div class="order-summary">
+      <img id="co-img" src="" alt="">
+      <div>
+        <div class="os-title" id="co-title">-</div>
+        <div class="os-coin" id="co-coin">-</div>
+      </div>
+    </div>
+
+    <div class="co-section"><i class="fa-solid fa-location-dot"></i> Delivery Address</div>
+
+    <div class="form-group">
+      <label>Division</label>
+      <input id="co-division" class="control" type="text" autocomplete="off" placeholder="Type your division">
+    </div>
+
+    <div class="form-group">
+      <label>District / City</label>
+      <input id="co-district" class="control" type="text" autocomplete="off" placeholder="Type your district or city">
+    </div>
+
+    <div class="form-group">
+      <label>Upazila / Thana</label>
+      <input id="co-upazila" class="control" type="text" autocomplete="off" placeholder="Type your upazila or thana">
+    </div>
+
+    <div class="form-group">
+      <label>Village / Area / Street Address</label>
+      <input id="co-village" class="control" type="text" autocomplete="off" placeholder="Village, area, road, house no.">
+    </div>
+
+    <div class="co-section"><i class="fa-solid fa-phone"></i> Contact Numbers</div>
+
+    <div class="form-group">
+      <label>Primary Mobile Number</label>
+      <input id="co-phone" class="control" type="tel" inputmode="numeric" maxlength="11" autocomplete="off" placeholder="017XXXXXXXX">
+    </div>
+
+    <div class="form-group">
+      <label>Alternate / Recovery Mobile Number</label>
+      <input id="co-phone2" class="control" type="tel" inputmode="numeric" maxlength="11" autocomplete="off" placeholder="018XXXXXXXX">
+    </div>
+
+    <button id="co-confirm" class="btn" onclick="confirmOrder()">
+      <i class="fa-solid fa-check"></i> Confirm Order
+    </button>
+
+  </div>
+</div>
 /* ================= FIREBASE AUTH ================= */
 
 import { getAuth, signOut }
