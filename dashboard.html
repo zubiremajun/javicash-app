@@ -254,6 +254,28 @@ body{
 .product-coin{color:var(--warning);font-weight:700;font-size:13px;}
 .product-stock{font-size:11px;color:var(--muted);}
 .product-stock.out{color:var(--danger);font-weight:700;}
+  /* ===== PRODUCT BUY BUTTON ===== */
+.buy-btn{margin-top:4px;width:100%;padding:11px;border:0;border-radius:10px;background:var(--primary);color:#fff;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+.buy-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* ===== CHECKOUT MODAL ===== */
+.checkout-modal{display:none;position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.75);align-items:flex-end;justify-content:center;}
+.checkout-modal.open{display:flex;}
+.checkout-box{width:100%;max-width:520px;max-height:92vh;overflow-y:auto;background:#15112b;border:1px solid var(--border);border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));}
+@media(min-width:769px){.checkout-modal{align-items:center;}.checkout-box{border-radius:20px;}}
+.checkout-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.checkout-close{border:0;background:rgba(255,255,255,.1);color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;}
+.order-summary{display:flex;gap:12px;align-items:center;padding:10px;border-radius:12px;background:rgba(108,92,231,.12);border:1px solid rgba(108,92,231,.25);margin-bottom:14px;}
+.order-summary img{width:62px;height:62px;border-radius:10px;object-fit:cover;background:#1a1533;}
+.order-summary .os-title{font-weight:700;font-size:14px;}
+.order-summary .os-coin{color:var(--warning);font-weight:800;font-size:14px;margin-top:3px;}
+.checkout-box select.control option{background:#15112b;color:#fff;}
+
+/* ===== TOAST ===== */
+#toast{position:fixed;left:50%;top:78px;transform:translate(-50%,-20px);opacity:0;pointer-events:none;z-index:200000;max-width:92%;padding:12px 18px;border-radius:14px;font-size:13px;font-weight:600;text-align:center;transition:.3s;box-shadow:0 10px 30px rgba(0,0,0,.4);}
+#toast.show{opacity:1;transform:translate(-50%,0);}
+#toast.error{background:#3a1820;color:#ff9aa4;border:1px solid rgba(255,71,87,.4);}
+#toast.success{background:#12301f;color:#7dffb0;border:1px solid rgba(46,213,115,.4);}
 </style>
 </head>
 
@@ -636,6 +658,72 @@ body{
   ></iframe>
   <div id="gameFrameLoading">Loading game...</div>
 </div>
+  <!-- ================= TOAST ================= -->
+<div id="toast"></div>
+
+<!-- ================= CHECKOUT MODAL ================= -->
+<div id="checkoutModal" class="checkout-modal">
+  <div class="checkout-box">
+
+    <div class="checkout-head">
+      <h3>🛒 Checkout / অর্ডার ফর্ম</h3>
+      <button type="button" class="checkout-close" onclick="closeCheckout()">✕</button>
+    </div>
+
+    <div class="order-summary">
+      <img id="co-img" src="" alt="">
+      <div>
+        <div class="os-title" id="co-title">-</div>
+        <div class="os-coin" id="co-coin">-</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Division (বিভাগ)</label>
+      <select id="co-division" class="control">
+        <option value="">-- বিভাগ বাছাই করুন --</option>
+        <option>ঢাকা</option>
+        <option>চট্টগ্রাম</option>
+        <option>রাজশাহী</option>
+        <option>খুলনা</option>
+        <option>বরিশাল</option>
+        <option>সিলেট</option>
+        <option>রংপুর</option>
+        <option>ময়মনসিংহ</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>District / City (জেলা)</label>
+      <input id="co-district" class="control" placeholder="যেমন: কুমিল্লা">
+    </div>
+
+    <div class="form-group">
+      <label>Upazila / Thana (উপজিলা / থানা)</label>
+      <input id="co-upazila" class="control" placeholder="যেমন: দেবিদ্বার">
+    </div>
+
+    <div class="form-group">
+      <label>Village / Area / Street Address (গ্রাম / এলাকার নাম)</label>
+      <input id="co-village" class="control" placeholder="গ্রাম / এলাকা / রাস্তা / বাড়ি নং">
+    </div>
+
+    <div class="form-group">
+      <label>Primary Mobile Number (মোবাইল নম্বর)</label>
+      <input id="co-phone" class="control" inputmode="numeric" maxlength="11" placeholder="017XXXXXXXX">
+    </div>
+
+    <div class="form-group">
+      <label>Alternate / Recovery Mobile Number (জরুরি / বিকল্প মোবাইল নম্বর)</label>
+      <input id="co-phone2" class="control" inputmode="numeric" maxlength="11" placeholder="018XXXXXXXX">
+    </div>
+
+    <button id="co-confirm" class="btn" onclick="confirmOrder()">
+      <i class="fa-solid fa-check"></i> Confirm Order
+    </button>
+
+  </div>
+</div>
 
 <!-- ================= FIREBASE ================= -->
 
@@ -652,9 +740,12 @@ import {
   set,
   update,
   query,
-  orderByChild,
-  equalTo
-}
+      orderByChild,
+    equalTo,
+    get,
+    runTransaction
+  }
+
 from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 /* ================= FIREBASE AUTH ================= */
@@ -1944,7 +2035,21 @@ setTimeout(function(){
   }
 
 }, 10000);
-/* ================= PRODUCTS ================= */
+/* ================= PRODUCTS + CHECKOUT ================= */
+
+const productsMap = {};
+let orderingKey = null;
+let orderBusy = false;
+let toastTimer = null;
+
+function toast(message, type){
+  const t = $("toast");
+  t.textContent = message;
+  t.className = "show " + (type || "success");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.className = ""; }, 4200);
+}
+
 onValue(
   ref(db,"products"),
   function(snapshot){
@@ -1964,6 +2069,8 @@ onValue(
       box.innerHTML = `<div class="empty" style="grid-column:1/-1">No products available right now.</div>`;
       return;
     }
+
+    items.forEach(function(p){ productsMap[p._key] = p; });
 
     box.innerHTML = items.map(function(p){
       const title = escapeHTML(p.title || "Untitled Product");
@@ -1987,6 +2094,9 @@ onValue(
           <div class="product-stock ${out ? "out" : ""}">
             ${out ? "Out of stock" : (hasStock ? "In stock: " + stock : "")}
           </div>
+          <button type="button" class="buy-btn" ${out ? "disabled" : ""} onclick="orderProduct('${escapeHTML(p._key)}')">
+            <i class="fa-solid fa-cart-shopping"></i> ${out ? "Out of Stock" : "Order Now"}
+          </button>
         </div>`;
     }).join("");
   },
@@ -1996,6 +2106,196 @@ onValue(
       `<div class="empty" style="grid-column:1/-1">Could not load products.</div>`;
   }
 );
+
+
+/* ---------- Step 1: Order Now clicked -> check coins ---------- */
+
+window.orderProduct = async function(key){
+
+  const p = productsMap[key];
+  if(!p) return;
+
+  const stock = Number(p.stock);
+  if(Number.isFinite(stock) && stock <= 0){
+    toast("Sorry, this product is out of stock.", "error");
+    return;
+  }
+
+  const coinPrice = Number(p.coinPrice || 0);
+
+  let balance = 0;
+  try{
+    const snap = await get(userRef);
+    balance = Number((snap.val() || {}).balance || 0);
+  }catch(error){
+    console.error(error);
+    toast("Could not check your balance. Try again.", "error");
+    return;
+  }
+
+  if(balance < coinPrice){
+    const need = coinPrice - balance;
+    toast("Insufficient coins! You need " + money(need) + " more coins to order this product.", "error");
+    return;
+  }
+
+  orderingKey = key;
+
+  $("co-title").textContent = p.title || "Product";
+  $("co-coin").textContent = "🪙 " + coinPrice.toLocaleString() + " Coins";
+  $("co-img").src = cleanUrl(p.imageUrl) || GAME_FALLBACK_ICON;
+
+  $("checkoutModal").classList.add("open");
+  document.body.style.overflow = "hidden";
+};
+
+
+window.closeCheckout = function(){
+  $("checkoutModal").classList.remove("open");
+  document.body.style.overflow = "";
+  orderingKey = null;
+};
+
+
+/* ---------- Step 2: Confirm Order -> deduct coins + save order ---------- */
+
+window.confirmOrder = async function(){
+
+  if(orderBusy) return;
+
+  const p = productsMap[orderingKey];
+  if(!p){ toast("Product not found.", "error"); return; }
+
+  const division = $("co-division").value.trim();
+  const district = $("co-district").value.trim();
+  const upazila  = $("co-upazila").value.trim();
+  const village  = $("co-village").value.trim();
+  const phone    = $("co-phone").value.trim();
+  const phone2   = $("co-phone2").value.trim();
+
+  if(!division || !district || !upazila || !village){
+    toast("সব ঠিকানার ঘর পূরণ করুন।", "error");
+    return;
+  }
+
+  const phoneRegex = /^01[3-9]\d{8}$/;
+
+  if(!phoneRegex.test(phone)){
+    toast("সঠিক মোবাইল নম্বর দিন (017XXXXXXXX)।", "error");
+    return;
+  }
+
+  if(!phoneRegex.test(phone2)){
+    toast("সঠিক বিকল্প মোবাইল নম্বর দিন।", "error");
+    return;
+  }
+
+  const coinPrice = Number(p.coinPrice || 0);
+  const stock = Number(p.stock);
+  const hasStock = Number.isFinite(stock);
+
+  const balanceRef = ref(db, `users/${session.uid}/balance`);
+  const stockRef = ref(db, `products/${orderingKey}/stock`);
+
+  orderBusy = true;
+  const btn = $("co-confirm");
+  btn.disabled = true;
+  btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing...`;
+
+  let coinsTaken = false;
+  let stockTaken = false;
+
+  try{
+
+    /* 1) Deduct coins safely (transaction) */
+    const coinResult = await runTransaction(balanceRef, function(current){
+      const b = Number(current || 0);
+      if(b < coinPrice) return;               // abort
+      return Number((b - coinPrice).toFixed(2));
+    });
+
+    if(!coinResult.committed){
+      toast("Insufficient coins! Your balance is not enough.", "error");
+      return;
+    }
+    coinsTaken = true;
+
+    /* 2) Reduce stock safely */
+    if(hasStock){
+      const stockResult = await runTransaction(stockRef, function(current){
+        const s = Number(current);
+        if(!Number.isFinite(s) || s <= 0) return;   // abort
+        return s - 1;
+      });
+
+      if(!stockResult.committed){
+        throw new Error("OUT_OF_STOCK");
+      }
+      stockTaken = true;
+    }
+
+    /* 3) Save order request for admin panel */
+    const orderRef = push(ref(db, "orders"));
+
+    await set(orderRef, {
+      orderId: orderRef.key,
+      userId: session.uid,
+      userName: session.name || $("prof-name").textContent || "Member",
+      productId: orderingKey,
+      productTitle: p.title || "Product",
+      price: Number(p.price || 0),
+      coinsDeducted: coinPrice,
+      division: division,
+      district: district,
+      upazila: upazila,
+      village: village,
+      primaryPhone: phone,
+      recoveryPhone: phone2,
+      status: "pending",
+      timestamp: Date.now()
+    });
+
+    toast("Order placed successfully! We will contact you soon.", "success");
+
+    ["co-division","co-district","co-upazila","co-village","co-phone","co-phone2"]
+      .forEach(function(id){ $(id).value = ""; });
+
+    closeCheckout();
+
+  }catch(error){
+
+    console.error("Order error:", error);
+
+    /* Give everything back if something failed */
+    try{
+      if(coinsTaken){
+        await runTransaction(balanceRef, function(c){
+          return Number((Number(c || 0) + coinPrice).toFixed(2));
+        });
+      }
+      if(stockTaken){
+        await runTransaction(stockRef, function(c){
+          return Number(c || 0) + 1;
+        });
+      }
+    }catch(refundError){
+      console.error("Refund error:", refundError);
+    }
+
+    if(error && error.message === "OUT_OF_STOCK"){
+      toast("Sorry, product just went out of stock. Coins refunded.", "error");
+    }else{
+      toast("Order failed. Your coins were returned. Try again.", "error");
+    }
+
+  }finally{
+
+    orderBusy = false;
+    btn.disabled = false;
+    btn.innerHTML = `<i class="fa-solid fa-check"></i> Confirm Order`;
+
+  }
+};
 </script>
 
 </body>
