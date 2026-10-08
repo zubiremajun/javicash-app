@@ -6,8 +6,7 @@
 <meta name="theme-color" content="#0f0c20">
 <title>JAVICASH - Member Dashboard</title>
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
 :root{
@@ -193,12 +192,6 @@ body{
 
 .mobile-nav{display:none;}
 
-/*
-  Only adds safe-area space on devices that have
-  a bottom system navigation area.
-  Existing mobile navigation design is unchanged.
-*/
-
 @supports(padding-bottom:env(safe-area-inset-bottom)){
   .mobile-nav{padding-bottom:env(safe-area-inset-bottom);height:calc(66px + env(safe-area-inset-bottom));}
   .main{padding-bottom:calc(90px + env(safe-area-inset-bottom));}
@@ -228,7 +221,7 @@ body{
   }
 }
 
-/* ================= IN-APP GAME PLAYER (NEW - does not affect existing UI) ================= */
+/* ================= IN-APP GAME PLAYER ================= */
 
 .game-modal{display:none;position:fixed;inset:0;z-index:100000;background:#050b14;flex-direction:column;}
 .game-modal.open{display:flex;}
@@ -244,7 +237,8 @@ body{
   position:absolute;left:0;right:0;bottom:0;top:64px;display:flex;align-items:center;justify-content:center;
   color:var(--muted);font-size:13px;pointer-events:none;
 }
-  /* ===== PRODUCTS ===== */
+
+/* ===== PRODUCTS ===== */
 .product-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px;}
 .product-card{background:rgba(0,0,0,.18);border:1px solid var(--border);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;}
 .product-card img{width:100%;height:150px;object-fit:cover;border-radius:12px;background:#1a1533;}
@@ -254,7 +248,8 @@ body{
 .product-coin{color:var(--warning);font-weight:700;font-size:13px;}
 .product-stock{font-size:11px;color:var(--muted);}
 .product-stock.out{color:var(--danger);font-weight:700;}
-  /* ===== PRODUCT BUY BUTTON ===== */
+
+/* ===== PRODUCT BUY BUTTON ===== */
 .buy-btn{margin-top:4px;width:100%;padding:11px;border:0;border-radius:10px;background:var(--primary);color:#fff;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
 .buy-btn:disabled{opacity:.5;cursor:not-allowed;}
 
@@ -269,14 +264,14 @@ body{
 .order-summary img{width:62px;height:62px;border-radius:10px;object-fit:cover;background:#1a1533;}
 .order-summary .os-title{font-weight:700;font-size:14px;}
 .order-summary .os-coin{color:var(--warning);font-weight:800;font-size:14px;margin-top:3px;}
-.checkout-box select.control option{background:#15112b;color:#fff;}
 
 /* ===== TOAST ===== */
 #toast{position:fixed;left:50%;top:78px;transform:translate(-50%,-20px);opacity:0;pointer-events:none;z-index:200000;max-width:92%;padding:12px 18px;border-radius:14px;font-size:13px;font-weight:600;text-align:center;transition:.3s;box-shadow:0 10px 30px rgba(0,0,0,.4);}
 #toast.show{opacity:1;transform:translate(-50%,0);}
 #toast.error{background:#3a1820;color:#ff9aa4;border:1px solid rgba(255,71,87,.4);}
 #toast.success{background:#12301f;color:#7dffb0;border:1px solid rgba(46,213,115,.4);}
-  /* ===== CHECKOUT EXTRA POLISH ===== */
+
+/* ===== CHECKOUT EXTRA POLISH ===== */
 .checkout-head h3{font-size:19px;display:flex;align-items:center;gap:8px;}
 .checkout-head h3 i{color:#8b7cf6;}
 .co-section{display:flex;align-items:center;gap:8px;margin:18px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:#d8d4ff;text-transform:uppercase;letter-spacing:.6px;}
@@ -353,11 +348,12 @@ body{
       <i class="fa-solid fa-gamepad"></i>
       Games 🎮
     </li>
-<li class="menu-item" data-tab="products" onclick="switchTab('products',this)">
-  <i class="fa-solid fa-bag-shopping"></i>
-  Products
-</li>
-    
+
+    <li class="menu-item" data-tab="products" onclick="switchTab('products',this)">
+      <i class="fa-solid fa-bag-shopping"></i>
+      Products
+    </li>
+
     <!-- ================= LOGOUT ================= -->
 
     <li class="menu-item logout-item" onclick="logout()">
@@ -431,24 +427,13 @@ body{
 
       <div class="avatar-box">
 
-        <img
-          id="profile-img"
-          class="avatar"
-          src="https://lh3.googleusercontent.com/d/1-HtKoZn4P0ztzUW0V-QP3mBU0SyGYnSn"
-          alt="Profile"
-        >
+        <img id="profile-img" class="avatar" src="https://lh3.googleusercontent.com/d/1-HtKoZn4P0ztzUW0V-QP3mBU0SyGYnSn" alt="Profile">
 
         <label class="camera" for="avatar-input">
           <i class="fa-solid fa-camera"></i>
         </label>
 
-        <input
-          id="avatar-input"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          hidden
-          onchange="uploadProfilePicture(event)"
-        >
+        <input id="avatar-input" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="uploadProfilePicture(event)">
 
       </div>
 
@@ -532,25 +517,12 @@ body{
 
     <div class="form-group">
       <label>Payment Number</label>
-      <input
-        id="withdraw-number"
-        class="control"
-        inputmode="numeric"
-        maxlength="15"
-        placeholder="017XXXXXXXX"
-      >
+      <input id="withdraw-number" class="control" inputmode="numeric" maxlength="15" placeholder="017XXXXXXXX">
     </div>
 
     <div class="form-group">
       <label>Withdraw Amount (Coins)</label>
-      <input
-        id="withdraw-amount"
-        class="control"
-        type="number"
-        min="100"
-        step="0.01"
-        placeholder="Minimum 100"
-      >
+      <input id="withdraw-amount" class="control" type="number" min="100" step="0.01" placeholder="Minimum 100">
     </div>
 
     <button id="withdraw-btn" class="btn" onclick="submitWithdrawal()">
@@ -602,6 +574,9 @@ body{
   </div>
 
 </section>
+
+<!-- ================= PRODUCTS ================= -->
+
 <section id="tab-products" class="tab">
   <div class="page-title">
     <h1>Products 🛍️</h1>
@@ -613,6 +588,7 @@ body{
     </div>
   </div>
 </section>
+
 </main>
 
 <!-- ================= MOBILE NAV ================= -->
@@ -645,12 +621,12 @@ body{
   </button>
 
   <button data-tab="products" onclick="switchTab('products',this)">
-  <i class="fa-solid fa-bag-shopping"></i>
-  Products
-</button>
+    <i class="fa-solid fa-bag-shopping"></i>
+    Products
+  </button>
 </nav>
 
-<!-- ================= IN-APP GAME PLAYER (NEW) ================= -->
+<!-- ================= IN-APP GAME PLAYER ================= -->
 
 <div id="gameModal" class="game-modal">
   <div class="game-modal-bar">
@@ -668,29 +644,6 @@ body{
   <div id="gameFrameLoading">Loading game...</div>
 </div>
 
-
-<!-- ================= FIREBASE ================= -->
-
-<script type="module">
-
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-
-import {
-  getDatabase,
-  ref,
-  onValue,
-  push,
-  set,
-  update,
-  query,
-      orderByChild,
-    equalTo,
-    get,
-    runTransaction
-  }
-
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 <!-- ================= TOAST ================= -->
 <div id="toast"></div>
 
@@ -754,7 +707,28 @@ from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
   </div>
 </div>
-/* ================= FIREBASE AUTH ================= */
+
+<!-- ================= FIREBASE ================= -->
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+import {
+  getDatabase,
+  ref,
+  onValue,
+  push,
+  set,
+  update,
+  query,
+  orderByChild,
+  equalTo,
+  get,
+  runTransaction
+}
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 import { getAuth, signOut }
 from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -776,12 +750,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-
-
-/* ============================================
-   FIREBASE AUTH
-============================================ */
-
 const auth = getAuth(app);
 
 
@@ -799,66 +767,31 @@ try{
   session = null;
 }
 
-
-/*
-  If member is not logged in,
-  send directly to index.html.
-*/
-
 if(!session || !session.uid){
-
   window.location.replace("index.html");
-
   throw new Error("No active JAVICASH member session.");
-
 }
 
 
 /* ============================================
-   GLOBAL VARIABLES
+   GLOBAL VARIABLES + HELPERS
 ============================================ */
 
 let selectedPaymentMethod = "bKash";
-
 let firstMemberLoad = true;
-
-
-/* ============================================
-   HELPER
-============================================ */
 
 const $ = id => document.getElementById(id);
 
-
 function money(value){
-
   const number = Number(value);
-
-  if(!Number.isFinite(number))
-    return "0.00";
-
+  if(!Number.isFinite(number)) return "0.00";
   return number.toFixed(2);
-
 }
 
-
 function escapeHTML(value){
-
-  return String(value ?? "").replace(
-    /[&<>"']/g,
-    function(char){
-
-      return {
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        '"':"&quot;",
-        "'":"&#039;"
-      }[char];
-
-    }
-  );
-
+  return String(value ?? "").replace(/[&<>"']/g, function(char){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char];
+  });
 }
 
 
@@ -867,43 +800,22 @@ function escapeHTML(value){
 ============================================ */
 
 function loadingMessage(title, message){
-
   $("loadingTitle").textContent = title;
-
   $("loadingMessage").textContent = message;
-
 }
-
 
 function finishLoading(){
-
-  if(!firstMemberLoad)
-    return;
-
+  if(!firstMemberLoad) return;
   firstMemberLoad = false;
-
   const screen = $("loadingScreen");
-
   screen.style.opacity = "0";
-
   setTimeout(function(){
-
-    if(screen)
-      screen.remove();
-
+    if(screen) screen.remove();
   }, 350);
-
 }
 
-
-function showConnection(){
-  $("connectionStatus").style.display = "block";
-}
-
-
-function hideConnection(){
-  $("connectionStatus").style.display = "none";
-}
+function showConnection(){ $("connectionStatus").style.display = "block"; }
+function hideConnection(){ $("connectionStatus").style.display = "none"; }
 
 
 /* ============================================
@@ -912,85 +824,52 @@ function hideConnection(){
 
 const userRef = ref(db, `users/${session.uid}`);
 
-
 onValue(
-
   userRef,
-
   function(snapshot){
 
     if(snapshot.exists()){
 
       const data = snapshot.val() || {};
-
       const name = data.name || session.name || "Member";
-
       const email = data.email || session.email || "";
-
       const uid = data.uid || session.uid;
-
       const balance = Number(data.balance || 0);
 
-
       $("homeName").textContent = name;
-
       $("user-balance").textContent = money(balance) + " Coins";
-
       $("withdraw-balance").textContent = money(balance) + " Coins";
-
       $("dash-uid").textContent = uid;
-
       $("prof-uid").value = uid;
-
       $("prof-name").textContent = name;
-
       $("prof-fullname").value = name;
-
       $("prof-email").textContent = email;
-
 
       if(data.profile_picture){
         $("profile-img").src = data.profile_picture;
       }
 
-
       hideConnection();
-
       finishLoading();
 
-    }
+    }else{
 
-    else{
-
-      loadingMessage(
-        "Member data not found",
-        "Checking your account..."
-      );
-
+      loadingMessage("Member data not found", "Checking your account...");
       setTimeout(finishLoading, 1200);
 
     }
 
   },
-
   function(error){
-
     console.error("Member Firebase error:", error);
-
     showConnection();
-
-    loadingMessage(
-      "Connection is slow",
-      "Firebase is retrying automatically..."
-    );
-
+    loadingMessage("Connection is slow", "Firebase is retrying automatically...");
   }
-
 );
 
 
 /* ============================================
-   ADMIN CONTENT + GLOBAL NOTIFICATION (FIXED)
+   ADMIN CONTENT + GLOBAL NOTIFICATION
 ============================================ */
 
 let contentsData = null;
@@ -1004,7 +883,6 @@ function renderContent(){
   let feedHTML = "";
   let noticeHTML = "";
 
-  /* Global notification (from admin panel) - always on top */
   if(globalNotice && (globalNotice.title || globalNotice.message)){
 
     const gTitle = escapeHTML(globalNotice.title || "Announcement");
@@ -1028,7 +906,6 @@ function renderContent(){
       </div>`;
   }
 
-  /* Old admin contents (image / video / text) */
   if(contentsData){
 
     Object.entries(contentsData).reverse().forEach(function([key,item]){
@@ -1061,15 +938,9 @@ function renderContent(){
     });
   }
 
-  feed.innerHTML =
-    feedHTML ||
-    `<div class="card empty">No admin updates available.</div>`;
-
-  notices.innerHTML =
-    noticeHTML ||
-    `<div class="empty">No announcements available.</div>`;
+  feed.innerHTML = feedHTML || `<div class="card empty">No admin updates available.</div>`;
+  notices.innerHTML = noticeHTML || `<div class="empty">No announcements available.</div>`;
 }
-
 
 onValue(
   ref(db,"contents"),
@@ -1077,11 +948,8 @@ onValue(
     contentsData = snapshot.exists() ? (snapshot.val() || {}) : null;
     renderContent();
   },
-  function(error){
-    console.error("Contents error:", error);
-  }
+  function(error){ console.error("Contents error:", error); }
 );
-
 
 onValue(
   ref(db,"global_announcement"),
@@ -1089,27 +957,12 @@ onValue(
     globalNotice = snapshot.exists() ? snapshot.val() : null;
     renderContent();
   },
-  function(error){
-    console.error("Global announcement error:", error);
-  }
+  function(error){ console.error("Global announcement error:", error); }
 );
-/* ============================================
-   GAMES  (FIXED)
-   ------------------------------------------
-   BUG THAT WAS HERE:
-   The code read `game.link` and `game.image`, but
-   your database stores `gameUrl` and `iconUrl`.
-   So the link became "#" and "Play Game" simply
-   re-opened this same dashboard (loading screen
-   again), and the image fell back to a dead
-   placeholder service.
 
-   NOW:
-   - reads gameUrl / iconUrl (still accepts old
-     link / image names as a fallback)
-   - Play Game opens the game INSIDE the app in a
-     full-screen player (no new tab, no redirect)
-   - broken icons get a safe fallback picture
+
+/* ============================================
+   GAMES
 ============================================ */
 
 const GAME_FALLBACK_ICON =
@@ -1120,122 +973,65 @@ const GAME_FALLBACK_ICON =
     '<text x="200" y="145" font-size="80" text-anchor="middle">🎮</text></svg>'
   );
 
-
-/* Pulls a clean https URL even if it was saved as [url](url) */
-
 function cleanUrl(value){
-
-  const match =
-    String(value || "").match(/https?:\/\/[^\s)\]"'<>]+/);
-
+  const match = String(value || "").match(/https?:\/\/[^\s)\]"'<>]+/);
   return match ? match[0] : "";
-
 }
 
-
 window.gameImgFallback = function(img){
-
   img.onerror = null;
-
   img.src = GAME_FALLBACK_ICON;
-
 };
 
-
 onValue(
-
   ref(db,"games"),
-
   function(snapshot){
 
     const box = $("games-container");
 
     box.className = "store-list";
 
-
     function showEmpty(text){
-
-      box.innerHTML =
-        `<div class="empty" style="grid-column:1 / -1">
-          ${text}
-        </div>`;
-
+      box.innerHTML = `<div class="empty" style="grid-column:1 / -1">${text}</div>`;
     }
-
 
     if(!snapshot.exists()){
-
       showEmpty("No games uploaded yet.");
-
       return;
-
     }
-
 
     const games =
       Object.entries(snapshot.val() || {})
         .filter(function([key,game]){
-          return (
-            game &&
-            game.isActive !== false &&
-            cleanUrl(game.gameUrl || game.link)
-          );
+          return (game && game.isActive !== false && cleanUrl(game.gameUrl || game.link));
         })
         .reverse();
 
-
     if(!games.length){
-
       showEmpty("No games available right now.");
-
       return;
-
     }
-
 
     box.innerHTML = games.map(function([key,game]){
 
       const title = escapeHTML(game.title || "Untitled Game");
-
       const image = escapeHTML(cleanUrl(game.iconUrl || game.image));
-
       const link = escapeHTML(cleanUrl(game.gameUrl || game.link));
 
-
       const imgTag = image
-        ? `<img
-            class="store-icon"
-            src="${image}"
-            alt="${title}"
-            loading="lazy"
-            referrerpolicy="no-referrer"
-            onerror="gameImgFallback(this)"
-          >`
+        ? `<img class="store-icon" src="${image}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" onerror="gameImgFallback(this)">`
         : `<img class="store-icon" src="${GAME_FALLBACK_ICON}" alt="${title}">`;
 
-
       return `
-        <div
-          class="store-card"
-          role="button"
-          tabindex="0"
-          data-url="${link}"
-          data-title="${title}"
-        >
-
+        <div class="store-card" role="button" tabindex="0" data-url="${link}" data-title="${title}">
           ${imgTag}
-
           <div class="store-name">${title}</div>
-
           <div class="store-sub">Free • Tap to play</div>
-
           <button type="button" class="store-play">Play</button>
-
         </div>
       `;
 
     }).join("");
-
 
     box.querySelectorAll(".store-card").forEach(function(card){
 
@@ -1252,13 +1048,7 @@ onValue(
     });
 
   },
-
-  function(error){
-
-    console.error("Games error:", error);
-
-  }
-
+  function(error){ console.error("Games error:", error); }
 );
 
 
@@ -1267,21 +1057,14 @@ onValue(
 ============================================ */
 
 let gameIsOpen = false;
-
-
 let gameReady = false;
-
 let gameClosing = false;
-
-
-/* The game tells us when it is loaded and able to save coins. */
 
 window.addEventListener("message", function(event){
 
   const frame = $("gameFrame");
 
-  if(event.source !== frame.contentWindow)
-    return;
+  if(event.source !== frame.contentWindow) return;
 
   const data = event.data;
 
@@ -1290,9 +1073,6 @@ window.addEventListener("message", function(event){
 
 });
 
-
-/* Asks the game to add its collected coins to this member's balance. */
-
 function askGameToSave(){
 
   return new Promise(function(resolve){
@@ -1300,98 +1080,62 @@ function askGameToSave(){
     const frame = $("gameFrame");
 
     let finished = false;
-
     let timer = null;
 
     function finish(result){
-
-      if(finished)
-        return;
-
+      if(finished) return;
       finished = true;
-
       clearTimeout(timer);
-
       window.removeEventListener("message", onMessage);
-
       resolve(result || null);
-
     }
 
     function onMessage(event){
-
-      if(event.source !== frame.contentWindow)
-        return;
-
+      if(event.source !== frame.contentWindow) return;
       const data = event.data;
-
       if(data && data.type === "JAVICASH_FLUSH_DONE")
         finish(data);
-
     }
 
     window.addEventListener("message", onMessage);
 
-    timer = setTimeout(function(){
-      finish(null);
-    }, 9000);
+    timer = setTimeout(function(){ finish(null); }, 9000);
 
     try{
-
-      frame.contentWindow.postMessage(
-        { type:"JAVICASH_FLUSH_REQUEST" },
-        "*"
-      );
-
+      frame.contentWindow.postMessage({ type:"JAVICASH_FLUSH_REQUEST" }, "*");
     }catch(error){
-
       finish(null);
-
     }
 
   });
 
 }
 
-
 function wait(ms){
-
-  return new Promise(function(resolve){
-    setTimeout(resolve, ms);
-  });
-
+  return new Promise(function(resolve){ setTimeout(resolve, ms); });
 }
-
 
 async function hideGame(){
 
-  if(gameClosing)
-    return;
+  if(gameClosing) return;
 
   gameClosing = true;
 
   const loading = $("gameFrameLoading");
 
-  /* Back button: save the coins first, then close the game. */
-
   if(gameReady){
 
     loading.textContent = "Saving your coins...";
-
     loading.style.display = "flex";
 
     const result = await askGameToSave();
 
     if(result && result.ok && result.credited > 0){
 
-      loading.textContent =
-        "✓ " + result.credited + " coins added to your balance";
-
+      loading.textContent = "✓ " + result.credited + " coins added to your balance";
       await wait(1300);
 
-    }
-
-    else if(result && !result.ok){
+    }else if(result && !result.ok){
 
       loading.textContent =
         "Coins could not be saved now (" +
@@ -1407,7 +1151,6 @@ async function hideGame(){
   const frame = $("gameFrame");
 
   frame.onload = null;
-
   frame.src = "about:blank";
 
   $("gameModal").classList.remove("open");
@@ -1415,33 +1158,25 @@ async function hideGame(){
   document.body.style.overflow = "";
 
   gameIsOpen = false;
-
   gameClosing = false;
-
   gameReady = false;
 
   loading.textContent = "Loading game...";
 
 }
 
-
 window.openGame = function(url, title){
 
   if(!/^https:\/\//i.test(url || "")){
-
     alert("Game link is not available.");
-
     return;
-
   }
 
-  if(gameIsOpen)
-    return;
+  if(gameIsOpen) return;
 
   gameIsOpen = true;
 
   $("gameModalTitle").textContent = title || "Game";
-
   $("gameFrameLoading").textContent = "Loading game...";
 
   gameReady = false;
@@ -1460,37 +1195,24 @@ window.openGame = function(url, title){
 
   document.body.style.overflow = "hidden";
 
-  /* So the phone Back button closes the game, not the dashboard */
-
   try{
     history.pushState({javicashGame:true}, "");
   }catch(error){}
 
 };
 
-
 window.closeGame = function(){
 
-  if(
-    gameIsOpen &&
-    history.state &&
-    history.state.javicashGame
-  ){
+  if(gameIsOpen && history.state && history.state.javicashGame){
     history.back();
-  }
-
-  else{
+  }else{
     hideGame();
   }
 
 };
 
-
 window.addEventListener("popstate", function(){
-
-  if(gameIsOpen)
-    hideGame();
-
+  if(gameIsOpen) hideGame();
 });
 
 
@@ -1499,129 +1221,58 @@ window.addEventListener("popstate", function(){
 ============================================ */
 
 const myWithdrawalsQuery =
-  query(
-    ref(db,"withdrawals"),
-    orderByChild("uid"),
-    equalTo(session.uid)
-  );
-
+  query(ref(db,"withdrawals"), orderByChild("uid"), equalTo(session.uid));
 
 onValue(
-
   myWithdrawalsQuery,
-
   function(snapshot){
 
     const box = $("withdraw-history");
 
-
     if(!snapshot.exists()){
-
-      box.innerHTML =
-        `<div class="empty">
-          No withdrawal requests submitted yet.
-        </div>`;
-
+      box.innerHTML = `<div class="empty">No withdrawal requests submitted yet.</div>`;
       return;
-
     }
-
 
     const rows =
       Object.values(snapshot.val() || {}).sort(
-        (a,b) =>
-          Number(b.timestamp || 0) -
-          Number(a.timestamp || 0)
+        (a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)
       );
-
 
     box.innerHTML = rows.map(function(req){
 
       const status = String(req.status || "Pending");
 
-
       let statusClass = "pending";
 
+      if(status === "Approved") statusClass = "approved";
+      if(status === "Rejected") statusClass = "rejected";
 
-      if(status === "Approved")
-        statusClass = "approved";
-
-
-      if(status === "Rejected")
-        statusClass = "rejected";
-
-
-      const date =
-        req.timestamp
-        ? new Date(req.timestamp).toLocaleString()
-        : "-";
-
+      const date = req.timestamp ? new Date(req.timestamp).toLocaleString() : "-";
 
       return `
         <div class="history-row">
-
           <div>
-
-            <b>
-              ${escapeHTML(req.method || "-")}
-              (${escapeHTML(req.accountType || "-")})
-            </b>
-
-            <div class="small">
-              ${escapeHTML(req.number || "-")}
-            </div>
-
-            <div class="small">
-              ${escapeHTML(date)}
-            </div>
-
+            <b>${escapeHTML(req.method || "-")} (${escapeHTML(req.accountType || "-")})</b>
+            <div class="small">${escapeHTML(req.number || "-")}</div>
+            <div class="small">${escapeHTML(date)}</div>
           </div>
-
-          <div
-            style="
-              text-align:right;
-              white-space:nowrap
-            "
-          >
-
-            <b>
-              ${money(req.amount)}
-              Coins
-            </b>
-
-            <div
-              class="${statusClass}"
-              style="
-                font-size:11px;
-                font-weight:700;
-                margin-top:4px
-              "
-            >
-
+          <div style="text-align:right;white-space:nowrap">
+            <b>${money(req.amount)} Coins</b>
+            <div class="${statusClass}" style="font-size:11px;font-weight:700;margin-top:4px">
               ${escapeHTML(status)}
-
             </div>
-
           </div>
-
         </div>
       `;
 
     }).join("");
 
   },
-
   function(error){
-
     console.error("Withdrawal history error:", error);
-
-    $("withdraw-history").innerHTML =
-      `<div class="empty">
-        Could not load history right now.
-      </div>`;
-
+    $("withdraw-history").innerHTML = `<div class="empty">Could not load history right now.</div>`;
   }
-
 );
 
 
@@ -1633,55 +1284,31 @@ window.uploadProfilePicture = function(event){
 
   const file = event.target.files?.[0];
 
-
-  if(!file || !session?.uid)
-    return;
-
+  if(!file || !session?.uid) return;
 
   if(file.size > 1.5 * 1024 * 1024){
-
     alert("Please select an image smaller than 1.5 MB.");
-
     event.target.value = "";
-
     return;
-
   }
 
-
   const reader = new FileReader();
-
 
   reader.onload = async function(event){
 
     const image = event.target.result;
 
-
     $("profile-img").src = image;
 
-
     try{
-
-      await update(
-        ref(db, `users/${session.uid}`),
-        { profile_picture: image }
-      );
-
-
+      await update(ref(db, `users/${session.uid}`), { profile_picture: image });
       alert("Profile picture updated successfully.");
-
-    }
-
-    catch(error){
-
+    }catch(error){
       console.error(error);
-
       alert("Could not update profile picture.");
-
     }
 
   };
-
 
   reader.readAsDataURL(file);
 
@@ -1689,131 +1316,76 @@ window.uploadProfilePicture = function(event){
 
 
 /* ============================================
-   WITHDRAW
-   MINIMUM = 100 COINS
+   WITHDRAW (MINIMUM = 100 COINS)
 ============================================ */
 
 const MIN_WITHDRAW_AMOUNT = 100;
 
-
 window.submitWithdrawal = async function(){
 
   const type = $("withdraw-type").value;
-
   const number = $("withdraw-number").value.trim();
-
   const amount = Number($("withdraw-amount").value);
 
-
   if(!/^01[3-9]\d{8}$/.test(number)){
-
     alert("Please enter a valid Bangladesh mobile number, e.g. 017XXXXXXXX.");
-
     return;
-
   }
-
 
   if(!Number.isFinite(amount) || amount < MIN_WITHDRAW_AMOUNT){
-
     alert("Minimum withdrawal amount is 100 Coins.");
-
     return;
-
   }
-
 
   const currentBalance =
-    Number(
-      $("user-balance").textContent.replace(/[^\d.-]/g,"")
-    ) || 0;
-
+    Number($("user-balance").textContent.replace(/[^\d.-]/g,"")) || 0;
 
   if(amount > currentBalance){
-
     alert("Insufficient balance.");
-
     return;
-
   }
-
 
   if(!session?.uid){
-
     alert("Session expired. Please login again.");
-
     logout();
-
     return;
-
   }
-
 
   const button = $("withdraw-btn");
 
-
   button.disabled = true;
-
-  button.innerHTML =
-    `<i class="fa-solid fa-spinner fa-spin"></i>
-     Submitting...`;
-
+  button.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Submitting...`;
 
   try{
 
     const newRef = push(ref(db,"withdrawals"));
 
-
     await set(newRef, {
-
       requestId: newRef.key,
-
       uid: session.uid,
-
-      userName:
-        session.name ||
-        $("prof-name").textContent ||
-        "Member",
-
+      userName: session.name || $("prof-name").textContent || "Member",
       method: selectedPaymentMethod,
-
       accountType: type,
-
       number: number,
-
       amount: amount,
-
       status: "Pending",
-
       timestamp: Date.now()
-
     });
 
-
     $("withdraw-number").value = "";
-
     $("withdraw-amount").value = "";
-
 
     alert("Withdrawal request submitted successfully!");
 
-  }
-
-  catch(error){
+  }catch(error){
 
     console.error(error);
-
     alert("Request failed. Please check your internet connection and try again.");
 
-  }
-
-  finally{
+  }finally{
 
     button.disabled = false;
-
-    button.innerHTML =
-      `<i class="fa-solid fa-paper-plane"></i>
-       Confirm Request`;
+    button.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Confirm Request`;
 
   }
 
@@ -1828,11 +1400,9 @@ window.selectMethod = function(method, element){
 
   selectedPaymentMethod = method;
 
-
   document.querySelectorAll(".method").forEach(function(item){
     item.classList.remove("selected");
   });
-
 
   element.classList.add("selected");
 
@@ -1849,155 +1419,72 @@ window.switchTab = function(tab, clicked){
     item.classList.remove("active");
   });
 
-
   document.querySelectorAll(".menu-item").forEach(function(item){
     item.classList.remove("active");
   });
-
 
   document.querySelectorAll(".mobile-nav button").forEach(function(item){
     item.classList.remove("active");
   });
 
-
   $("tab-" + tab).classList.add("active");
-
 
   document.querySelectorAll(`[data-tab="${tab}"]`).forEach(function(item){
     item.classList.add("active");
   });
 
-
   if(clicked){
     clicked.classList.add("active");
   }
 
-
   $("sidebar").classList.remove("open");
 
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 
 };
-
-
-/* ============================================
-   GO WITHDRAW
-============================================ */
 
 window.goWithdraw = function(){
-
-  const item =
-    document.querySelector('.menu-item[data-tab="withdraw"]');
-
-
+  const item = document.querySelector('.menu-item[data-tab="withdraw"]');
   switchTab("withdraw", item);
-
 };
 
-
-/* ============================================
-   SIDEBAR
-============================================ */
-
 window.toggleSidebar = function(){
-
   $("sidebar").classList.toggle("open");
-
 };
 
 
 /* ============================================
    LOGOUT
-   FIREBASE SIGN OUT + SESSION CLEAR
-   MANUAL LOGIN REQUIRED AFTER LOGOUT
 ============================================ */
 
 let logoutStarted = false;
 
-
 window.logout = function(){
 
-  /*
-    Prevent multiple clicks.
-  */
-
-  if(logoutStarted)
-    return;
+  if(logoutStarted) return;
 
   logoutStarted = true;
-
-
-  /*
-    IMPORTANT:
-    This marker tells index.html that the user
-    explicitly pressed Logout.
-
-    index.html MUST check this marker before
-    restoring any old automatic-login session.
-  */
 
   try{
 
     localStorage.setItem("javicash_manual_logout", "1");
-
-    /*
-      Remove the local JAVICASH session
-      immediately.
-    */
-
     localStorage.removeItem("javicash_session");
 
-
     if(session?.uid){
-
       localStorage.removeItem(`javicash_user_cache_${session.uid}`);
-
     }
 
-  }
-
-  catch(error){
-
+  }catch(error){
     console.error("Logout local cleanup error:", error);
-
   }
-
-
-  /*
-    Sign out Firebase Authentication.
-
-    We intentionally DO NOT wait for this promise
-    before redirecting because the local logout
-    state above already blocks index.html from
-    auto-restoring the old dashboard session.
-  */
 
   try{
-
     signOut(auth).catch(function(error){
-
       console.error("Firebase signOut error:", error);
-
     });
-
-  }
-
-  catch(error){
-
+  }catch(error){
     console.error("Firebase signOut start error:", error);
-
   }
-
-
-  /*
-    Immediate redirect.
-    replace() also prevents the dashboard from
-    being restored through normal browser history.
-  */
 
   window.location.replace("index.html");
 
@@ -2008,14 +1495,8 @@ window.logout = function(){
    NETWORK STATUS
 ============================================ */
 
-window.addEventListener("online", function(){
-  hideConnection();
-});
-
-
-window.addEventListener("offline", function(){
-  showConnection();
-});
+window.addEventListener("online", function(){ hideConnection(); });
+window.addEventListener("offline", function(){ showConnection(); });
 
 
 /* ============================================
@@ -2026,21 +1507,15 @@ setTimeout(function(){
 
   if(firstMemberLoad){
 
-    loadingMessage(
-      "Still connecting...",
-      "Your network is slow. Firebase will continue syncing."
-    );
+    loadingMessage("Still connecting...", "Your network is slow. Firebase will continue syncing.");
 
-
-    setTimeout(function(){
-
-      finishLoading();
-
-    }, 4000);
+    setTimeout(function(){ finishLoading(); }, 4000);
 
   }
 
 }, 10000);
+
+
 /* ================= PRODUCTS + CHECKOUT ================= */
 
 const productsMap = {};
@@ -2155,7 +1630,6 @@ window.orderProduct = async function(key){
   document.body.style.overflow = "hidden";
 };
 
-
 window.closeCheckout = function(){
   $("checkoutModal").classList.remove("open");
   document.body.style.overflow = "";
@@ -2180,19 +1654,19 @@ window.confirmOrder = async function(){
   const phone2   = $("co-phone2").value.trim();
 
   if(!division || !district || !upazila || !village){
-    toast("সব ঠিকানার ঘর পূরণ করুন।", "error");
+    toast("Please fill in all address fields.", "error");
     return;
   }
 
   const phoneRegex = /^01[3-9]\d{8}$/;
 
   if(!phoneRegex.test(phone)){
-    toast("সঠিক মোবাইল নম্বর দিন (017XXXXXXXX)।", "error");
+    toast("Enter a valid primary mobile number (017XXXXXXXX).", "error");
     return;
   }
 
   if(!phoneRegex.test(phone2)){
-    toast("সঠিক বিকল্প মোবাইল নম্বর দিন।", "error");
+    toast("Enter a valid alternate mobile number.", "error");
     return;
   }
 
@@ -2216,7 +1690,7 @@ window.confirmOrder = async function(){
     /* 1) Deduct coins safely (transaction) */
     const coinResult = await runTransaction(balanceRef, function(current){
       const b = Number(current || 0);
-      if(b < coinPrice) return;               // abort
+      if(b < coinPrice) return;
       return Number((b - coinPrice).toFixed(2));
     });
 
@@ -2230,7 +1704,7 @@ window.confirmOrder = async function(){
     if(hasStock){
       const stockResult = await runTransaction(stockRef, function(current){
         const s = Number(current);
-        if(!Number.isFinite(s) || s <= 0) return;   // abort
+        if(!Number.isFinite(s) || s <= 0) return;
         return s - 1;
       });
 
@@ -2272,7 +1746,6 @@ window.confirmOrder = async function(){
 
     console.error("Order error:", error);
 
-    /* Give everything back if something failed */
     try{
       if(coinsTaken){
         await runTransaction(balanceRef, function(c){
