@@ -280,6 +280,17 @@ body{
 .checkout-box .control:focus{border-color:#8b7cf6;box-shadow:0 0 0 3px rgba(108,92,231,.22);}
 .checkout-box .control::placeholder{color:#6f6b85;}
 .checkout-box .btn{margin-top:6px;padding:14px;font-size:15px;background:linear-gradient(135deg,#6c5ce7,#8b7cf6);box-shadow:0 10px 25px rgba(108,92,231,.3);}
+  /* ===== HOME BANNER ===== */
+#banner-box{margin-bottom:18px;}
+.banner-track{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.banner-track::-webkit-scrollbar{display:none;}
+.banner-card{flex:0 0 100%;scroll-snap-align:center;background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.22);}
+.banner-media{position:relative;background:#000;}
+.banner-media img,.banner-media video{display:block;width:100%;max-height:300px;object-fit:cover;}
+.banner-play{position:absolute;inset:0;margin:auto;width:64px;height:64px;border:0;border-radius:50%;background:rgba(108,92,231,.92);color:#fff;font-size:24px;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.45);}
+.banner-body{padding:14px 16px 16px;}
+.banner-title{font-weight:750;font-size:16px;}
+.banner-desc{color:var(--muted);font-size:13px;line-height:1.55;margin-top:6px;}
 </style>
 </head>
 
@@ -382,7 +393,9 @@ body{
     <p>Your JAVICASH member dashboard</p>
   </div>
 
-  <div class="grid">
+  <div id="banner-box"></div>
+  
+<div class="grid">
 
     <div class="card">
       <div class="label">Current Coins / Balance</div>
@@ -1514,7 +1527,62 @@ setTimeout(function(){
   }
 
 }, 10000);
+  /* ================= HOME BANNER (content node) ================= */
 
+window.playBanner = function(btn){
+  const v = btn.parentElement.querySelector("video");
+  if(!v) return;
+  v.muted = false;
+  v.play().catch(function(){});
+  btn.style.display = "none";
+};
+
+onValue(
+  ref(db,"content"),
+  function(snapshot){
+
+    const box = $("banner-box");
+
+    if(!snapshot.exists()){ box.innerHTML = ""; return; }
+
+    const items = Object.values(snapshot.val() || {})
+      .filter(function(i){ return i && i.published !== false && cleanUrl(i.mediaURL); })
+      .sort(function(a,b){ return Number(b.createdAt||0) - Number(a.createdAt||0); });
+
+    if(!items.length){ box.innerHTML = ""; return; }
+
+    box.innerHTML = `<div class="banner-track">` + items.map(function(item){
+
+      const title = escapeHTML(item.title || "");
+      const desc  = escapeHTML(item.description || "");
+      const url   = escapeHTML(cleanUrl(item.mediaURL));
+
+      const media = item.type === "video"
+        ? `<div class="banner-media">
+             <video src="${url}#t=0.1" preload="metadata" playsinline controls></video>
+             <button type="button" class="banner-play" onclick="playBanner(this)">
+               <i class="fa-solid fa-play"></i>
+             </button>
+           </div>`
+        : `<div class="banner-media">
+             <img src="${url}" alt="${title}" loading="lazy" referrerpolicy="no-referrer">
+           </div>`;
+
+      return `
+        <div class="banner-card">
+          ${media}
+          <div class="banner-body">
+            ${title ? `<div class="banner-title">${title}</div>` : ""}
+            ${desc ? `<div class="banner-desc">${desc}</div>` : ""}
+          </div>
+        </div>`;
+
+    }).join("") + `</div>`;
+
+  },
+  function(error){ console.error("Banner error:", error); }
+);
+  
 
 /* ================= PRODUCTS + CHECKOUT ================= */
 
