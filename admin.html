@@ -265,6 +265,8 @@
           <button class="nav-btn" data-section="members"><i class="fa-solid fa-users"></i> Members</button>
           <button class="nav-btn" data-section="withdrawals"><i class="fa-solid fa-hand-holding-dollar"></i> Withdrawals
             <span class="nav-count" id="side-withdraw-count">0</span></button>
+          <button class="nav-btn" data-section="orders"><i class="fa-solid fa-box"></i> Orders
+  <span class="nav-count" id="side-order-count">0</span></button>
           <button class="nav-btn" data-section="notifications"><i class="fa-solid fa-bullhorn"></i> Notifications</button>
           <button class="nav-btn" data-section="games"><i class="fa-solid fa-gamepad"></i> Games</button>
           <button class="nav-btn" data-section="products"><i class="fa-solid fa-bag-shopping"></i> Products</button>
@@ -391,6 +393,18 @@
             </div>
           </div>
         </section>
+        <!-- ORDERS -->
+<section class="section" id="section-orders">
+  <div class="section-title">
+    <h2>Product Orders</h2>
+    <p>Realtime orders placed by members (latest 200).</p>
+  </div>
+  <div class="card">
+    <div class="request-list" id="orders-list">
+      <p style="color:var(--muted);font-size:13px;">Loading orders...</p>
+    </div>
+  </div>
+</section>
 
         <!-- NOTIFICATIONS -->
         <section class="section" id="section-notifications">
@@ -548,6 +562,8 @@
       <button data-section="members"><i class="fa-solid fa-users"></i>Members</button>
       <button data-section="withdrawals"><i class="fa-solid fa-money-bill-transfer"></i>Withdraw
         <span class="bottom-count" id="bottom-withdraw-count">0</span></button>
+      <button data-section="orders"><i class="fa-solid fa-box"></i>Orders
+  <span class="bottom-count" id="bottom-order-count">0</span></button>
       <button data-section="notifications"><i class="fa-solid fa-bullhorn"></i>Notice</button>
       <button data-section="games"><i class="fa-solid fa-gamepad"></i>Games</button>
       <button data-section="products"><i class="fa-solid fa-bag-shopping"></i>Products</button>
@@ -577,6 +593,26 @@
     </div>
   </div>
 
+  <!-- ORDER MODAL -->
+<div class="modal" id="order-modal">
+  <div class="modal-box">
+    <div class="card-title" style="margin-bottom:20px;">
+      <h3><i class="fa-solid fa-box"></i> Manage Order</h3>
+      <button class="btn btn-muted" id="close-order-modal"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="order-modal-details"></div>
+    <div class="form-group" style="margin-top:18px;">
+      <label class="form-label">Rejection Reason (only for Reject)</label>
+      <textarea class="textarea" id="order-reject-reason" placeholder="Required when rejecting..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-success btn-sm" data-ostatus="confirmed"><i class="fa-solid fa-check"></i> Confirm</button>
+      <button class="btn btn-warning btn-sm" data-ostatus="shipped"><i class="fa-solid fa-truck"></i> Shipped</button>
+      <button class="btn btn-primary btn-sm" data-ostatus="delivered"><i class="fa-solid fa-box-open"></i> Delivered</button>
+      <button class="btn btn-danger btn-sm" data-ostatus="rejected"><i class="fa-solid fa-xmark"></i> Reject</button>
+    </div>
+  </div>
+</div>
   <div id="toast"></div>
 
   <script type="module">
@@ -750,6 +786,7 @@
 
     const titles = {
       overview: "Admin Overview", members: "Member Management", withdrawals: "Withdrawal Requests",
+      orders: "Product Orders",
       notifications: "Global Notifications", games: "Games", products: "Products", content: "Content Management"
     };
 
@@ -772,6 +809,7 @@
       $("report-date").value = dayKey(Date.now());
       loadStats();
       listenToWithdrawals();
+      listenToOrders();
       listenToGames();
       listenToProducts();
     }
@@ -1391,6 +1429,146 @@ if (/^[A-Za-z0-9_-]+$/.test(t)) {
       }
     });
 
+    /* ---------- ORDERS ---------- */
+
+let orderData = {};
+let selectedOrderId = null;
+
+function setOrderBadge(n) {
+  const t = n > 99 ? "99+" : String(n);
+  $("side-order-count").textContent = t;
+  $("bottom-order-count").textContent = t;
+}
+
+function listenToOrders() {
+  const q = query(ref(db, "orders"), orderByChild("timestamp"), limitToLast(200));
+  const unsub = onValue(q, snapshot => {
+    orderData = {};
+    let pending = 0;
+    if (snapshot.exists()) {
+      Object.entries(snapshot.val()).forEach(([id, o]) => {
+        if (!o || typeof o !== "object") return;
+        orderData[id] = o;
+        if (String(o.status || "pending").toLowerCase() === "pending") pending++;
+      });
+    }
+    setOrderBadge(pending);
+    renderOrders();
+  }, error => {
+    console.error(error);
+    showToast("Orders listener error: " + error.message, "error");
+  });
+  unsubs.push(unsub);
+}
+
+function renderOrders() {
+  const c = $("orders-list");
+  const entries = Object.entries(orderData).sort(([, a], [, b]) => toMs(b.timestamp) - toMs(a.timestamp));
+  if (!entries.length) {
+    c.innerHTML = `<p style="color:var(--muted);font-size:13px;">No orders yet.</p>`;
+    return;
+  }
+
+  c.innerHTML = entries.map(([id, o]) => {
+    const status = String(o.status || "pending");
+    const n = status.toLowerCase();
+    const cls = n === "pending" ? "status-pending" : n === "rejected" ? "status-rejected" : "status-completed";
+    const address = [o.village, o.upazila, o.district, o.division].filter(Boolean).join(", ") || "N/A";
+    const open = n !== "delivered" && n !== "rejected";
+    return `
+      <div class="request">
+        <div class="request-top">
+          <div class="request-id">${escapeHTML(o.productTitle || "Product")}</div>
+          <span class="status ${cls}">${escapeHTML(status.toUpperCase())}</span>
+        </div>
+        <div class="request-grid">
+          <div class="request-info">Member<b>${escapeHTML(o.userName || "N/A")}</b></div>
+          <div class="request-info">Member ID<b>${escapeHTML(o.userId || "N/A")}</b></div>
+          <div class="request-info">Coins Deducted<b>${escapeHTML(o.coinsDeducted ?? 0)}</b></div>
+          <div class="request-info">Price<b>${escapeHTML(o.price ?? 0)}</b></div>
+          <div class="request-info">Phone<b>${escapeHTML(o.primaryPhone || "N/A")}</b></div>
+          <div class="request-info">Recovery Phone<b>${escapeHTML(o.recoveryPhone || "N/A")}</b></div>
+          <div class="request-info" style="grid-column:1/-1;">Address<b>${escapeHTML(address)}</b></div>
+          <div class="request-info" style="grid-column:1/-1;">Ordered<b>${escapeHTML(formatDate(o.timestamp))}</b></div>
+        </div>
+        ${o.rejectionReason ? `<div class="request-info" style="margin-top:10px;">Reason<b>${escapeHTML(o.rejectionReason)}</b></div>` : ""}
+        ${open ? `<div class="request-actions">
+          <button class="btn btn-primary" data-omanage="${escapeHTML(id)}"><i class="fa-solid fa-gear"></i> Manage Order</button>
+        </div>` : ""}
+      </div>`;
+  }).join("");
+}
+
+$("orders-list").addEventListener("click", e => {
+  const b = e.target.closest("[data-omanage]");
+  if (!b) return;
+  const id = b.dataset.omanage;
+  const o = orderData[id];
+  if (!o) { showToast("Order no longer exists.", "error"); return; }
+  selectedOrderId = id;
+  $("order-reject-reason").value = "";
+  const f = (l, v) => `<div class="member-field"><small>${l}</small><strong>${escapeHTML(v)}</strong></div>`;
+  $("order-modal-details").innerHTML = `<div class="member-grid">
+    ${f("Product", o.productTitle || "N/A")}
+    ${f("Member", (o.userName || "N/A") + " (" + (o.userId || "-") + ")")}
+    ${f("Coins Deducted", o.coinsDeducted ?? 0)}
+    ${f("Current Status", o.status || "pending")}
+    ${f("Phone", o.primaryPhone || "N/A")}
+    ${f("Recovery Phone", o.recoveryPhone || "N/A")}
+  </div>`;
+  $("order-modal").classList.add("show");
+});
+
+function closeOrderModal() {
+  $("order-modal").classList.remove("show");
+  selectedOrderId = null;
+}
+$("close-order-modal").addEventListener("click", closeOrderModal);
+
+async function setOrderStatus(status) {
+  if (!selectedOrderId) return;
+  const o = orderData[selectedOrderId];
+  if (!o) return;
+
+  const patch = { status, updatedAt: Date.now(), processedBy: currentUser.uid };
+
+  try {
+    if (status === "rejected") {
+      const reason = $("order-reject-reason").value.trim();
+      if (!reason) { showToast("Enter a rejection reason.", "error"); return; }
+      patch.rejectionReason = reason;
+
+      const coins = Number(o.coinsDeducted) || 0;
+      if (coins > 0 && !o.refunded) {
+        if (confirm("Refund " + coins + " Coins back to " + (o.userName || o.userId) + "?")) {
+          const m = await findMember(String(o.userId));
+          if (m) {
+            const bs = await get(ref(db, "users/" + m.uid + "/balance"));
+            const cur = Number(bs.val()) || 0;
+            await update(ref(db, "users/" + m.uid), { balance: cur + coins });
+            patch.refunded = true;
+          } else {
+            showToast("Member not found. Refund skipped.", "error");
+          }
+        }
+      }
+    } else {
+      if (!confirm("Mark this order as " + status.toUpperCase() + "?")) return;
+    }
+
+    await update(ref(db, "orders/" + selectedOrderId), patch);
+    showToast("Order marked as " + status + ".", "success");
+    closeOrderModal();
+  } catch (error) {
+    console.error(error);
+    showToast("Order update failed: " + error.message, "error");
+  }
+}
+
+document.querySelectorAll("[data-ostatus]").forEach(b => {
+  b.addEventListener("click", () => setOrderStatus(b.dataset.ostatus));
+});
+    
     /* ---------- LOGOUT ---------- */
 
     async function adminLogout() {
