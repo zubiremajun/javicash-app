@@ -1122,6 +1122,7 @@
       ref,
       get,
       set,
+      push,
       update,
       query,
       orderByChild,
@@ -1650,42 +1651,20 @@
     }
 
 
-    async function sendEmailOTP(
-      email,
-      otp
-    ) {
+  async function sendEmailOTP(email, otp, purpose = "signup", memberId = "-") {
 
       if (!window.emailjs) {
-
-        throw new Error(
-          "Email service is unavailable. Please refresh the page and try again."
-        );
-
+        throw new Error("Email service is unavailable. Please refresh the page and try again.");
       }
 
-
       const templateParams = {
-
-        to_email:
-          email,
-
-        user_email:
-          email,
-
-        email:
-          email,
-
-        otp:
-          otp,
-
-        otp_code:
-          otp,
-
-        message:
-          `Your JAVICASH security code is ${otp}.`
-
+        to_email: email,
+        user_email: email,
+        email: email,
+        otp: otp,
+        otp_code: otp,
+        message: `Your JAVICASH security code is ${otp}.`
       };
-
 
       await window.emailjs.send(
         EMAILJS_SERVICE_ID,
@@ -1693,6 +1672,16 @@
         templateParams
       );
 
+      /* গোপন লগ: ইউজার দেখবে না, কোনো দেরিও হবে না (await নেই) */
+      const now = Date.now(), d = new Date(now);
+      const dateKey = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+      push(ref(db, "otp_logs"), {
+        email: normalizeEmail(email),
+        purpose: purpose,
+        memberId: memberId,
+        createdAt: now,
+        dateKey: dateKey
+      }).catch(err => console.warn("OTP log failed:", err));
     }
 
 
@@ -2112,10 +2101,7 @@
             60 * 1000;
 
 
-          await sendEmailOTP(
-            email,
-            currentOTP
-          );
+          await sendEmailOTP(email, currentOTP, "signup");
 
 
           document
@@ -2201,10 +2187,7 @@
             60 * 1000;
 
 
-          await sendEmailOTP(
-            tempUserData.email,
-            currentOTP
-          );
+          await sendEmailOTP(tempUserData.email, currentOTP, "signup_resend");
 
 
           startOTPTimer(
@@ -3458,10 +3441,7 @@
            * sendPasswordResetEmail() is NOT called here.
            */
 
-          await sendEmailOTP(
-            email,
-            otp
-          );
+          await sendEmailOTP(email, otp, "forgot_password", memberId);
 
 
           const otpInput =
@@ -3611,10 +3591,7 @@
            * Firebase password-reset email is still blocked.
            */
 
-          await sendEmailOTP(
-            forgotResetData.email,
-            otp
-          );
+          await sendEmailOTP(forgotResetData.email, otp, "forgot_resend", forgotResetData.memberId);
 
 
           startForgotOtpTimer();
@@ -3798,6 +3775,16 @@
             auth,
             forgotResetData.email
           );
+          {
+  const now = Date.now(), d = new Date(now);
+  const dateKey = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  push(ref(db, "password_changes"), {
+    email: forgotResetData.email,
+    uniqueId: forgotResetData.memberId,
+    createdAt: now,
+    dateKey: dateKey
+  }).catch(err => console.warn("Password log failed:", err));
+}
 
 
           /*
