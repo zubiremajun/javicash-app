@@ -294,7 +294,7 @@
           <div class="section-title" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
             <div>
               <h2>Dashboard Overview</h2>
-              <p>Members, OTP usage and password changes.</p>
+              <p>Members, logins, OTP usage and password changes.</p>
             </div>
             <button class="btn btn-primary btn-sm" id="refresh-btn"><i class="fa-solid fa-rotate"></i> Refresh</button>
           </div>
@@ -304,6 +304,8 @@
               <div class="stat-label">Registered Members</div><div class="stat-value" id="stat-members">0</div></div>
             <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-user-plus"></i></div>
               <div class="stat-label">New Today</div><div class="stat-value" id="stat-today">0</div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-right-to-bracket"></i></div>
+              <div class="stat-label">Logins Today</div><div class="stat-value" id="stat-login">0</div></div>
             <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-coins"></i></div>
               <div class="stat-label">Total Coins</div><div class="stat-value" id="stat-coins">0</div></div>
             <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
@@ -322,8 +324,8 @@
             <div class="card-title"><h3><i class="fa-solid fa-calendar-days"></i> Daily Report (last 30 days)</h3></div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Date</th><th>New Members</th><th>OTP Used</th><th>Password Changes</th></tr></thead>
-                <tbody id="day-table"><tr><td colspan="4" style="color:var(--muted)">Loading...</td></tr></tbody>
+                <thead><tr><th>Date</th><th>New Members</th><th>Logins</th><th>OTP Used</th><th>Password Changes</th></tr></thead>
+                <tbody id="day-table"><tr><td colspan="5" style="color:var(--muted)">Loading...</td></tr></tbody>
               </table>
             </div>
           </div>
@@ -651,7 +653,7 @@
     let started = false;
     let unsubs = [];
     let lastLoginMsg = "";
-    let cache = { regByDay: {}, otp: [], pw: [] };
+    let cache = { regByDay: {}, stats: {} };
 
     const $ = id => document.getElementById(id);
 
@@ -814,21 +816,28 @@
       listenToProducts();
     }
 
-    /* ---------- STATS (users, OTP, password changes) ---------- */
+    /* ---------- STATS (unlimited daily counters) ---------- */
+
+    function num(v) { return Number(v) || 0; }
 
     async function loadStats() {
       const btn = $("refresh-btn");
       btn.disabled = true;
       try {
-        const [uSnap, oSnap, pSnap] = await Promise.all([
-          get(ref(db, "users")),
-          get(query(ref(db, "otp_logs"), orderByChild("createdAt"), limitToLast(5000))),
-          get(query(ref(db, "password_changes"), orderByChild("createdAt"), limitToLast(5000)))
+        /* Each read is isolated: one failure never blocks the others */
+        const safe = async (p, name) => {
+          try { return await p; }
+          catch (e) { console.error(name, e); showToast(name + " error: " + e.message, "error"); return null; }
+        };
+
+        const [uSnap, sSnap] = await Promise.all([
+          safe(get(ref(db, "users")), "users"),
+          safe(get(ref(db, "stats/daily")), "stats")
         ]);
 
         let members = 0, coins = 0;
         const regByDay = {};
-        if (uSnap.exists()) {
+        if (uSnap && uSnap.exists()) {
           Object.values(uSnap.val()).forEach(u => {
             if (!u || typeof u !== "object") return;
             members++;
@@ -839,48 +848,66 @@
         }
 
         cache.regByDay = regByDay;
-        cache.otp = oSnap.exists() ? Object.values(oSnap.val()).filter(x => x && typeof x === "object") : [];
-        cache.pw = pSnap.exists() ? Object.values(pSnap.val()).filter(x => x && typeof x === "object") : [];
+        cache.stats = (sSnap && sSnap.exists()) ? sSnap.val() : {};
 
         const today = dayKey(Date.now());
+        const t = cache.stats[today] || {};
         $("stat-members").textContent = members.toLocaleString();
         $("stat-coins").textContent = coins.toLocaleString();
         $("stat-today").textContent = (regByDay[today] || 0).toLocaleString();
-        $("stat-otp").textContent = cache.otp.filter(x => logDay(x) === today).length.toLocaleString();
-        $("stat-pw").textContent = cache.pw.filter(x => logDay(x) === today).length.toLocaleString();
+        $("stat-login").textContent = num(t.logins).toLocaleString();
+        $("stat-otp").textContent = num(t.otp).toLocaleString();
+        $("stat-pw").textContent = num(t.pw).toLocaleString();
 
         renderDayTable();
         renderDayReport();
       } catch (error) {
         console.error(error);
         showToast("Unable to load stats: " + error.message, "error");
+        const em = `<tr><td colspan="5" style="color:#ff4757">Error: ${escapeHTML(error.message)}</td></tr>`;
+        $("day-table").innerHTML = em;
       } finally {
         btn.disabled = false;
       }
     }
 
-    function logDay(x) {
-      return x.dateKey || (toMs(x.createdAt) ? dayKey(toMs(x.createdAt)) : "");
-    }
-
     function renderDayTable() {
-      const otpByDay = {}, pwByDay = {};
-      cache.otp.forEach(x => { const k = logDay(x); if (k) otpByDay[k] = (otpByDay[k] || 0) + 1; });
-      cache.pw.forEach(x => { const k = logDay(x); if (k) pwByDay[k] = (pwByDay[k] || 0) + 1; });
-
-      const days = new Set([...Object.keys(cache.regByDay), ...Object.keys(otpByDay), ...Object.keys(pwByDay)]);
+      const st = cache.stats || {};
+      const days = new Set([...Object.keys(cache.regByDay), ...Object.keys(st)]);
       const list = [...days].sort().reverse().slice(0, 30);
 
       $("day-table").innerHTML = list.length
-        ? list.map(d => `<tr><td>${escapeHTML(d)}</td><td>${cache.regByDay[d] || 0}</td><td>${otpByDay[d] || 0}</td><td>${pwByDay[d] || 0}</td></tr>`).join("")
-        : `<tr><td colspan="4" style="color:var(--muted)">No data yet.</td></tr>`;
+        ? list.map(d => {
+            const s = st[d] || {};
+            return `<tr><td>${escapeHTML(d)}</td><td>${(cache.regByDay[d] || 0).toLocaleString()}</td><td>${num(s.logins).toLocaleString()}</td><td>${num(s.otp).toLocaleString()}</td><td>${num(s.pw).toLocaleString()}</td></tr>`;
+          }).join("")
+        : `<tr><td colspan="5" style="color:var(--muted)">No data yet.</td></tr>`;
     }
 
-    function renderDayReport() {
+    /* Detail tables load only the selected date (latest 2000 rows of that day) */
+    async function renderDayReport() {
       const date = $("report-date").value || dayKey(Date.now());
+      $("otp-table").innerHTML = `<tr><td colspan="4" style="color:var(--muted)">Loading...</td></tr>`;
+      $("pw-table").innerHTML = `<tr><td colspan="3" style="color:var(--muted)">Loading...</td></tr>`;
+
+      let otpList = [], pwList = [];
+      try {
+        const [oSnap, pSnap] = await Promise.all([
+          get(query(ref(db, "otp_logs"), orderByChild("dateKey"), equalTo(date), limitToLast(2000))),
+          get(query(ref(db, "password_changes"), orderByChild("dateKey"), equalTo(date), limitToLast(2000)))
+        ]);
+        otpList = oSnap.exists() ? Object.values(oSnap.val()).filter(x => x && typeof x === "object") : [];
+        pwList = pSnap.exists() ? Object.values(pSnap.val()).filter(x => x && typeof x === "object") : [];
+      } catch (e) {
+        console.error(e);
+        const em = `<tr><td colspan="4" style="color:#ff4757">Error: ${escapeHTML(e.message)}</td></tr>`;
+        $("otp-table").innerHTML = em;
+        $("pw-table").innerHTML = em;
+        return;
+      }
 
       const map = {};
-      cache.otp.filter(x => logDay(x) === date).forEach(x => {
+      otpList.forEach(x => {
         const em = String(x.email || "unknown").toLowerCase();
         if (!map[em]) map[em] = { count: 0, purposes: new Set(), last: 0 };
         map[em].count++;
@@ -893,7 +920,7 @@
         ? rows.map(([em, v]) => `<tr><td>${escapeHTML(em)}</td><td>${v.count}</td><td>${escapeHTML([...v.purposes].join(", ") || "-")}</td><td>${escapeHTML(v.last ? new Date(v.last).toLocaleTimeString() : "-")}</td></tr>`).join("")
         : `<tr><td colspan="4" style="color:var(--muted)">No OTP used on this date.</td></tr>`;
 
-      const pw = cache.pw.filter(x => logDay(x) === date).sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt));
+      const pw = pwList.sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt));
       $("pw-table").innerHTML = pw.length
         ? pw.map(x => `<tr><td>${escapeHTML(x.email || "unknown")}</td><td>${escapeHTML(x.uniqueId || "-")}</td><td>${escapeHTML(formatDate(x.createdAt))}</td></tr>`).join("")
         : `<tr><td colspan="3" style="color:var(--muted)">No password changes on this date.</td></tr>`;
