@@ -1124,6 +1124,7 @@
       set,
       push,
       update,
+      increment,
       query,
       orderByChild,
       equalTo
@@ -1651,7 +1652,77 @@
     }
 
 
-  async function sendEmailOTP(email, otp, purpose = "signup", memberId = "-") {
+    /* =====================================================
+       DAILY COUNTERS (unlimited, silent, admin-only stats)
+       stats/daily/<YYYY-MM-DD>/{logins, otp, pw}
+    ====================================================== */
+
+    function todayKey() {
+
+      const d = new Date();
+
+      return d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+
+    }
+
+
+    /* Fire-and-forget increment (no waiting, never throws) */
+
+    function bumpCounter(field) {
+
+      try {
+
+        update(
+          ref(db, "stats/daily/" + todayKey()),
+          { [field]: increment(1) }
+        ).catch(err =>
+          console.warn("Counter failed:", err)
+        );
+
+      } catch (err) {
+
+        console.warn("Counter failed:", err);
+
+      }
+
+    }
+
+
+    /* Login counter: waits up to 1.5s so the page redirect
+       does not cancel the write */
+
+    function countLogin() {
+
+      let write;
+
+      try {
+
+        write = update(
+          ref(db, "stats/daily/" + todayKey()),
+          { logins: increment(1) }
+        ).catch(err =>
+          console.warn("Login count failed:", err)
+        );
+
+      } catch (err) {
+
+        console.warn("Login count failed:", err);
+
+        return Promise.resolve();
+
+      }
+
+      return Promise.race([
+        write,
+        new Promise(r => setTimeout(r, 1500))
+      ]);
+
+    }
+
+
+    async function sendEmailOTP(email, otp, purpose = "signup", memberId = "-") {
 
       if (!window.emailjs) {
         throw new Error("Email service is unavailable. Please refresh the page and try again.");
@@ -1682,6 +1753,8 @@
         createdAt: now,
         dateKey: dateKey
       }).catch(err => console.warn("OTP log failed:", err));
+
+      bumpCounter("otp");
     }
 
 
@@ -3092,6 +3165,9 @@
           );
 
 
+          await countLogin();
+
+
           window.location.replace(
             "dashboard.html"
           );
@@ -3784,6 +3860,7 @@
     createdAt: now,
     dateKey: dateKey
   }).catch(err => console.warn("Password log failed:", err));
+  bumpCounter("pw");
 }
 
 
@@ -4237,6 +4314,9 @@
                   repairedProfile,
                   firebaseUser
                 );
+
+
+                await countLogin();
 
 
                 window.location.replace(
