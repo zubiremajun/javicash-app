@@ -836,16 +836,18 @@
         ]);
 
         let members = 0, coins = 0;
-        const regByDay = {};
-        if (uSnap && uSnap.exists()) {
-          Object.values(uSnap.val()).forEach(u => {
-            if (!u || typeof u !== "object") return;
-            members++;
-            coins += Number(u.coins || 0) || 0;
-            const ms = toMs(u.created_at || u.createdAt);
-            if (ms) { const k = dayKey(ms); regByDay[k] = (regByDay[k] || 0) + 1; }
-          });
-        }
+const regByDay = {};
+if (uSnap && uSnap.exists()) {
+  Object.entries(uSnap.val()).forEach(([key, u]) => {
+    if (!u || typeof u !== "object") return;
+    // Count only real members: the node key must be the numeric Unique ID
+    if (!/^\d+$/.test(key)) return;
+    members++;
+    coins += Number(u.balance ?? u.coins ?? 0) || 0;
+    const ms = toMs(u.created_at || u.createdAt);
+    if (ms) { const k = dayKey(ms); regByDay[k] = (regByDay[k] || 0) + 1; }
+  });
+}
 
         cache.regByDay = regByDay;
         cache.stats = (sSnap && sSnap.exists()) ? sSnap.val() : {};
