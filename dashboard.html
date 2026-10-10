@@ -835,6 +835,34 @@ function hideConnection(){ $("connectionStatus").style.display = "none"; }
    MEMBER DATA
 ============================================ */
 
+async function resolveSession(){
+  const keys = [session.memberId, session.uid].filter(function(k){
+    return k && /^\d{6}$/.test(String(k));
+  });
+  for(const k of keys){
+    try{
+      const s = await get(ref(db, `users/${k}`));
+      if(s.exists()){
+        session.uid = String(k);
+        localStorage.setItem("javicash_session", JSON.stringify(session));
+        return;
+      }
+    }catch(e){}
+  }
+  if(session.authUid){
+    try{
+      const q = query(ref(db,"users"), orderByChild("authUid"), equalTo(session.authUid));
+      const s = await get(q);
+      s.forEach(function(child){
+        if(/^\d{6}$/.test(child.key)){ session.uid = child.key; }
+      });
+      localStorage.setItem("javicash_session", JSON.stringify(session));
+    }catch(e){}
+  }
+}
+
+await resolveSession();
+
 const userRef = ref(db, `users/${session.uid}`);
 
 onValue(
@@ -867,8 +895,9 @@ onValue(
 
     }else{
 
-      loadingMessage("Member data not found", "Checking your account...");
-      setTimeout(finishLoading, 1200);
+      loadingMessage("Session expired", "Redirecting to login...");
+try{ localStorage.removeItem("javicash_session"); }catch(e){}
+setTimeout(function(){ window.location.replace("index.html"); }, 1200);
 
     }
 
