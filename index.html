@@ -1845,111 +1845,16 @@
        PRE-OTP EMAIL EXISTENCE CHECK
     ====================================================== */
 
-    async function emailAlreadyRegistered(
-      email
-    ) {
-
-      const normalized =
-        normalizeEmail(email);
-
-
-      try {
-
-        const methods =
-          await fetchSignInMethodsForEmail(
-            auth,
-            normalized
-          );
-
-
-        if (
-          Array.isArray(methods) &&
-          methods.length > 0
-        ) {
-
-          return {
-            exists: true,
-            source: "firebase-auth"
-          };
-
-        }
-
-      } catch (error) {
-
-        console.warn(
-          "Firebase Auth email lookup unavailable:",
-          error
-        );
-
-      }
-
-
-      try {
-
-        const emailKey =
-          sanitizeEmail(
-            normalized
-          );
-
-
-        const snapshot =
-          await get(
-            ref(
-              db,
-              `email_registry/${emailKey}`
-            )
-          );
-
-
-        if (snapshot.exists()) {
-
-          return {
-            exists: true,
-            source: "email-registry"
-          };
-
-        }
-
-      } catch (error) {
-
-        if (
-          error &&
-          (
-            error.code ===
-              "PERMISSION_DENIED" ||
-            error.code ===
-              "permission_denied"
-          )
-        ) {
-
-          console.warn(
-            "Email registry lookup denied by RTDB rules."
-          );
-
-
-          return {
-            exists: false,
-            source: "auth-fallback"
-          };
-
-        }
-
-
-        console.warn(
-          "Email registry lookup failed:",
-          error
-        );
-
-      }
-
-
-      return {
-        exists: false,
-        source: "not-found"
-      };
-
-    }
-
+    async function emailAlreadyRegistered(email) {
+  const emailKey = sanitizeEmail(normalizeEmail(email));
+  try {
+    const snap = await get(ref(db, `email_registry/${emailKey}`));
+    return { exists: snap.exists() };
+  } catch (error) {
+    console.error("Email registry lookup failed:", error);
+    throw new Error("Could not verify your email right now. Please try again.");
+  }
+}
 
     /* =====================================================
        REGISTRATION
