@@ -2041,17 +2041,11 @@
 
 
           if (existence.exists) {
-
-            showError(
-              "reg-email",
-              "err-reg-email",
-              "This email is already registered"
-            );
-
-            return;
-
-          }
-
+           showError("reg-email", "err-reg-email",
+          "⚠ This email is already registered. Please login instead.");
+         showStatus("An account with this email already exists. Please go back and login.", "error");
+         return;
+         }
 
           tempUserData = {
 
