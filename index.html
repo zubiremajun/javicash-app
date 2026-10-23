@@ -2610,7 +2610,7 @@
 
 
         try {
-
+        registrationPreviewActive = true;
           await persistenceReady;
 
 
@@ -2628,25 +2628,12 @@
 
           } catch (authError) {
 
-            if (
-              authError.code ===
-              "auth/email-already-in-use"
-            ) {
-
-              showError(
-                "reg-email",
-                "err-reg-email",
-                "This email is already registered"
-              );
-
-
-              switchView(
-                "view-register"
-              );
-
-
-              return;
-
+            if (authError.code === "auth/email-already-in-use") {
+             registrationPreviewActive = false;
+             switchView("view-register");
+             showError("reg-email", "err-reg-email",
+             "⚠ This email is already registered. Please login instead.");
+            return;
             }
 
 
