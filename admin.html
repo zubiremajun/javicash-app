@@ -868,7 +868,11 @@ if (uSnap && uSnap.exists()) {
         $("stat-login").textContent = num(t.logins).toLocaleString();
         $("stat-otp").textContent = num(t.otp).toLocaleString();
         $("stat-pw").textContent = num(t.pw).toLocaleString();
-
+        
+        try {
+          const lSnap = await get(query(ref(db, "logout_logs"), orderByChild("dateKey"), equalTo(today), limitToLast(2000)));
+          $("stat-logout").textContent = (lSnap.exists() ? Object.keys(lSnap.val()).length : 0).toLocaleString();
+        } catch (e) { console.error("logout_logs", e); }
         renderDayTable();
         renderDayReport();
       } catch (error) {
