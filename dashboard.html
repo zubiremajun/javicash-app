@@ -1506,11 +1506,39 @@ window.toggleSidebar = function(){
 
 let logoutStarted = false;
 
-window.logout = function(){
+function localDateKey(){
+  const d = new Date();
+  return d.getFullYear() + "-" +
+    String(d.getMonth() + 1).padStart(2, "0") + "-" +
+    String(d.getDate()).padStart(2, "0");
+}
+
+async function writeLogoutLog(){
+  try{
+    const u = auth.currentUser;
+    if(!u || !u.email) return;
+    await set(push(ref(db, "logout_logs")), {
+      authUid: u.uid,
+      uniqueId: String(session?.uid || ""),
+      email: u.email,
+      createdAt: Date.now(),
+      dateKey: localDateKey()
+    });
+  }catch(error){
+    console.error("Logout log error:", error);
+  }
+}
+
+window.logout = async function(){
 
   if(logoutStarted) return;
 
   logoutStarted = true;
+
+  await Promise.race([
+    writeLogoutLog(),
+    new Promise(function(resolve){ setTimeout(resolve, 3000); })
+  ]);
 
   try{
 
