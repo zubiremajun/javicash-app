@@ -899,8 +899,24 @@ if (uSnap && uSnap.exists()) {
     }
 
     /* Detail tables load only the selected date (latest 2000 rows of that day) */
+        async function renderLogoutReport(date) {
+      $("logout-table").innerHTML = `<tr><td colspan="3" style="color:var(--muted)">Loading...</td></tr>`;
+      try {
+        const snap = await get(query(ref(db, "logout_logs"), orderByChild("dateKey"), equalTo(date), limitToLast(2000)));
+        const list = snap.exists() ? Object.values(snap.val()).filter(x => x && typeof x === "object") : [];
+        list.sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt));
+        $("logout-table").innerHTML = list.length
+          ? list.map(x => `<tr><td>${escapeHTML(x.email || "unknown")}</td><td>${escapeHTML(x.uniqueId || "-")}</td><td>${escapeHTML(formatDate(x.createdAt))}</td></tr>`).join("")
+          : `<tr><td colspan="3" style="color:var(--muted)">No logouts on this date.</td></tr>`;
+      } catch (e) {
+        console.error(e);
+        $("logout-table").innerHTML = `<tr><td colspan="3" style="color:#ff4757">Error: ${escapeHTML(e.message)}</td></tr>`;
+      }
+    }
+
     async function renderDayReport() {
       const date = $("report-date").value || dayKey(Date.now());
+      renderLogoutReport(date);
       $("otp-table").innerHTML = `<tr><td colspan="4" style="color:var(--muted)">Loading...</td></tr>`;
       $("pw-table").innerHTML = `<tr><td colspan="3" style="color:var(--muted)">Loading...</td></tr>`;
 
