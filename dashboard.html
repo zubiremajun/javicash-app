@@ -1119,7 +1119,21 @@ window.addEventListener("message", function(event){
     gameReady = true;
 
 });
-
+let adPending=null;
+function replyAd(ok,reason){
+  const id=adPending;adPending=null;
+  try{$("gameFrame").contentWindow.postMessage({type:"JAVICASH_AD_RESULT",id:id,ok:ok,reason:reason||""},"*")}catch(e){}
+}
+window.javicashAdResult=function(ok,reason){replyAd(!!ok,reason)};
+window.addEventListener("message",function(event){
+  if(event.source!==$("gameFrame").contentWindow)return;
+  const d=event.data;
+  if(!d||d.type!=="JAVICASH_SHOW_AD"||adPending)return;
+  adPending=d.id||"x";
+  const my=adPending;setTimeout(function(){if(adPending===my)adPending=null},95000);
+  if(!window.AndroidAds){replyAd(false,"no-app");return}
+  try{window.AndroidAds.showRewarded()}catch(e){replyAd(false,"error")}
+});
 function askGameToSave(){
 
   return new Promise(function(resolve){
